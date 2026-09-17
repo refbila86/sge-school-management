@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
+	xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+
+<h:head>
+
+	<title>Utilizadores - SGE</title>
+
+	<style>
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+	background: #f4f6f9;
+}
+
+.page {
+	padding: 30px;
+}
+
+.card {
+	background: #ffffff;
+	border-radius: 10px;
+	padding: 25px;
+	box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 25px;
+}
+
+.title {
+	font-size: 24px;
+	font-weight: bold;
+	color: #17365d;
+}
+
+.subtitle {
+	margin-top: 5px;
+	color: #777;
+}
+
+.badge {
+	padding: 5px 10px;
+	border-radius: 15px;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.active {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+
+.inactive {
+	background: #ffebee;
+	color: #c62828;
+}
+
+.action-buttons .ui-button {
+	margin-right: 5px;
+}
+</style>
+
+</h:head>
+
+<h:body>
+
+	<div class="page">
+		<div class="card">
+			<div class="header">
+				<div>
+					<div class="title">Utilizadores</div>
+					<div class="subtitle">Gestão dos utilizadores do sistema</div>
+				</div>
+				<p:button value="Novo Utilizador" icon="pi pi-user-plus"
+					outcome="/pages/utilizador/user-form.xhtml" />
+			</div>
+
+			<h:form id="userListForm">
+
+				<p:messages id="messages" showDetail="true" closable="true" />
+				<p:dataTable id="usersTable" value="#{userBean.users}" var="u"
+					paginator="true" rows="10" paginatorPosition="bottom"
+					emptyMessage="Nenhum utilizador encontrado."
+					responsiveLayout="scroll" rowHover="true" stripedRows="true">
+					<p:column headerText="ID" style="width:70px">
+						<h:outputText value="#{u.id}" />
+					</p:column>
+					<p:column headerText="Nome" sortBy="#{u.name}">
+						<h:outputText value="#{u.name}" />
+					</p:column>
+					<p:column headerText="Username" sortBy="#{u.username}">
+						<h:outputText value="#{u.username}" />
+					</p:column>
+					<p:column headerText="Email">
+						<h:outputText value="#{u.email}" />
+					</p:column>
+					<p:column headerText="Perfil" sortBy="#{u.role}">
+						<h:outputText value="#{u.role}" />
+					</p:column>
+					<p:column headerText="Estado" style="text-align:center">
+						<h:outputText value="ACTIVO" rendered="#{u.active}"
+							styleClass="badge active" />
+						<h:outputText value="INACTIVO" rendered="#{not u.active}"
+							styleClass="badge inactive" />
+					</p:column>
+					<p:column headerText="Criado em" sortBy="#{u.createdAt}">
+						<h:outputText value="#{u.createdAt}">
+							<f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Ações" style="width:110px; text-align:center"
+						styleClass="action-buttons">
+						<p:commandButton icon="pi pi-pencil" title="Editar"
+							styleClass="rounded-button ui-button-info"
+							actionListener="#{userBean.selectForEdit(u)}"
+							process="@this" update=":userIncludeForm"
+							oncomplete="PF('userDialog').show()" />
+
+						<p:commandButton icon="pi pi-trash" title="Eliminar"
+							styleClass="rounded-button ui-button-danger"
+							actionListener="#{userBean.selectForDelete(u)}"
+							process="@this" update=":deleteUserForm"
+							oncomplete="PF('deleteUserDialog').show()" />
+					</p:column>
+				</p:dataTable>
+			</h:form>
+
+			<!-- DIALOG DE EDIÇÃO -->
+			<p:dialog header="Editar utilizador" widgetVar="userDialog"
+				modal="true" resizable="false" width="500" appendTo="@(body)">
+				<h:form id="userIncludeForm">
+					<ui:include src="/pages/utilizador/user-include.xhtml" />
+				</h:form>
+			</p:dialog>
+
+			<!-- DIALOG DE CONFIRMAÇÃO DE ELIMINAÇÃO -->
+			<p:dialog header="Confirmar eliminação" widgetVar="deleteUserDialog"
+				modal="true" resizable="false" width="400" appendTo="@(body)">
+				<h:form id="deleteUserForm">
+					<div
+						style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+						<i class="pi pi-exclamation-triangle"
+							style="font-size:2rem; color:#c62828;" />
+						<h:outputText
+							value="Eliminar o utilizador '#{userBean.selectedUser.name}'?" />
+					</div>
+					<div style="text-align:right;">
+						<p:commandButton value="Cancelar" type="button"
+							styleClass="ui-button-secondary"
+							onclick="PF('deleteUserDialog').hide()" />
+						<p:commandButton value="Eliminar" styleClass="ui-button-danger"
+							action="#{userBean.delete}" process="@this"
+							update=":userListForm:usersTable :messages"
+							oncomplete="PF('deleteUserDialog').hide()" />
+					</div>
+				</h:form>
+			</p:dialog>
+
+		</div>
+	</div>
+</h:body>
+</html>

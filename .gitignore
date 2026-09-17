@@ -1,0 +1,37 @@
+# IDE
+.settings/
+.externalToolBuilders/
+.classpath
+.factorypath
+.project
+.idea/
+*.iml
+.vscode/
+
+# Segredos e dados locais
+token
+token.txt
+users.txt
+.env
+application.properties
+application-*.properties
+*.key
+*.pem
+
+# Build e lixo
+target/
+out/
+bin/
+bin/installer/
+*.jar
+*.war
+*.msi
+*.exe
+*.pdf
+*.docx
+node_modules/
+dist/
+
+# Logs
+*.log
+logs/

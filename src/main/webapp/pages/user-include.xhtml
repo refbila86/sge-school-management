@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:p="primefaces"
+      xmlns:f="jakarta.faces.core">
+
+<h:head>
+
+    <title>Novo Utilizador - SGE</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .page {
+            padding: 30px;
+        }
+
+        .card {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #17365d;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-full {
+            grid-column: 1 / 3;
+        }
+
+        .field label {
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+    </style>
+
+</h:head>
+
+<h:body>
+
+<div class="page">
+
+    <div class="card">
+
+        <div class="title">
+            Novo Utilizador
+        </div>
+
+        <div class="subtitle">
+            Cadastro de utilizadores do sistema
+        </div>
+
+        <h:form id="userForm">
+
+            <p:messages
+                id="messages"
+                showDetail="true"
+                closable="true"
+            />
+
+            <div class="grid">
+
+                <!-- NOME -->
+
+                <div class="field field-full">
+
+                    <label for="nome">
+                        Nome completo
+                    </label>
+
+                    <p:inputText
+                        id="nome"
+                        value="#{userBean.user.nome}"
+                        required="true"
+                        requiredMessage="Informe o nome do utilizador."
+                        maxlength="150"
+                    />
+
+                </div>
+
+
+                <!-- USERNAME -->
+
+                <div class="field">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <p:inputText
+                        id="username"
+                        value="#{userBean.user.username}"
+                        required="true"
+                        requiredMessage="Informe o username."
+                        maxlength="80"
+                    />
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <p:password
+                        id="password"
+                        value="#{userBean.user.password}"
+                        required="true"
+                        requiredMessage="Informe a password."
+                        toggleMask="true"
+                        feedback="true"
+                    />
+
+                </div>
+
+
+                <!-- EMAIL -->
+
+                <div class="field">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <p:inputText
+                        id="email"
+                        value="#{userBean.user.email}"
+                        maxlength="100"
+                    />
+
+                </div>
+
+
+                <!-- PERFIL -->
+
+                <div class="field">
+
+                    <label for="perfil">
+                        Perfil
+                    </label>
+
+                    <p:selectOneMenu
+                        id="perfil"
+                        value="#{userBean.user.perfil}"
+                        style="width:100%"
+                        required="true"
+                        requiredMessage="Selecione o perfil."
+                    >
+
+                        <f:selectItems
+                            value="#{userBean.perfis}"
+                            var="perfil"
+                            itemValue="#{perfil}"
+                            itemLabel="#{perfil}"
+                        />
+
+                    </p:selectOneMenu>
+
+                </div>
+
+
+                <!-- ACTIVO -->
+
+                <div class="field">
+
+                    <label for="activo">
+                        Estado
+                    </label>
+
+                    <p:selectBooleanCheckbox
+                        id="activo"
+                        value="#{userBean.user.activo}"
+                        itemLabel="Utilizador activo"
+                    />
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTÕES -->
+
+            <div class="actions">
+
+                <p:commandButton
+                    value="Limpar"
+                    icon="pi pi-refresh"
+                    type="button"
+                    onclick="location.reload();"
+                    styleClass="ui-button-secondary"
+                />
+
+                <p:commandButton
+                    value="Guardar"
+                    icon="pi pi-save"
+                    action="#{userBean.salvar}"
+                    update="@form"
+                />
+
+            </div>
+
+        </h:form>
+
+    </div>
+
+</div>
+
+</h:body>
+
+</html>

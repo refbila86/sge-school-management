@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
+	xmlns:p="primefaces" xmlns:f="jakarta.faces.core">
+
+<h:head>
+	<title>SGE - Acesso ao Sistema</title>
+	<meta charset="UTF-8" />
+	<style>
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: Arial, Helvetica, sans-serif;
+	background: linear-gradient(135deg, #17365d, #0f2744);
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.login-container {
+	width: 100%;
+	max-width: 430px;
+	padding: 20px;
+}
+
+.login-card {
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 38px 35px;
+	box-shadow: 0 15px 45px rgba(0, 0, 0, .25);
+}
+
+.logo {
+	text-align: center;
+	margin-bottom: 8px;
+}
+
+.logo-icon {
+	width: 65px;
+	height: 65px;
+	margin: 0 auto 15px;
+	border-radius: 50%;
+	background: #17365d;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30px;
+}
+
+.logo h1 {
+	margin: 0;
+	color: #17365d;
+	font-size: 30px;
+	letter-spacing: 1px;
+}
+
+.subtitle {
+	text-align: center;
+	color: #777;
+	margin-top: 6px;
+	margin-bottom: 28px;
+	font-size: 14px;
+}
+
+.field {
+	margin-bottom: 18px;
+}
+
+.field label {
+	display: block;
+	margin-bottom: 7px;
+	font-size: 14px;
+	font-weight: bold;
+	color: #444;
+}
+
+.field .ui-inputfield, .field .ui-selectonemenu {
+	width: 100%;
+}
+
+.login-button {
+	width: 100%;
+	margin-top: 10px;
+}
+
+.login-footer {
+	text-align: center;
+	margin-top: 25px;
+	color: #999;
+	font-size: 12px;
+}
+
+/* Estilo opcional para os ícones de perfil (apenas visual) */
+.profile-title {
+	font-size: 14px;
+	font-weight: bold;
+	color: #444;
+	margin-bottom: 10px;
+	text-align: center;
+}
+
+.profiles {
+	display: flex;
+	justify-content: center;
+	gap: 15px;
+	margin-bottom: 25px;
+	color: #17365d;
+	font-size: 12px;
+}
+
+.profiles div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+	opacity: 0.7;
+}
+
+.profiles i {
+	font-size: 20px;
+}
+</style>
+</h:head>
+
+<h:body>
+	<div class="login-container">
+		<div class="login-card">
+			<div class="logo">
+				<div class="logo-icon">
+					<i class="pi pi-building" />
+				</div>
+				<h1>SGE</h1>
+			</div>
+			<div class="subtitle">Sistema de Gestão Escolar</div>
+
+			<h:form id="loginForm">
+				<p:messages id="messages" showDetail="true" closable="true" />
+
+				<!-- Indicadores visuais (apenas decorativos) -->
+				<div class="profile-title">Acesso seguro</div>
+				<div class="profiles">
+					<div>
+						<i class="pi pi-user"></i> Admin
+					</div>
+					<div>
+						<i class="pi pi-book"></i> Professor
+					</div>
+					<div>
+						<i class="pi pi-users"></i> Encarregado
+					</div>
+				</div>
+
+				<!-- UTILIZADOR -->
+				<div class="field">
+					<label for="username">Utilizador</label>
+					<p:inputText id="username" value="#{loginBean.username}"
+						placeholder="Digite o seu utilizador" autocomplete="username"
+						required="true" requiredMessage="Informe o utilizador." />
+				</div>
+
+				<!-- SENHA -->
+				<div class="field">
+					<label for="password">Senha</label>
+					<p:password id="password" value="#{loginBean.password}"
+						placeholder="Digite a sua senha" toggleMask="true"
+						feedback="false" autocomplete="current-password" required="true"
+						requiredMessage="Informe a senha." />
+				</div>
+
+				<!-- ENTRAR -->
+				<p:commandButton id="loginButton" value="Entrar no Sistema"
+					icon="pi pi-sign-in" action="#{loginBean.login}" update="messages"
+					styleClass="login-button" />
+
+				<div class="login-footer">
+					SGE - Sistema de Gestão Escolar <br /> Acesso seguro e gerido por
+					escola
+				</div>
+			</h:form>
+		</div>
+	</div>
+</h:body>
+</html>
