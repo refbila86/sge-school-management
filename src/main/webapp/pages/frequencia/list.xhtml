@@ -1,0 +1,63 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 18px; font-weight: 700; color: #0a2545">
+			<i class="pi pi-calendar" style="margin-right: 8px; color: #15558a" />
+			Frequência - 10ª A
+		</div>
+		<p:datePicker placeholder="Selecione a data" showIcon="true"
+			style="width:180px" />
+	</div>
+
+	<div
+		style="background: white; border-radius: 16px; padding: 14px; border: 1px solid #e9eef3; margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap">
+		<p:commandButton value="Marcar Todos Presentes" icon="pi pi-check"
+			styleClass="ui-button-success ui-button-outlined"
+			style="font-size:11px" />
+		<p:commandButton value="Marcar Todos Faltas" icon="pi pi-times"
+			styleClass="ui-button-danger ui-button-outlined"
+			style="font-size:11px" />
+		<span
+			style="margin-left: auto; font-size: 11px; color: #7a8a9d; display: flex; align-items: center; gap: 8px"><span
+			style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block"></span>
+			Presente <span
+			style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%; display: inline-block"></span>
+			Falta <span
+			style="width: 10px; height: 10px; background: #f59e0b; border-radius: 50%; display: inline-block"></span>
+			Justificada</span>
+	</div>
+
+	<div
+		style="background: white; border-radius: 16px; padding: 4px; border: 1px solid #e9eef3">
+		<p:dataTable var="f"
+			value="#{[
+            {'aluno':'Ana Paula Massingue','p1':true,'p2':true,'p3':true,'p4':true,'perc':100},
+            {'aluno':'João Carlos Mabjaia','p1':true,'p2':false,'p3':true,'p4':true,'perc':75},
+            {'aluno':'Fatima Issa','p1':true,'p2':true,'p3':false,'p4':false,'perc':50},
+            {'aluno':'Carlos Tembe','p1':true,'p2':true,'p3':true,'p4':true,'perc':100}
+        ]}"
+			style="font-size:12px">
+			<p:column headerText="Aluno" width="220">
+				<b>#{f.aluno}</b>
+			</p:column>
+			<p:column headerText="Seg 11/08" width="90" style="text-align:center">
+				<p:selectBooleanCheckbox value="#{f.p1}" />
+			</p:column>
+			<p:column headerText="Ter 12/08" width="90" style="text-align:center">
+				<p:selectBooleanCheckbox value="#{f.p2}" />
+			</p:column>
+			<p:column headerText="Qua 13/08" width="90" style="text-align:center">
+				<p:selectBooleanCheckbox value="#{f.p3}" />
+			</p:column>
+			<p:column headerText="Qui 14/08" width="90" style="text-align:center">
+				<p:selectBooleanCheckbox value="#{f.p4}" />
+			</p:column>
+			<p:column headerText="%" width="90" style="text-align:center">
+				<b style="color:#{f.perc &gt;= 75 ? '#10b981' : '#ef4444'}">#{f.perc}%</b>
+			</p:column>
+		</p:dataTable>
+	</div>
+</ui:composition>

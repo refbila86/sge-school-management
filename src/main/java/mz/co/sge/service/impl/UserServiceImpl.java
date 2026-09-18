@@ -29,37 +29,29 @@ public class UserServiceImpl implements IUserService
 	@Override
 	public UserEntity authenticate(String username, String rawPassword, Long schoolId)
 	{
-		// LOG 1: Verificar os parâmetros que chegaram
 		System.out.println("=== DEPURANDO LOGIN ===");
-		System.out.println("Username recebido: [" + username + "]");
-		System.out.println("SchoolId recebido: [" + schoolId + "]");
+		System.out.println("Username: [" + username + "]");
+		System.out.println("SchoolId: [" + schoolId + "]");
+		System.out.println("RawPassword length: " + (rawPassword != null ? rawPassword.length() : "null"));
+		System.out.println("RawPassword bytes: [" + rawPassword + "]");
 
 		Optional<UserEntity> found = userRepository.findByUsernameAndSchoolId(username, schoolId);
-
 		if (found.isEmpty())
 		{
-			System.out.println("--> FALHA: Utilizador não encontrado para este Username e SchoolId no BD.");
+			System.out.println("--> FALHA: Utilizador não encontrado");
 			return null;
 		}
-
 		UserEntity user = found.get();
-		System.out.println("Utilizador encontrado no BD: ID=" + user.getId() + ", Active=" + user.getActive());
+		System.out.println("Hash no BD: [" + user.getPassword() + "] len=" + user.getPassword().length());
 
 		if (!Boolean.TRUE.equals(user.getActive()))
-		{
-			System.out.println("--> FALHA: O campo 'active' está como FALSE ou NULL no BD.");
 			return null;
-		}
 
-		boolean passwordMatches = passwordEncoder.matches(rawPassword, user.getPassword());
-		System.out.println("Validação da Senha BCrypt: " + passwordMatches);
-
+		// Teste importante
+		boolean passwordMatches = passwordEncoder.matches(rawPassword.trim(), user.getPassword());
+		System.out.println("Matches: " + passwordMatches);
 		if (!passwordMatches)
-		{
-			System.out.println("--> FALHA: A senha fornecida não corresponde à Hash BCrypt do BD.");
-			System.out.println("Hash no BD: " + user.getPassword());
 			return null;
-		}
 
 		user.setLastLogin(LocalDateTime.now());
 		return userRepository.save(user);
@@ -85,37 +77,33 @@ public class UserServiceImpl implements IUserService
 	{
 		return userRepository.findById(id);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public List<UserEntity> findAllBySchool(Long schoolId)
 	{
 		return userRepository.findBySchoolIdOrderByNameAsc(schoolId);
 	}
-	
+
 	@Transactional(readOnly = true)
 	public boolean usernameExists(String username, Long schoolId)
 	{
 		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
 	}
 
-
 	@Override
 	public UserEntity save(UserEntity user)
 	{
-		// Se for um novo usuário e a senha estiver em texto puro, criptografa com
-		// BCrypt
 		if (user.getCreatedAt() == null)
-		{
 			user.setCreatedAt(LocalDateTime.now());
-		}
 		if (user.getActive() == null)
-		{
 			user.setActive(true);
-		}
 
-		if (user.getId() == null || !user.getPassword().startsWith("$2a$"))
+		// CORRIGIDO: detecta qualquer hash BCrypt válido
+		String pwd = user.getPassword();
+		if (pwd != null && !pwd.matches("^\\$2[aby]?\\$\\d+\\$.*"))
 		{
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
+			System.out.println("Codificando senha nova para o user: " + user.getUsername());
+			user.setPassword(passwordEncoder.encode(pwd));
 		}
 		return userRepository.save(user);
 	}

@@ -1,0 +1,40 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 18px; font-weight: 700; color: #0a2545">
+			<i class="pi pi-briefcase" style="margin-right: 8px; color: #15558a" />
+			Professores
+		</div>
+		<p:commandButton value="Novo Professor" icon="pi pi-plus"
+			style="border-radius:10px;background:#0b2d50;border:none" />
+	</div>
+
+	<div
+		style="background: white; border-radius: 16px; padding: 4px; border: 1px solid #e9eef3">
+		<p:dataTable var="prof"
+			value="#{[
+            {'nome':'Prof. Manuel Silva','disc':'Matemática','turmas':3,'email':'manuel.silva@sge.co.mz'},
+            {'nome':'Profª. Luisa Nhantumbo','disc':'Português','turmas':4,'email':'luisa.n@sge.co.mz'},
+            {'nome':'Prof. Alberto Cossa','disc':'História','turmas':2,'email':'alberto.c@sge.co.mz'},
+            {'nome':'Profª. Rosa Tembe','disc':'Biologia','turmas':3,'email':'rosa.tembe@sge.co.mz'}
+        ]}"
+			style="font-size:12px" stripedRows="true" paginator="true" rows="10">
+			<p:column headerText="Professor">
+				<p:avatar label="#{prof.nome.substring(6,7)}"
+					style="margin-right:8px" size="small" shape="circle" />
+				<b>#{prof.nome}</b>
+			</p:column>
+			<p:column headerText="Disciplina" width="140">
+				<p:tag value="#{prof.disc}" severity="info" style="font-size:10px" />
+			</p:column>
+			<p:column headerText="Turmas" width="80" style="text-align:center">#{prof.turmas}</p:column>
+			<p:column headerText="Email">#{prof.email}</p:column>
+			<p:column headerText="Ações" width="100">
+				<p:commandButton icon="pi pi-ellipsis-v" styleClass="ui-button-text" />
+			</p:column>
+		</p:dataTable>
+	</div>
+</ui:composition>

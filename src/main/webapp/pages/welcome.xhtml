@@ -1,436 +1,121 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="jakarta.faces.html"
                 xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
                 xmlns:p="http://primefaces.org/ui">
 
+    <h:outputScript library="primefaces" name="jquery/jquery.js"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+
     <style>
-        /* HEADER */
-        .dashboard-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 2rem;
-            border-radius: 12px;
-            color: white;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .dashboard-header h2 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 600;
-        }
-
-        .dashboard-header p {
-            margin: 0.5rem 0 0 0;
-            font-size: 1rem;
-            opacity: 0.95;
-        }
-
-        /* GRID DE ESTATÍSTICAS */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        /* CARD BASE */
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        /* CORES ESPECÍFICAS DOS CARDS ESCOLARES */
-        .stat-card.students { border-left-color: #2563eb; }
-        .stat-card.teachers { border-left-color: #10b981; }
-        .stat-card.overdue  { border-left-color: #ef4444; }
-        .stat-card.revenue  { border-left-color: #8b5cf6; }
-        .stat-card.reports  { border-left-color: #1f2937; }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .stat-card.students .stat-icon { background: #dbeafe; color: #2563eb; }
-        .stat-card.teachers .stat-icon { background: #d1fae5; color: #10b981; }
-        .stat-card.overdue .stat-icon  { background: #fee2e2; color: #ef4444; }
-        .stat-card.revenue .stat-icon  { background: #ede9fe; color: #8b5cf6; }
-        .stat-card.reports .stat-icon  { background: #e2e8f0; color: #1f2937; }
-
-        .stat-title {
-            font-size: 0.875rem;
-            color: #6b7280;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #111827;
-            margin: 0.5rem 0;
-        }
-
-        .stat-description {
-            font-size: 0.875rem;
-            color: #9ca3af;
-            margin: 0;
-        }
-
-        .stat-date {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 0.5rem;
-            display: block;
-        }
-
-        /* GRÁFICOS */
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            width: 100%;
-        }
-
-        .chart-card h3 {
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-            color: #1e293b;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* TABELAS */
-        .table-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            margin-top: 1.5rem;
-        }
-
-        .table-card h3 {
-            margin-top: 0;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        /* Estilo Tabela de Dívidas */
-        .overdue-table .ui-datatable thead th {
-            background: #ef4444;
-            color: white;
-            font-weight: 600;
-            padding: 0.75rem;
-        }
-
-        .overdue-table .ui-datatable tbody tr:hover {
-            background: #fef2f2 !important;
-        }
-
-        /* Estilo Tabela de Turmas */
-        .capacity-table .ui-datatable thead th {
-            background: #3b82f6;
-            color: white;
-            font-weight: 600;
-            padding: 0.75rem;
-        }
-
-        .capacity-table .ui-datatable tbody tr:hover {
-            background: #eff6ff !important;
-        }
-
-        /* Responsividade */
-        @media (max-width: 1000px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        :root{--primary:#0a2540;--border:#e6eaf0;--muted:#64748b;--bg:#f6f8fb}
+        .welcome{font-family:'Inter',sans-serif}
+        .school-banner{background:linear-gradient(135deg,#0a2540 0%,#1e40af 100%);border-radius:18px;padding:22px 24px;color:white;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;position:relative;overflow:hidden}
+        .school-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(255,255,255,.08);border-radius:50%}
+        .school-info h2{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+        .school-info p{margin:6px 0 0 0;font-size:12px;opacity:.8;display:flex;gap:12px;flex-wrap:wrap}
+        .school-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:20px;font-size:10px;font-weight:700}
+        .user-card{background:white;border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;min-width:260px}
+        .avatar{width:46px;height:46px;border-radius:14px;background:#0a2540;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0}
+        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+        .kpi{background:white;border:1px solid var(--border);border-radius:16px;padding:16px 18px}
+        .kpi b{font-size:22px;color:#0a2540} .kpi span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600}
+        .charts{display:grid;grid-template-columns:1.5fr .9fr;gap:14px;margin-bottom:14px}
+        .box{background:white;border:1px solid var(--border);border-radius:16px;padding:18px}
+        .bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+        @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts,.bottom{grid-template-columns:1fr}.school-banner{flex-direction:column;align-items:flex-start;gap:16px}}
     </style>
 
-    <!-- CABEÇALHO DE BOAS-VINDAS -->
-    <div class="dashboard-header">
-        <h2>
-            <i class="pi pi-graduation-cap" style="margin-right: 0.5rem;"></i>
-            Bem-vindo,
-            <h:outputText value="#{loginBean.fullname}" />
-        </h2>
-        <p>Resumo da instituição: alunos, professores, turmas e estado financeiro.</p>
-    </div>
+    <div class="welcome">
 
-    <!-- CARDS DE ESTATÍSTICAS -->
-    <div class="stats-grid">
-        <!-- Card: Total de Alunos -->
-        <div class="stat-card students">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="pi pi-users"></i></div>
-                <div><div class="stat-title">Total de Alunos</div></div>
-            </div>
-            <div class="stat-value">
-                <h:outputText value="#{studentBean.totalStudents}" />
-            </div>
-            <p class="stat-description">Alunos activos matriculados</p>
-            <span class="stat-date">
-                <i class="pi pi-calendar" style="margin-right: 0.25rem;"></i>
-                <h:outputText value="#{dashboardBean.currentDate}">
-                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                </h:outputText>
-            </span>
-        </div>
-
-        <!-- Card: Total de Professores -->
-        <div class="stat-card teachers">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="pi pi-user"></i></div>
-                <div><div class="stat-title">Total de Professores</div></div>
-            </div>
-            <div class="stat-value">
-                <h:outputText value="#{teacherBean.totalTeachers}" />
-            </div>
-            <p class="stat-description">Docentes a leccionar</p>
-        </div>
-
-        <!-- Card: Mensalidades em Atraso -->
-        <div class="stat-card overdue">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
-                <div><div class="stat-title">Dívidas em Atraso</div></div>
-            </div>
-            <div class="stat-value">
-                <h:outputText value="#{feeBean.overdueCount}" />
-            </div>
-            <p class="stat-description">Encarregados com propinas em atraso</p>
-        </div>
-
-        <!-- Card: Receitas do Dia -->
-        <div class="stat-card revenue">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="pi pi-wallet"></i></div>
-                <div><div class="stat-title">Receitas do Dia</div></div>
-            </div>
-            <div class="stat-value">
-                <h:outputText value="#{feeBean.dailyRevenue}">
-                    <f:convertNumber type="currency" currencySymbol="MT " />
-                </h:outputText>
-            </div>
-            <p class="stat-description">Pagamentos de mensalidades hoje</p>
-        </div>
-
-        <!-- Card: Relatórios -->
-        <div class="stat-card reports">
-            <div class="stat-header">
-                <div class="stat-icon"><i class="pi pi-chart-bar"></i></div>
-                <div><div class="stat-title">Relatórios</div></div>
-            </div>
-            <div style="padding-top: 0.5rem;">
-                <p:commandButton value="Acessar Relatórios" icon="pi pi-arrow-right"
-                    styleClass="p-button-info" style="width: 100%;"
-                    actionListener="#{dashboardBean.loadPage('reports')}"
-                    update=":mainForm:mainContent" />
-            </div>
-            <p class="stat-description" style="margin-top: 1rem;">Pautas, financeiro e desempenho</p>
-        </div>
-    </div>
-
-    <!-- SEÇÃO DE GRÁFICOS -->
-    <div class="charts-grid">
-        <!-- Gráfico 1: Alunos por Turma (Barras) -->
-        <div class="chart-card">
-            <h3><i class="pi pi-chart-bar" style="color: #2563eb;"></i> Alunos por Turma (Top 5)</h3>
-            <p:barChart model="#{classroomBean.studentsPerClassBarModel}"
-                rendered="#{classroomBean.studentsPerClassBarModel != null}"
-                style="width: 100%; height: 250px;" />
-            <h:outputText value="* Dados não disponíveis"
-                rendered="#{classroomBean.studentsPerClassBarModel == null}"
-                style="color: #9ca3af; font-style: italic;" />
-        </div>
-
-        <!-- Gráfico 2: Distribuição de Pagamentos (Pizza) -->
-        <div class="chart-card">
-            <h3><i class="pi pi-chart-pie" style="color: #8b5cf6;"></i> Status de Pagamentos do Mês</h3>
-            <p:pieChart model="#{feeBean.paymentStatusPieModel}"
-                rendered="#{feeBean.paymentStatusPieModel != null}"
-                style="width: 100%; height: 250px;" />
-            <h:outputText value="* Dados não disponíveis"
-                rendered="#{feeBean.paymentStatusPieModel == null}"
-                style="color: #9ca3af; font-style: italic;" />
-        </div>
-    </div>
-
-    <!-- TABELAS -->
-
-    <!-- TABELA 1: Alunos com Dívidas Críticas -->
-    <div class="table-card" style="border-left: 4px solid #ef4444;">
-        <h3 style="color: #ef4444;">
-            <i class="pi pi-times-circle"></i> Alunos com Dívidas Críticas (+3 meses)
-        </h3>
-        <p style="color: #6b7280; margin-bottom: 1rem; font-size: 0.9rem;">
-            Encarregados que necessitam de acção imediata de cobrança.
-        </p>
-
-        <p:dataTable value="#{feeBean.criticalOverdueList}" var="debt"
-            rows="8" paginator="true" paginatorPosition="bottom"
-            emptyMessage="✓ Nenhum aluno com dívida crítica no momento"
-            styleClass="overdue-table">
-
-            <p:column headerText="Aluno" sortBy="#{debt.studentName}" style="font-weight: 600;">
-                <h:outputText value="#{debt.studentName}" />
-            </p:column>
-            <p:column headerText="Turma">
-                <h:outputText value="#{debt.className}" />
-            </p:column>
-            <p:column headerText="Encarregado">
-                <h:outputText value="#{debt.guardianName}" />
-            </p:column>
-            <p:column headerText="Meses em Atraso" style="text-align: center;">
-                <h:outputText value="#{debt.monthsOverdue}" style="color: #ef4444; font-weight: 700;" />
-            </p:column>
-            <p:column headerText="Valor em Dívida" style="text-align: right;">
-                <h:outputText value="#{debt.totalDebt}" style="color: #ef4444; font-weight: 700;">
-                    <f:convertNumber type="currency" currencySymbol="MT " />
-                </h:outputText>
-            </p:column>
-            <p:column headerText="Acção" style="text-align: center; width: 100px;">
-                <p:commandButton icon="pi pi-send"
-                    styleClass="p-button-rounded p-button-sm p-button-warning"
-                    title="Enviar Aviso" />
-            </p:column>
-        </p:dataTable>
-
-        <!-- Resumo de Perdas/Dívidas -->
-        <div style="margin-top: 1rem; padding: 1rem; background: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong style="color: #dc2626;">⚠️ Total de Dívidas Críticas Acumuladas:</strong>
-                    <p style="color: #6b7280; font-size: 0.875rem; margin: 0.25rem 0 0 0;">
-                        Valor total que requer intervenção da direcção
-                    </p>
+        <!-- BANNER DA ESCOLA SELECIONADA NO LOGIN -->
+        <div class="school-banner">
+            <div class="school-info">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                    <i class="pi pi-building" style="font-size:18px;background:rgba(255,255,255,.15);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px"/>
+                    <span style="font-size:10px;letter-spacing:1px;opacity:.7;text-transform:uppercase;font-weight:700">Escola Selecionada no Login</span>
                 </div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: #dc2626;">
-                    <h:outputText value="#{feeBean.totalCriticalDebt}">
-                        <f:convertNumber type="currency" currencySymbol="MT " />
-                    </h:outputText>
+                <h2>#{loginBean.loggedSchool.name}</h2>
+                <p>
+                    <span><i class="pi pi-tag" style="margin-right:4px"/> Código: <b>#{loginBean.loggedSchool.code}</b></span>
+                    <span><i class="pi pi-id-card" style="margin-right:4px"/> NUIT: #{loginBean.loggedSchool.nuit}</span>
+                    <span><i class="pi pi-map-marker" style="margin-right:4px"/> #{loginBean.loggedSchool.address}</span>
+                    <span><i class="pi pi-phone" style="margin-right:4px"/> #{loginBean.loggedSchool.phone}</span>
+                </p>
+            </div>
+
+            <!-- CARD DO UTILIZADOR LOGADO -->
+            <div class="user-card">
+                <div class="avatar">#{loginBean.fullname.substring(0,1)}</div>
+                <div style="flex:1">
+                    <div style="font-size:13px;font-weight:700;color:#0a2540">#{loginBean.fullname}</div>
+                    <div style="font-size:11px;color:var(--muted)">#{loginBean.username} • <b>#{loginBean.role}</b></div>
+                    <div style="margin-top:6px;display:flex;gap:6px">
+                        <span class="school-badge" style="background:#dcfce7;color:#166534;border-color:#bbf7d0"><i class="pi pi-circle-fill" style="font-size:6px"/> ONLINE</span>
+                        <span class="school-badge" style="background:#e0f2fe;color:#1e40af">ID Escola: #{loginBean.schoolId}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi"><span>Alunos Matriculados</span><br/><b>1.248</b><div style="margin-top:8px"><p:progressBar value="85" displayOnly="true" style="height:5px"/></div></div>
+            <div class="kpi"><span>Turmas Ativas</span><br/><b>32</b><div style="font-size:11px;color:var(--muted);margin-top:4px">4 turnos • #{loginBean.loggedSchool.name}</div></div>
+            <div class="kpi"><span>Professores</span><br/><b>48</b><div style="font-size:11px;color:#10b981;margin-top:4px">▲ 2 novos este mês</div></div>
+            <div class="kpi"><span>Taxa Presença</span><br/><b>92.5%</b><div style="font-size:11px;color:#10b981;margin-top:4px">Meta 90%</div></div>
+        </div>
+
+        <!-- GRÁFICOS -->
+        <div class="charts">
+            <div class="box"><b style="font-size:13px">Desempenho por Disciplina - #{loginBean.loggedSchool.code}</b><canvas id="barChart" style="margin-top:12px"></canvas></div>
+            <div class="box"><b style="font-size:13px">Distribuição por Classe</b><canvas id="doughnutChart" style="margin-top:12px"></canvas></div>
+        </div>
+
+        <!-- TABELAS -->
+        <div class="bottom">
+            <div class="box" style="padding:0;overflow:hidden">
+                <div style="padding:14px 18px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border)"><b style="font-size:13px">Últimas Matrículas em #{loginBean.loggedSchool.name}</b><span style="font-size:10px;color:var(--muted)">#{loginBean.loggedSchool.code}</span></div>
+                <p:dataTable value="#{welcomeBean.ultimasMatriculas}" var="a" rows="5" style="font-size:11px" stripedRows="true">
+                    <p:column headerText="CÓDIGO" width="95"><b>#{a.codigo}</b></p:column>
+                    <p:column headerText="ALUNO">#{a.nome}</p:column>
+                    <p:column headerText="TURMA" width="80">#{a.turma}</p:column>
+                    <p:column headerText="ESTADO" width="90"><p:tag value="#{a.estado}" severity="#{a.estado eq 'Ativa' ? 'success' : 'warning'}" style="font-size:9px"/></p:column>
+                </p:dataTable>
+            </div>
+            <div class="box">
+                <b style="font-size:13px">Dados da Escola Logada</b>
+                <div style="margin-top:14px;display:grid;gap:10px;font-size:12px">
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Nome Completo</span><b>#{loginBean.loggedSchool.name}</b></div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Código</span><b>#{loginBean.loggedSchool.code}</b></div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">NUIT</span><b>#{loginBean.loggedSchool.nuit}</b></div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Email</span><b>#{loginBean.loggedSchool.email}</b></div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Endereço</span><b>#{loginBean.loggedSchool.address}</b></div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:var(--muted)">Licença ID</span><b>#{loginBean.loggedSchool.licenseId}</b></div>
+                </div>
+                <div style="margin-top:14px;background:#f6f8fb;padding:10px 12px;border-radius:10px;font-size:10px;color:var(--muted)">
+                    <i class="pi pi-info-circle" style="margin-right:4px"/> Esta escola foi selecionada na tela de login em <b>#{loginBean.schoolId}</b> e está em sessão como <b>#{loginBean.loggedSchool.name}</b> para filtrar todos os dados do sistema.
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- TABELA 2: Turmas Próximo da Lotação -->
-    <div class="table-card" style="border-left: 4px solid #3b82f6;">
-        <h3 style="color: #3b82f6;">
-            <i class="pi pi-users"></i> Turmas Próximo da Lotação Máxima
-        </h3>
-        <p style="color: #6b7280; margin-bottom: 1rem; font-size: 0.9rem;">
-            Turmas que atingiram 85% ou mais da sua capacidade.
-        </p>
-
-        <p:dataTable value="#{classroomBean.nearCapacityClasses}" var="cls"
-            rows="8" paginator="true" paginatorPosition="bottom"
-            emptyMessage="✓ Todas as turmas estão dentro da capacidade normal"
-            styleClass="capacity-table">
-
-            <p:column headerText="Turma" sortBy="#{cls.name}" style="font-weight: 600;">
-                <h:outputText value="#{cls.name}" />
-            </p:column>
-            <p:column headerText="Classe">
-                <h:outputText value="#{cls.gradeLevel}" />
-            </p:column>
-            <p:column headerText="Capacidade Máxima" style="text-align: center;">
-                <h:outputText value="#{cls.maxCapacity}" />
-            </p:column>
-            <p:column headerText="Alunos Actuais" style="text-align: center;">
-                <h:outputText value="#{cls.currentStudents}" style="font-weight: 600; color: #3b82f6;" />
-            </p:column>
-            <p:column headerText="Vagas Restantes" style="text-align: center;">
-                <h:outputText value="#{cls.availableSeats}"
-                    style="font-weight: 700; #{cls.availableSeats le 3 ? 'color: #ef4444;' : 'color: #10b981;'}" />
-            </p:column>
-        </p:dataTable>
-    </div>
-
-    <!-- TABELA 3: Últimas Matrículas -->
-    <div class="table-card">
-        <h3>
-            <i class="pi pi-user-plus" style="color: #10b981; margin-right: 0.5rem;"></i>
-            Últimas Matrículas Realizadas
-        </h3>
-        <p:dataTable value="#{enrollmentBean.lastEnrollments}" var="enr"
-            rows="5" paginator="true">
-            <p:column headerText="Aluno">
-                <h:outputText value="#{enr.studentName}" style="font-weight: 600;" />
-            </p:column>
-            <p:column headerText="Turma Destinada">
-                <h:outputText value="#{enr.className}" />
-            </p:column>
-            <p:column headerText="Data da Matrícula">
-                <h:outputText value="#{enr.enrollmentDate}">
-                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                </h:outputText>
-            </p:column>
-            <p:column headerText="Estado">
-                <p:tag value="#{enr.status}"
-                    severity="#{enr.status == 'Activo' ? 'success' : 'warning'}" />
-            </p:column>
-        </p:dataTable>
-    </div>
-
-    <!-- TABELA 4: Últimos Professores -->
-    <div class="table-card">
-        <h3>
-            <i class="pi pi-briefcase" style="color: #8b5cf6; margin-right: 0.5rem;"></i>
-            Últimos Professores Adicionados
-        </h3>
-        <p:dataTable value="#{teacherBean.lastTeachers}" var="tch" rows="5" paginator="true">
-            <p:column headerText="Nome Completo">
-                <h:outputText value="#{tch.fullName}" style="font-weight: 600;" />
-            </p:column>
-            <p:column headerText="Disciplina Principal">
-                <h:outputText value="#{tch.mainSubject}" />
-            </p:column>
-            <p:column headerText="Contacto">
-                <h:outputText value="#{tch.phone}" />
-            </p:column>
-            <p:column headerText="Data de Registo">
-                <h:outputText value="#{tch.registrationDate}">
-                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                </h:outputText>
-            </p:column>
-        </p:dataTable>
-    </div>
-
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Mat','Port','Física','Química','Bio','Hist'],
+                    datasets: [{ label:'Média', data:[14.2,12.8,15.1,13.5,16.0,11.9], backgroundColor:'#0a2540', borderRadius:6 }]
+                },
+                options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{max:20}}}
+            });
+            new Chart(document.getElementById('doughnutChart'), {
+                type: 'doughnut',
+                data: { labels:['8ª','9ª','10ª','11ª'], datasets:[{ data:[420,380,280,168], backgroundColor:['#0a2540','#2563eb','#10b981','#f59e0b'], borderWidth:0 }] },
+                options:{responsive:true, cutout:'68%'}
+            });
+        });
+    </script>
 </ui:composition>

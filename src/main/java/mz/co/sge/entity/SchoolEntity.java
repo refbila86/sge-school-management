@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 { @NamedQuery(name = "SchoolEntity.findByCode", query = "SELECT s FROM SchoolEntity s WHERE s.code = :code"),
 		@NamedQuery(name = "SchoolEntity.findByLicenseId", query = "SELECT s FROM SchoolEntity s WHERE s.licenseId = :licenseId"),
 		@NamedQuery(name = "SchoolEntity.findAllActiveOrderByNameAsc", query = "SELECT s FROM SchoolEntity s WHERE s.active = true ORDER BY s.name ASC"),
+		@NamedQuery(name = "SchoolEntity.findAllActiveActiveSchools", query = "SELECT s FROM SchoolEntity s WHERE s.active = true ORDER BY s.name ASC"),
 		@NamedQuery(name = "SchoolEntity.existsByCode", query = "SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM SchoolEntity s WHERE s.code = :code") })
 public class SchoolEntity implements Serializable
 {

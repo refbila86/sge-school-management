@@ -26,10 +26,7 @@ public class UsersService
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	/**
-	 * Salva ou atualiza um utilizador. Encripta a senha apenas se ela ainda não
-	 * estiver encriptada (evita re-encriptar ao editar).
-	 */
+ 
 	public UserEntity save(UserEntity user)
 	{
 		if (user.getCreatedAt() == null)

@@ -1,0 +1,182 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 22px
+}
+
+.form-section {
+	margin-bottom: 18px;
+	padding-bottom: 18px;
+	border-bottom: 1px dashed #e6eaf0
+}
+
+.form-section:last-child {
+	border: none
+}
+
+.section-title {
+	font-size: 11px;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px
+}
+
+.grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 14px
+}
+
+@media ( max-width :800px) {
+	.grid-2, .grid-3 {
+		grid-template-columns: 1fr
+	}
+}
+
+label {
+	font-size: 11px;
+	font-weight: 600;
+	color: #334155;
+	margin-bottom: 4px;
+	display: block
+}
+
+.required {
+	color: #ef4444
+}
+</style>
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 18px; font-weight: 700; color: #0a2540">
+			<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />
+			#{schoolBean.editing ? 'Editar Escola' : 'Cadastrar Nova Escola'}
+		</div>
+		<p:commandButton value="Voltar para Lista" icon="pi pi-arrow-left"
+			styleClass="ui-button-secondary ui-button-outlined"
+			style="border-radius:10px;font-size:12px"
+			action="#{dashboardBean.navigate('schools/school-list','escolas')}"
+			update=":contentPanel" immediate="true" />
+	</div>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" life="4000" />
+
+		<div class="form-card">
+
+			<!-- DADOS PRINCIPAIS -->
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-info-circle" /> Dados Principais
+				</div>
+				<div class="grid-2">
+					<div>
+						<label>Nome da Escola <span class="required">*</span></label>
+						<p:inputText value="#{schoolBean.school.name}" required="true"
+							requiredMessage="Informe o nome"
+							placeholder="Ex: Escola Secundária da Matola" style="width:100%" />
+					</div>
+					<div>
+						<label>Código <span class="required">*</span></label>
+						<p:inputText value="#{schoolBean.school.code}" required="true"
+							requiredMessage="Informe o código" placeholder="Ex: ESMAT"
+							style="width:100%;text-transform:uppercase"
+							disabled="#{schoolBean.editing}" />
+						<small style="font-size: 10px; color: #64748b">Código
+							único, não pode repetir</small>
+					</div>
+				</div>
+			</div>
+
+			<!-- DOCUMENTAÇÃO -->
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-id-card" /> Documentação
+				</div>
+				<div class="grid-3">
+					<div>
+						<label>NUIT</label>
+						<p:inputText value="#{schoolBean.school.nuit}"
+							placeholder="Ex: 400123456" style="width:100%" />
+					</div>
+					<div>
+						<label>License ID <span class="required">*</span></label>
+						<p:inputNumber value="#{schoolBean.school.licenseId}"
+							required="true" requiredMessage="Informe License ID"
+							decimalPlaces="0" thousandSeparator="" placeholder="Ex: 1"
+							style="width:100%" />
+					</div>
+					<div>
+						<label>Estado</label>
+						<p:toggleSwitch value="#{schoolBean.school.active}"
+							onLabel="Ativa" offLabel="Inativa" style="margin-top:4px" />
+					</div>
+				</div>
+			</div>
+
+			<!-- CONTACTOS -->
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-phone" /> Contactos e Localização
+				</div>
+				<div class="grid-2">
+					<div>
+						<label>Endereço</label>
+						<p:inputText value="#{schoolBean.school.address}"
+							placeholder="Ex: Av. da Namaacha, Matola" style="width:100%" />
+					</div>
+					<div>
+						<label>Telefone</label>
+						<p:inputText value="#{schoolBean.school.phone}"
+							placeholder="Ex: +258 84 123 4567" style="width:100%" />
+					</div>
+				</div>
+				<div style="margin-top: 14px">
+					<label>Email Institucional</label>
+					<p:inputText value="#{schoolBean.school.email}"
+						placeholder="Ex: secretaria@esmat.edu.mz" style="width:100%" />
+				</div>
+			</div>
+
+			<!-- AÇÕES -->
+			<div
+				style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px">
+				<p:commandButton value="Cancelar" icon="pi pi-times"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px"
+					action="#{dashboardBean.navigate('schools/school-list','escolas')}"
+					update=":contentPanel" immediate="true" process="@this" />
+				<p:commandButton
+					value="#{schoolBean.editing ? 'Atualizar Escola' : 'Salvar Escola'}"
+					icon="pi pi-check"
+					style="border-radius:10px;background:#0a2540;border:none"
+					action="#{schoolBean.save}"
+					update=":contentPanel" />
+			</div>
+
+			<div
+				style="margin-top: 16px; background: #f6f8fb; border: 1px dashed #cbd5e1; padding: 10px 12px; border-radius: 10px; font-size: 11px; color: #64748b">
+				<i class="pi pi-info-circle" style="margin-right: 6px" /> Todos os
+				campos marcados com <span class="required">*</span> são
+				obrigatórios. O código da escola é único no sistema.
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

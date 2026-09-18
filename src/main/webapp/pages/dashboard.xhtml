@@ -1,690 +1,610 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:p="primefaces"
-      xmlns:ui="jakarta.faces.facelets"
-      xmlns:f="jakarta.faces.core">
-
-<h:head>
-    <title>Dashboard - SGE (Sistema de Gestão Escolar)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
-    
-    <style>
-        :root {
-            --primary-50: #eff6ff;
-            --primary-100: #dbeafe;
-            --primary-500: #3b82f6;
-            --primary-600: #2563eb;
-            --primary-700: #1d4ed8;
-            --primary-900: #1e3a8a;
-            --neutral-50: #f8fafc;
-            --neutral-100: #f1f5f9;
-            --neutral-200: #e2e8f0;
-            --neutral-300: #cbd5e1;
-            --neutral-600: #475569;
-            --neutral-700: #334155;
-            --neutral-800: #1e293b;
-            --neutral-900: #0f172a;
-            --sidebar-width: 270px;
-            --sidebar-collapsed-width: 80px;
-            --header-height: 70px;
-            --footer-height: 48px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body, html {
-            height: 100%;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--neutral-100);
-            color: var(--neutral-800);
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .layout {
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr;
-            grid-template-rows: var(--header-height) 1fr var(--footer-height);
-            grid-template-areas: 
-                "sidebar header" 
-                "sidebar main" 
-                "sidebar footer";
-            height: 100vh;
-            transition: grid-template-columns 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .layout.sidebar-collapsed {
-            grid-template-columns: var(--sidebar-collapsed-width) 1fr;
-        }
-
-        /* ================= SIDEBAR ================= */
-        .sidebar {
-            grid-area: sidebar;
-            background: #ffffff;
-            border-right: 1px solid var(--neutral-200);
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden;
-        }
-
-        .sidebar-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--neutral-200);
-            background: #ffffff;
-            min-height: var(--header-height);
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-header .logo-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .sidebar-header .logo-icon {
-            font-size: 1.35rem;
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-900) 100%);
-            color: white;
-            padding: 0.65rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-header h2 {
-            font-size: 0.95rem;
-            font-weight: 800;
-            line-height: 1.25;
-            color: var(--neutral-900);
-            letter-spacing: -0.01em;
-            white-space: nowrap;
-            transition: opacity 0.2s ease;
-        }
-
-        .sidebar-collapsed .sidebar-header h2 {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .sidebar-menu {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 0.75rem;
-        }
-
-        .dashboard-direct-btn {
-            padding: 0 0.25rem 0.75rem 0.25rem;
-            margin-bottom: 0.75rem;
-            border-bottom: 1px solid var(--neutral-200);
-        }
-
-        .dashboard-direct-btn .ui-menuitem-link {
-            padding: 0.75rem 0.85rem !important;
-            border-radius: 10px !important;
-            background: var(--neutral-50) !important;
-            border: 1px solid var(--neutral-200) !important;
-            color: var(--primary-700) !important;
-            font-weight: 700 !important;
-            font-size: 0.875rem !important;
-            display: flex !important;
-            align-items: center !important;
-            transition: all 0.2s ease !important;
-        }
-
-        .dashboard-direct-btn .ui-menuitem-link:hover {
-            background: var(--primary-50) !important;
-            border-color: var(--primary-100) !important;
-            color: var(--primary-600) !important;
-        }
-
-        .dashboard-direct-btn .ui-menuitem-link.active {
-            background: var(--primary-600) !important;
-            color: white !important;
-            border-color: var(--primary-600) !important;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-        }
-
-        .sidebar-menu .ui-accordion {
-            background: transparent !important;
-            border: none !important;
-        }
-
-        .sidebar-menu .ui-accordion .ui-accordion-header {
-            background: linear-gradient(90deg, var(--neutral-50) 0%, #ffffff 100%) !important;
-            border: 1px solid var(--neutral-200) !important;
-            border-left: 4px solid var(--primary-600) !important;
-            border-radius: 10px !important;
-            margin-top: 0.75rem !important;
-            margin-bottom: 0.35rem !important;
-            padding: 0.75rem 1rem !important;
-            font-weight: 800 !important;
-            font-size: 0.8rem !important;
-            color: var(--neutral-900) !important;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        .sidebar-menu .ui-accordion .ui-accordion-header:hover {
-            background: var(--primary-50) !important;
-            border-color: var(--primary-100) !important;
-            border-left-color: var(--primary-700) !important;
-            color: var(--primary-900) !important;
-            transform: translateX(2px);
-        }
-
-        .sidebar-menu .ui-accordion .ui-accordion-header.ui-state-active {
-            background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%) !important;
-            border-color: #bfdbfe !important;
-            border-left: 4px solid var(--primary-600) !important;
-            color: var(--primary-900) !important;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
-        }
-
-        .category-header-title {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            width: 100%;
-        }
-
-        .category-header-icon {
-            font-size: 1rem;
-            color: var(--primary-600);
-            background: white;
-            padding: 0.3rem;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-menu .ui-accordion .ui-accordion-content {
-            background: transparent !important;
-            border: none !important;
-            padding: 0.35rem 0 0.5rem 0.5rem !important;
-        }
-
-        .sidebar-menu .ui-menu {
-            background: transparent !important;
-            border: none !important;
-            width: 100% !important;
-        }
-
-        .sidebar-menu .ui-menuitem {
-            margin: 0.2rem 0 !important;
-        }
-
-        .sidebar-menu .ui-menuitem-link {
-            padding: 0.65rem 0.85rem !important;
-            border-radius: 8px !important;
-            transition: all 0.2s ease !important;
-            display: flex !important;
-            align-items: center !important;
-            color: var(--neutral-700) !important;
-            background: transparent !important;
-            border: none !important;
-            font-size: 0.875rem !important;
-            font-weight: 500 !important;
-        }
-
-        .sidebar-menu .ui-menuitem-link:hover {
-            background: var(--neutral-100) !important;
-            color: var(--neutral-900) !important;
-        }
-
-        .sidebar-menu .ui-menuitem-link.active {
-            background: var(--primary-600) !important;
-            color: white !important;
-            font-weight: 600 !important;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-        }
-
-        .sidebar-menu .ui-menuitem-icon {
-            margin-right: 0.75rem !important;
-            font-size: 1.1rem !important;
-        }
-
-        .sidebar-menu .ui-menuitem-link.active .ui-menuitem-icon {
-            color: white !important;
-        }
-
-        .sidebar-menu .menu-featured .ui-menuitem-link {
-            font-weight: 700 !important;
-            background: linear-gradient(90deg, var(--primary-50) 0%, transparent 100%) !important;
-            border-left: 3px solid var(--primary-600) !important;
-            color: var(--primary-900) !important;
-        }
-
-        .sidebar-menu .menu-featured .ui-menuitem-link:hover {
-            background: var(--primary-100) !important;
-        }
-
-        .sidebar-menu .menu-featured .ui-menuitem-link.active {
-            background: var(--primary-600) !important;
-            color: white !important;
-            border-left: 3px solid var(--primary-900) !important;
-        }
-
-        /* ================= HEADER ================= */
-        .header {
-            grid-area: header;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            border-bottom: 1px solid var(--neutral-200);
-            z-index: 90;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin: 0;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .header-title i {
-            color: var(--primary-600);
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            background: var(--neutral-50);
-            padding: 0.45rem 0.9rem;
-            border-radius: 30px;
-            color: var(--neutral-800);
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: 1px solid var(--neutral-200);
-        }
-
-        .user-icon {
-            font-size: 1rem;
-            color: var(--primary-600);
-            background: var(--primary-100);
-            padding: 0.35rem;
-            border-radius: 50%;
-        }
-
-        .toggle-btn {
-            background: transparent !important;
-            border: 1px solid var(--neutral-200) !important;
-            color: var(--neutral-700) !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            border-radius: 8px !important;
-            width: 38px !important;
-            height: 38px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        .toggle-btn:hover {
-            background: var(--neutral-100) !important;
-            color: var(--neutral-900) !important;
-            border-color: var(--neutral-300) !important;
-        }
-
-        .logout-btn {
-            background: #fef2f2 !important;
-            border: 1px solid #fee2e2 !important;
-            color: #dc2626 !important;
-            font-weight: 600 !important;
-            border-radius: 8px !important;
-            padding: 0.5rem 1rem !important;
-            transition: all 0.2s ease !important;
-            font-size: 0.85rem !important;
-        }
-
-        .logout-btn:hover {
-            background: #dc2626 !important;
-            color: white !important;
-            border-color: #dc2626 !important;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2) !important;
-        }
-
-        /* ================= MAIN CONTENT ================= */
-        .main {
-            grid-area: main;
-            padding: 1.75rem 2rem;
-            background: var(--neutral-100);
-            overflow-y: auto;
-        }
-
-        .content-wrapper {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid var(--neutral-200);
-            padding: 1.75rem;
-            min-height: calc(100vh - var(--header-height) - var(--footer-height) - 3.5rem);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-            animation: contentFadeIn 0.25s ease-out;
-        }
-
-        /* ================= FOOTER ================= */
-        .footer {
-            grid-area: footer;
-            background: #ffffff;
-            color: var(--neutral-600);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            font-size: 0.8rem;
-            border-top: 1px solid var(--neutral-200);
-        }
-
-        .footer p {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .footer i {
-            color: var(--primary-600);
-        }
-
-        .footer strong {
-            color: var(--neutral-800);
-            font-weight: 700;
-            padding: 0.15rem 0.5rem;
-            background: var(--neutral-100);
-            border-radius: 4px;
-            border: 1px solid var(--neutral-200);
-        }
-
-        .sidebar-menu::-webkit-scrollbar, .main::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .sidebar-menu::-webkit-scrollbar-track, .main::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar-menu::-webkit-scrollbar-thumb, .main::-webkit-scrollbar-thumb {
-            background: var(--neutral-300);
-            border-radius: 10px;
-        }
-
-        @keyframes contentFadeIn {
-            from { opacity: 0.6; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 1024px) {
-            .layout {
-                grid-template-columns: 1fr;
-                grid-template-areas: "header" "main" "footer";
-            }
-            .sidebar {
-                position: fixed;
-                left: calc(-1 * var(--sidebar-width));
-                top: 0;
-                bottom: 0;
-                width: var(--sidebar-width);
-                box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
-            }
-            .sidebar.active {
-                left: 0;
-            }
-            .main {
-                padding: 1.25rem;
-            }
-            .header {
-                padding: 0 1.25rem;
-            }
-            .footer {
-                padding: 0 1.25rem;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .header-title span,
-            .user-info span,
-            .logout-btn .ui-button-text {
-                display: none !important;
-            }
-            .logout-btn {
-                padding: 0.5rem !important;
-            }
-        }
-    </style>
-</h:head>
-
-<h:body>
-    <h:form id="mainForm">
-        <div class="layout" id="mainLayout">
-
-            <!-- ================= BARRA LATERAL (MENU ESCOLAR) ================= -->
-            <div class="sidebar" id="sidebar">
-                <div class="sidebar-header">
-                    <div class="logo-wrapper">
-                        <i class="pi pi-graduation-cap logo-icon"></i>
-                        <h2>SGE Escolar</h2>
-                    </div>
-                </div>
-
-                <div class="sidebar-menu">
-                    <!-- BOTÃO FIXO: DASHBOARD / VISÃO GERAL -->
-                    <div class="dashboard-direct-btn">
-                        <p:menu>
-                            <p:menuitem value="Visão Geral" icon="pi pi-home"
-                                actionListener="#{dashboardBean.loadPage('welcome')}"
-                                update=":mainForm:mainContent"
-                                styleClass="menu-featured #{dashboardBean.currentPage.endsWith('welcome.xhtml') ? 'active' : ''}" />
-                        </p:menu>
-                    </div>
-
-                    <p:accordionPanel multiple="true" activeIndex="0">
-
-                        <!-- MENU ACADÉMICO -->
-                        <p:tab>
-                            <f:facet name="title">
-                                <div class="category-header-title">
-                                    <i class="pi pi-book category-header-icon"></i>
-                                    <span>Académico</span>
-                                </div>
-                            </f:facet>
-                            <p:menu>
-                                <p:menuitem value="Alunos" icon="pi pi-users"
-                                    actionListener="#{dashboardBean.loadPage('students')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="menu-featured #{dashboardBean.currentPage.endsWith('students.xhtml') ? 'active' : ''}" />
-
-                                <p:menuitem value="Professores" icon="pi pi-user"
-                                    actionListener="#{dashboardBean.loadPage('teachers')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('teachers.xhtml') ? 'active' : ''}" />
-
-                                <p:menuitem value="Turmas" icon="pi pi-sitemap"
-                                    actionListener="#{dashboardBean.loadPage('classes')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('classes.xhtml') ? 'active' : ''}" />
-                                    
-                                <p:menuitem value="Disciplinas" icon="pi pi-folder"
-                                    actionListener="#{dashboardBean.loadPage('subjects')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('subjects.xhtml') ? 'active' : ''}" />
-                            </p:menu>
-                        </p:tab>
-
-                        <!-- MENU AVALIAÇÃO -->
-                        <p:tab>
-                            <f:facet name="title">
-                                <div class="category-header-title">
-                                    <i class="pi pi-pencil category-header-icon"></i>
-                                    <span>Avaliação</span>
-                                </div>
-                            </f:facet>
-                            <p:menu>
-                                <p:menuitem value="Lançamento de Notas" icon="pi pi-file-edit"
-                                    actionListener="#{dashboardBean.loadPage('grades')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('grades.xhtml') ? 'active' : ''}" />
-
-                                <p:menuitem value="Pautas" icon="pi pi-table"
-                                    actionListener="#{dashboardBean.loadPage('report-cards')}"
-                                    update=":mainForm:mainContent"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('report-cards.xhtml') ? 'active' : ''}" />
-                            </p:menu>
-                        </p:tab>
-
-                        <!-- MENU FINANCEIRO (Apenas Admin) -->
-                        <p:tab rendered="#{loginBean.admin}">
-                            <f:facet name="title">
-                                <div class="category-header-title">
-                                    <i class="pi pi-wallet category-header-icon"></i>
-                                    <span>Financeiro</span>
-                                </div>
-                            </f:facet>
-                            <p:menu>
-                                <p:menuitem value="Mensalidades" icon="pi pi-money-bill"
-                                    actionListener="#{dashboardBean.loadPage('fees')}"
-                                    update=":mainForm:mainContent" 
-                                    styleClass="#{dashboardBean.currentPage.endsWith('fees.xhtml') ? 'active' : ''}" />
-                                    
-                                <p:menuitem value="Pagamentos" icon="pi pi-check-circle"
-                                    actionListener="#{dashboardBean.loadPage('payments')}"
-                                    update=":mainForm:mainContent" 
-                                    styleClass="#{dashboardBean.currentPage.endsWith('payments.xhtml') ? 'active' : ''}" />
-                            </p:menu>
-                        </p:tab>
-
-                        <!-- MENU SISTEMA -->
-                        <p:tab>
-                            <f:facet name="title">
-                                <div class="category-header-title">
-                                    <i class="pi pi-cog category-header-icon"></i>
-                                    <span>Sistema</span>
-                                </div>
-                            </f:facet>
-                            <p:menu>
-                                <p:menuitem value="Utilizadores" icon="pi pi-user-plus"
-                                    actionListener="#{dashboardBean.loadPage('users')}"
-                                    update=":mainForm:mainContent"
-                                    rendered="#{loginBean.admin}"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('users.xhtml') ? 'active' : ''}" />
-                                    
-                                <p:menuitem value="Configurações" icon="pi pi-sliders-h"
-                                    actionListener="#{dashboardBean.loadPage('settings')}"
-                                    update=":mainForm:mainContent"
-                                    rendered="#{loginBean.admin}"
-                                    styleClass="#{dashboardBean.currentPage.endsWith('settings.xhtml') ? 'active' : ''}" />
-                            </p:menu>
-                        </p:tab>
-
-                    </p:accordionPanel>
-                </div>
-            </div>
-
-            <!-- ================= CABEÇALHO ================= -->
-            <div class="header">
-                <div class="header-left">
-                    <p:commandButton icon="pi pi-bars" styleClass="toggle-btn"
-                        process="@this" onclick="toggleSidebar(); return false;" />
-                    <h1 class="header-title">
-                        <i class="pi pi-th-large"></i> <span>Painel do Sistema</span>
-                    </h1>
-                </div>
-
-                <div class="header-right">
-                    <div class="user-info">
-                        <i class="pi pi-user user-icon"></i> 
-                        <span>#{loginBean.fullname != null ? loginBean.fullname : 'Utilizador'}</span>
-                    </div>
-
-                    <p:commandButton value="Sair" icon="pi pi-sign-out"
-                        styleClass="logout-btn" action="#{loginBean.logout}" process="@this" />
-                </div>
-            </div>
-
-            <!-- ================= ÁREA DE CONTEÚDO PRINCIPAL ================= -->
-            <div class="main">
-                <div class="content-wrapper">
-                    <!-- AQUI É ONDE A WELCOME.XHTML (OU OUTRA PÁGINA) SERÁ CARREGADA -->
-                    <p:outputPanel id="mainContent" layout="block">
-                        <ui:include src="#{dashboardBean.currentPage}" />
-                    </p:outputPanel>
-                </div>
-            </div>
-
-            <!-- ================= RODAPÉ ================= -->
-            <div class="footer">
-                <p>
-                    <i class="pi pi-shield"></i> 
-                    <span>Sistema de Gestão Escolar (SGE)</span>
-                </p>
-                <div>
-                    <strong>v1.0.0</strong>
-                </div>
-            </div>
-
-        </div>
-    </h:form>
-
-    <script type="text/javascript">
-        //<![CDATA[
-        function toggleSidebar() {
-            var layout = document.getElementById('mainLayout');
-            var sidebar = document.getElementById('sidebar');
-
-            if (window.innerWidth > 1024) {
-                layout.classList.toggle('sidebar-collapsed');
-            } else {
-                sidebar.classList.toggle('active');
-            }
-        }
-
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 1024) {
-                var sidebar = document.getElementById('sidebar');
-                var toggleBtn = document.querySelector('.toggle-btn');
-
-                if (sidebar && sidebar.classList.contains('active')
-                        && !sidebar.contains(event.target)
-                        && !toggleBtn.contains(event.target)) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
-        //]]>
-    </script>
-</h:body>
-</html>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<h:head>
+		<title>SGE - Sistema de Gestão Escolar</title>
+		<h:outputStylesheet library="primefaces"
+			name="primeicons/primeicons.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+			rel="stylesheet" />
+	</h:head>
+
+	<h:body
+		style="margin:0;background:#f6f8fb;font-family:'Inter',sans-serif">
+
+		<style>
+:root {
+	--primary: #0b1f3a;
+	--primary-soft: #16305a;
+	--primary-tint: #eef2f8;
+	--accent: #3b6fd4;
+	--bg: #f4f6fa;
+	--card: #fff;
+	--border: #e3e8f0;
+	--muted: #6b7686;
+	--ink: #101828;
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px
+}
+
+* {
+	box-sizing: border-box
+}
+
+.app {
+	display: flex;
+	min-height: 100vh;
+	color: var(--ink)
+}
+
+/* ---------- SIDEBAR ---------- */
+
+.sidebar {
+	width: 268px;
+	background: var(--primary);
+	color: rgba(255, 255, 255, .88);
+	display: flex;
+	flex-direction: column;
+	transition: width .25s ease;
+	position: sticky;
+	top: 0;
+	height: 100vh;
+	overflow: hidden;
+	z-index: 20;
+	border-right: 1px solid rgba(255, 255, 255, .06)
+}
+
+.sidebar.collapsed {
+	width: 76px
+}
+
+.brand {
+	padding: 20px 18px;
+	display: flex;
+	align-items: center;
+	gap: 11px;
+	border-bottom: 1px solid rgba(255, 255, 255, .08);
+	min-height: 68px
+}
+
+.brand-logo {
+	width: 36px;
+	height: 36px;
+	background: white;
+	border-radius: var(--radius-sm);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--primary);
+	font-weight: 800;
+	font-size: 15px;
+	flex-shrink: 0
+}
+
+.brand-text b {
+	display: block;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: .2px;
+	line-height: 1.2;
+	color: #fff
+}
+
+.brand-text span {
+	font-size: 10.5px;
+	color: rgba(255, 255, 255, .5);
+	letter-spacing: .2px
+}
+
+.sidebar.collapsed .brand-text, .sidebar.collapsed .menu-label, .sidebar.collapsed .menu-section,
+	.sidebar.collapsed .menu-arrow, .sidebar.collapsed .menu-badge {
+	display: none !important
+}
+
+.menu {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 10px 10px 16px
+}
+
+.menu::-webkit-scrollbar {
+	width: 4px
+}
+
+.menu::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, .14);
+	border-radius: 10px
+}
+
+.menu-section {
+	font-size: 10.5px;
+	letter-spacing: .3px;
+	color: rgba(255, 255, 255, .38);
+	margin: 20px 10px 8px;
+	font-weight: 600
+}
+
+.menu-section:first-child {
+	margin-top: 12px
+}
+
+.menu-item {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 11px;
+	padding: 9px 11px;
+	border-radius: var(--radius-sm);
+	color: rgba(255, 255, 255, .68);
+	font-size: 13px;
+	font-weight: 500;
+	font-family: inherit;
+	background: transparent;
+	border: none;
+	border-left: 2px solid transparent;
+	cursor: pointer;
+	text-align: left;
+	transition: background .15s ease, color .15s ease;
+	position: relative
+}
+
+.menu-item:hover {
+	background: rgba(255, 255, 255, .06);
+	color: #fff
+}
+
+.menu-item:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, .5);
+	outline-offset: -2px
+}
+
+.menu-item.active {
+	background: rgba(255, 255, 255, .1);
+	color: #fff;
+	font-weight: 600;
+	border-left: 2px solid #fff
+}
+
+.menu-item.active i {
+	color: #fff
+}
+
+.menu-item i {
+	font-size: 14px;
+	width: 18px;
+	text-align: center;
+	color: rgba(255, 255, 255, .55);
+	transition: color .15s ease
+}
+
+.menu-badge {
+	margin-left: auto;
+	background: rgba(255, 255, 255, .12);
+	color: rgba(255, 255, 255, .85);
+	font-size: 10px;
+	padding: 2px 7px;
+	border-radius: 20px;
+	font-weight: 600
+}
+
+.menu-item.active .menu-badge {
+	background: rgba(255, 255, 255, .22);
+	color: #fff
+}
+
+.menu-arrow {
+	transition: transform .15s ease
+}
+
+.submenu {
+	margin: 2px 0 6px 29px;
+	border-left: 1px solid rgba(255, 255, 255, .1);
+	padding-left: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px
+}
+
+.submenu .menu-item {
+	padding: 7px 10px;
+	font-size: 12px;
+	color: rgba(255, 255, 255, .58)
+}
+
+.sidebar.collapsed .submenu {
+	display: none !important
+}
+
+.sidebar-footer {
+	padding: 12px;
+	border-top: 1px solid rgba(255, 255, 255, .08);
+	display: flex;
+	flex-direction: column;
+	gap: 8px
+}
+
+.sidebar-user {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	padding: 8px;
+	border-radius: var(--radius-sm)
+}
+
+.sidebar-user:hover {
+	background: rgba(255, 255, 255, .05)
+}
+
+/* ---------- MAIN / TOPBAR ---------- */
+
+.main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--bg)
+}
+
+.topbar {
+	height: 64px;
+	background: var(--card);
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 24px;
+	position: sticky;
+	top: 0;
+	z-index: 10
+}
+
+.topbar-left {
+	display: flex;
+	align-items: center;
+	gap: 16px
+}
+
+.icon-btn {
+	width: 36px;
+	height: 36px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--border);
+	background: var(--card);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--muted);
+	transition: background .15s ease, color .15s ease
+}
+
+.icon-btn:hover {
+	background: var(--primary-tint);
+	color: var(--primary)
+}
+
+.search {
+	width: 300px;
+	position: relative
+}
+
+.search input {
+	width: 100%;
+	height: 36px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	padding: 0 12px 0 36px;
+	font-size: 12.5px;
+	outline: none;
+	transition: border-color .15s ease
+}
+
+.search input:focus {
+	border-color: var(--accent);
+	background: #fff
+}
+
+.search i {
+	position: absolute;
+	left: 12px;
+	top: 11px;
+	color: var(--muted);
+	font-size: 13px
+}
+
+.topbar-right {
+	display: flex;
+	align-items: center;
+	gap: 12px
+}
+
+.avatar {
+	width: 34px;
+	height: 34px;
+	border-radius: var(--radius-sm);
+	background: var(--primary);
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	font-size: 12.5px
+}
+
+.content-area {
+	padding: 24px;
+	flex: 1
+}
+
+@media ( max-width :900px) {
+	.sidebar {
+		position: fixed;
+		left: -268px
+	}
+	.sidebar.open {
+		left: 0
+	}
+	.search {
+		display: none
+	}
+}
+</style>
+
+		<div class="app">
+			<div
+				class="sidebar #{dashboardBean.sidebarCollapsed ? 'collapsed' : ''}"
+				id="sidebar">
+				<div class="brand">
+					<div class="brand-logo">S</div>
+					<div class="brand-text">
+						<b>SGE</b><span>Gestão Escolar v2.0</span>
+					</div>
+					<p:commandButton icon="pi pi-angle-left"
+						style="margin-left:auto;background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:8px"
+						action="#{dashboardBean.toggleSidebar}" update="@none"
+						oncomplete="document.getElementById('sidebar').classList.toggle('collapsed')"
+						styleClass="menu-btn" />
+				</div>
+
+				<h:form id="menuForm" style="display:contents">
+					<div class="menu">
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('dashboard') ? 'active' : ''}"
+							onclick="PF('navigateDashboard').jq.click()">
+							<i class="pi pi-home" /><span>Dashboard</span>
+						</button>
+						<p:commandButton id="btnDash" widgetVar="navigateDashboard"
+							style="display:none"
+							action="#{dashboardBean.navigate('welcome','dashboard')}"
+							update=":contentPanel :topbarInfo" />
+
+						<div class="menu-section">Académico</div>
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('alunos') ? 'active' : ''}"
+							onclick="PF('navAlunos').jq.click()">
+							<i class="pi pi-users" /><span>Alunos</span><span
+								class="menu-badge">1.2k</span><i
+								class="pi pi-angle-right menu-arrow"
+								style="margin-left: auto; font-size: 10px; opacity: .5" />
+						</button>
+						<p:commandButton id="navAlunos" widgetVar="navAlunos"
+							style="display:none"
+							action="#{dashboardBean.navigate('alunos/list','alunos')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('turmas') ? 'active' : ''}"
+							onclick="PF('navTurmas').jq.click()">
+							<i class="pi pi-building" /><span>Turmas &amp; Salas</span>
+						</button>
+						<p:commandButton widgetVar="navTurmas" style="display:none"
+							action="#{dashboardBean.navigate('turmas/list','turmas')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('professores') ? 'active' : ''}"
+							onclick="PF('navProf').jq.click()">
+							<i class="pi pi-briefcase" /><span>Professores</span><span
+								class="menu-badge" style="background: rgba(16,185,129,.22); color:#6ee7b0">48</span>
+						</button>
+						<p:commandButton widgetVar="navProf" style="display:none"
+							action="#{dashboardBean.navigate('professores/list','professores')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('disciplinas') ? 'active' : ''}"
+							onclick="PF('navDisc').jq.click()">
+							<i class="pi pi-book" /><span>Disciplinas</span>
+						</button>
+						<p:commandButton widgetVar="navDisc" style="display:none"
+							action="#{dashboardBean.navigate('disciplinas/list','disciplinas')}"
+							update=":contentPanel :topbarInfo" />
+
+						<div class="menu-section">Avaliação &amp; Presença</div>
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('notas') ? 'active' : ''}"
+							onclick="PF('navNotas').jq.click()">
+							<i class="pi pi-file-edit" /><span>Notas &amp; Pautas</span>
+						</button>
+						<p:commandButton widgetVar="navNotas" style="display:none"
+							action="#{dashboardBean.navigate('notas/list','notas')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('frequencia') ? 'active' : ''}"
+							onclick="PF('navFreq').jq.click()">
+							<i class="pi pi-calendar-check" /><span>Frequência</span>
+						</button>
+						<p:commandButton widgetVar="navFreq" style="display:none"
+							action="#{dashboardBean.navigate('frequencia/list','frequencia')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('calendario') ? 'active' : ''}"
+							onclick="PF('navCal').jq.click()">
+							<i class="pi pi-calendar" /><span>Calendário Escolar</span>
+						</button>
+						<p:commandButton widgetVar="navCal" style="display:none"
+							action="#{dashboardBean.navigate('calendario/index','calendario')}"
+							update=":contentPanel :topbarInfo" />
+
+						<div class="menu-section">Gestão</div>
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('financeiro') ? 'active' : ''}"
+							onclick="PF('navFin').jq.click()">
+							<i class="pi pi-wallet" /><span>Financeiro</span><span
+								class="menu-badge" style="background: rgba(245,158,11,.2); color:#fcd34d">Propinas</span>
+						</button>
+						<p:commandButton widgetVar="navFin" style="display:none"
+							action="#{dashboardBean.navigate('financeiro/index','financeiro')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('biblioteca') ? 'active' : ''}"
+							onclick="PF('navBib').jq.click()">
+							<i class="pi pi-bookmark" /><span>Biblioteca</span>
+						</button>
+						<p:commandButton widgetVar="navBib" style="display:none"
+							action="#{dashboardBean.navigate('biblioteca/index','biblioteca')}"
+							update=":contentPanel :topbarInfo" />
+
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('relatorios') ? 'active' : ''}"
+							onclick="PF('navRel').jq.click()">
+							<i class="pi pi-chart-bar" /><span>Relatórios</span>
+						</button>
+						<p:commandButton widgetVar="navRel" style="display:none"
+							action="#{dashboardBean.navigate('relatorios/index','relatorios')}"
+							update=":contentPanel :topbarInfo" />
+
+						<div class="menu-section">Sistema</div>
+
+						<!-- MENU ESCOLAS - NOVO -->
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('escolas') ? 'active' : ''}"
+							onclick="PF('navEscolas').jq.click()">
+							<i class="pi pi-building" /><span>Escolas</span> <span
+								class="menu-badge" style="background: rgba(255,255,255,.16)">#{schoolBean.schools.size()}</span>
+						</button>
+						<p:commandButton widgetVar="navEscolas" style="display:none"
+							action="#{dashboardBean.navigate('schools/school-list','escolas')}"
+							update=":contentPanel :topbarInfo" />
+
+						<!-- SUBMENU CONFIGURAÇÕES -->
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('config') or dashboardBean.isActive('escolas') ? 'active' : ''}"
+							onclick="document.getElementById('submenu-config').classList.toggle('hidden'); this.querySelector('.menu-arrow').classList.toggle('pi-angle-down');">
+							<i class="pi pi-cog" /><span>Configurações</span> <i
+								class="pi pi-angle-right menu-arrow"
+								style="margin-left: auto; font-size: 10px; opacity: .5; transition: .2s" />
+						</button>
+
+						<div id="submenu-config"
+							class="submenu #{dashboardBean.isActive('escolas') or dashboardBean.isActive('config') or dashboardBean.isActive('users') ? '' : 'hidden'}"
+							style="display: #{dashboardBean.isActive('escolas') or dashboardBean.isActive('config') or dashboardBean.isActive('users') ? 'flex' : 'none'}">
+
+							<button type="button"
+								class="menu-item #{dashboardBean.isActive('escolas') ? 'active' : ''}"
+								onclick="PF('navEscolasSub').jq.click()">
+								<i class="pi pi-building" style="font-size: 12px" /><span>Cadastro
+									de Escolas</span>
+							</button>
+							<p:commandButton widgetVar="navEscolasSub" style="display:none"
+								action="#{dashboardBean.navigate('escolas/school-list','escolas')}"
+								update=":contentPanel :topbarInfo" />
+
+							<button type="button" class="menu-item"
+								onclick="PF('navEscolaNova').jq.click()">
+								<i class="pi pi-plus" style="font-size: 12px" /><span>Nova
+									Escola</span>
+							</button>
+							<p:commandButton widgetVar="navEscolaNova" style="display:none"
+								action="#{dashboardBean.navigate('escolas/school-include','escolas')}"
+								update=":contentPanel :topbarInfo" />
+
+							<button type="button"
+								class="menu-item #{dashboardBean.isActive('users') ? 'active' : ''}"
+								onclick="PF('navUsers').jq.click()">
+								<i class="pi pi-users" style="font-size: 12px" /><span>Utilizadores</span>
+							</button>
+							<p:commandButton widgetVar="navUsers" style="display:none"
+								action="#{dashboardBean.navigate('admin/users','users')}"
+								update=":contentPanel :topbarInfo" />
+
+							<button type="button"
+								class="menu-item #{dashboardBean.isActive('config') ? 'active' : ''}"
+								onclick="PF('navConfig').jq.click()">
+								<i class="pi pi-sliders-h" style="font-size: 12px" /><span>Parâmetros
+									Gerais</span>
+							</button>
+							<p:commandButton widgetVar="navConfig" style="display:none"
+								action="#{dashboardBean.navigate('admin/config','config')}"
+								update=":contentPanel :topbarInfo" />
+						</div>
+
+					</div>
+				</h:form>
+
+				<div class="sidebar-footer">
+					<div class="sidebar-user">
+						<div class="avatar"
+							style="width: 32px; height: 32px; background: rgba(255,255,255,.12); color: #fff; flex-shrink:0">#{loginBean.fullname.substring(0,1)}</div>
+						<div style="flex: 1; min-width: 0" class="menu-label">
+							<div
+								style="font-size: 12px; font-weight: 600; color:#fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.fullname}</div>
+							<div style="font-size: 10.5px; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.role}
+								· #{loginBean.loggedSchool.name}</div>
+						</div>
+					</div>
+					<h:form class="menu-label">
+						<p:commandButton value="Terminar sessão" icon="pi pi-sign-out"
+							style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);border-radius:8px;font-size:11.5px;font-weight:500"
+							action="#{loginBean.logout}" ajax="false" />
+					</h:form>
+				</div>
+			</div>
+
+			<div class="main">
+				<div class="topbar">
+					<div class="topbar-left">
+						<button class="icon-btn"
+							onclick="document.getElementById('sidebar').classList.toggle('open')">
+							<i class="pi pi-bars" />
+						</button>
+						<div class="search">
+							<i class="pi pi-search" /><input
+								placeholder="Pesquisar alunos, turmas, professores..." />
+						</div>
+					</div>
+					<div class="topbar-right">
+						<h:panelGroup id="topbarInfo"
+							style="display:flex;align-items:center;gap:14px">
+							<span style="font-size: 11px; color: var(--muted)"><i
+								class="pi pi-clock" style="margin-right: 4px" /> <h:outputText
+									value="#{now}">
+									<f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+								</h:outputText></span>
+							<p:commandButton icon="pi pi-bell" styleClass="icon-btn"
+								style="width:40px;height:40px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);color:var(--muted)" />
+							<div class="avatar">#{loginBean.fullname.substring(0,1)}</div>
+						</h:panelGroup>
+					</div>
+				</div>
+
+				<div class="content-area">
+					<h:panelGroup id="contentPanel">
+						<ui:include src="#{dashboardBean.currentPage}" />
+					</h:panelGroup>
+				</div>
+			</div>
+		</div>
+	</h:body>
+</ui:composition>

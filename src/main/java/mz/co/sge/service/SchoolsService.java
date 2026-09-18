@@ -47,7 +47,7 @@ public class SchoolsService
 	@Transactional(readOnly = true)
 	public List<SchoolEntity> findAll()
 	{
-		return schoolRepository.findAll();
+		return schoolRepository.findAllActiveActiveSchools();
 	}
 
 	@Transactional(readOnly = true)

@@ -1,0 +1,45 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 18px; font-weight: 700; color: #0a2545">
+			<i class="pi pi-building" style="margin-right: 8px; color: #15558a" />
+			Turmas
+		</div>
+		<p:commandButton value="Nova Turma" icon="pi pi-plus"
+			style="border-radius:10px;background:#0b2d50;border:none" />
+	</div>
+
+	<div
+		style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+		<ui:repeat value="#{welcomeBean.turmasResumo}" var="t">
+			<div
+				style="background: white; border-radius: 16px; padding: 18px; border: 1px solid #e9eef3">
+				<div
+					style="display: flex; justify-content: space-between; margin-bottom: 10px">
+					<b style="color: #0a2545; font-size: 13px">#{t.nome}</b> <span
+						class="status-badge"
+						style="padding:3px 9px;border-radius:20px;font-size:9px;font-weight:700;background:#{t.situacao eq 'Normal' ? '#e0f2fe' : t.situacao eq 'Lotada' ? '#fee2e2' : '#ffedd5'}">#{t.situacao}</span>
+				</div>
+				<div style="font-size: 11px; color: #7a8a9d; margin-bottom: 12px">
+					<i class="pi pi-user" /> #{t.professor}
+				</div>
+				<div
+					style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px">
+					<span>Ocupação</span><span><b>#{t.ocupados}/#{t.capacidade}</b>
+						(#{t.percentOcupacao}%)</span>
+				</div>
+				<p:progressBar value="#{t.percentOcupacao}" displayOnly="true"
+					style="height:8px;border-radius:20px" />
+				<div style="margin-top: 14px; display: flex; gap: 8px">
+					<p:commandButton value="Ver Alunos" icon="pi pi-users"
+						styleClass="ui-button-outlined" style="font-size:11px;flex:1" />
+					<p:commandButton icon="pi pi-cog"
+						styleClass="ui-button-secondary ui-button-outlined" />
+				</div>
+			</div>
+		</ui:repeat>
+	</div>
+</ui:composition>
