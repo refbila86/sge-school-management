@@ -1,7 +1,8 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -9,30 +10,36 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
+import mz.co.sge.entity.LicenseEntity;
 import mz.co.sge.entity.SchoolEntity;
+import mz.co.sge.service.ILicenseService;
 import mz.co.sge.service.ISchoolService;
 
 @Component("schoolBean")
 @Scope("view")
 public class SchoolBean implements Serializable
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private final ISchoolService schoolService;
+	private final ILicenseService licenseService;
 	private final DashboardBean dashboardBean;
+
+	private List<LicenseEntity> availableLicenses = new ArrayList<>();
+	private LicenseEntity selectedLicense;
+	private Map<Long, LicenseEntity> licenseCache = new HashMap<>();
 
 	private SchoolEntity school;
 	private SchoolEntity selectedSchool;
 	private List<SchoolEntity> schools;
 	private List<SchoolEntity> filteredSchools;
-
 	private String searchTerm;
 	private boolean editing;
 
-	public SchoolBean(ISchoolService schoolService, DashboardBean dashboardBean)
+	public SchoolBean(ISchoolService schoolService, ILicenseService licenseService, DashboardBean dashboardBean)
 	{
 		this.schoolService = schoolService;
+		this.licenseService = licenseService;
 		this.dashboardBean = dashboardBean;
 	}
 
@@ -41,11 +48,57 @@ public class SchoolBean implements Serializable
 	{
 		cleanForm();
 		loadSchools();
+		try
+		{
+			this.availableLicenses = licenseService.getAll();
+		} catch (Exception e)
+		{
+			this.availableLicenses = new ArrayList<>();
+		}
 	}
 
 	public void loadSchools()
 	{
 		this.schools = schoolService.findAll();
+		// preenche cache
+		licenseCache.clear();
+		if (schools != null)
+		{
+			for (SchoolEntity s : schools)
+			{
+				if (s.getLicenseId() != null)
+				{
+					licenseService.getById(s.getLicenseId()).ifPresent(lic -> licenseCache.put(s.getLicenseId(), lic));
+				}
+			}
+		}
+	}
+
+	// ESTE MÉTODO QUE FALTAVA - O ERRO ESTAVA AQUI
+	public LicenseEntity getLicenseForSchool(Long licenseId)
+	{
+		if (licenseId == null)
+			return null;
+		if (licenseCache.containsKey(licenseId))
+			return licenseCache.get(licenseId);
+		Optional<LicenseEntity> opt = licenseService.getById(licenseId);
+		if (opt.isPresent())
+		{
+			licenseCache.put(licenseId, opt.get());
+			return opt.get();
+		}
+		return null;
+	}
+
+	public void onLicenseChange()
+	{
+		if (school != null && school.getLicenseId() != null)
+		{
+			selectedLicense = getLicenseForSchool(school.getLicenseId());
+		} else
+		{
+			selectedLicense = null;
+		}
 	}
 
 	public void search()
@@ -58,19 +111,7 @@ public class SchoolBean implements Serializable
 		this.school = new SchoolEntity();
 		this.school.setActive(true);
 		this.editing = false;
-	}
-
-	public void prepareNew()
-	{
-		cleanForm();
-		// Redireciona para include dentro do dashboard
-		// O dashboardBean vai carregar school/school-include
-	}
-
-	public void prepareEdit(SchoolEntity schoolToEdit)
-	{
-		this.school = schoolToEdit;
-		this.editing = true;
+		this.selectedLicense = null;
 	}
 
 	public void prepareView(SchoolEntity schoolToView)
@@ -83,36 +124,30 @@ public class SchoolBean implements Serializable
 		this.selectedSchool = schoolToDelete;
 	}
 
+	public void prepareEdit(SchoolEntity schoolToEdit)
+	{
+		this.school = schoolToEdit;
+		this.editing = true;
+		onLicenseChange();
+	}
+
 	public void save()
 	{
 		try
 		{
-			// Valida código duplicado ao criar
 			if (!editing && schoolService.codeExists(school.getCode()))
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Já existe uma escola com o código: " + school.getCode());
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Código já existe: " + school.getCode());
 				return;
 			}
-
-			// Valida licenseId duplicado
-			if (school.getLicenseId() != null && !editing && schoolService.licenseExists(school.getLicenseId()))
-			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "License ID já está em uso.");
-				return;
-			}
-
-			boolean wasEditing = editing;
 			schoolService.save(school);
-			addMessage(FacesMessage.SEVERITY_INFO, "Sucesso!", (wasEditing ? "Escola atualizada" : "Escola cadastrada") + " com sucesso.");
+			addMessage(FacesMessage.SEVERITY_INFO, "Sucesso!", "Escola salva com sucesso.");
 			cleanForm();
 			loadSchools();
-
-			// Só navega de volta para a lista quando o save tiver sucesso
 			dashboardBean.navigate("schools/school-list", "escolas");
-
 		} catch (Exception e)
 		{
-			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Erro ao salvar: " + e.getMessage());
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", e.getMessage());
 		}
 	}
 
@@ -123,13 +158,13 @@ public class SchoolBean implements Serializable
 			if (selectedSchool != null && selectedSchool.getId() != null)
 			{
 				schoolService.delete(selectedSchool.getId());
-				addMessage(FacesMessage.SEVERITY_INFO, "Sucesso!", "Escola removida com sucesso.");
+				addMessage(FacesMessage.SEVERITY_INFO, "Sucesso!", "Escola removida.");
 				loadSchools();
 				selectedSchool = null;
 			}
 		} catch (Exception e)
 		{
-			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Erro ao remover: " + e.getMessage());
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", e.getMessage());
 		}
 	}
 
@@ -138,7 +173,6 @@ public class SchoolBean implements Serializable
 		try
 		{
 			schoolService.toggleActive(s.getId());
-			addMessage(FacesMessage.SEVERITY_INFO, "Sucesso!", "Estado alterado para " + (!s.getActive() ? "Ativa" : "Inativa"));
 			loadSchools();
 		} catch (Exception e)
 		{
@@ -210,5 +244,20 @@ public class SchoolBean implements Serializable
 	public void setEditing(boolean editing)
 	{
 		this.editing = editing;
+	}
+
+	public List<LicenseEntity> getAvailableLicenses()
+	{
+		return availableLicenses;
+	}
+
+	public LicenseEntity getSelectedLicense()
+	{
+		return selectedLicense;
+	}
+
+	public void setSelectedLicense(LicenseEntity selectedLicense)
+	{
+		this.selectedLicense = selectedLicense;
 	}
 }

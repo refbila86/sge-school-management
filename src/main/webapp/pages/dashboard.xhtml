@@ -41,7 +41,6 @@
 }
 
 /* ---------- SIDEBAR ---------- */
-
 .sidebar {
 	width: 268px;
 	background: var(--primary);
@@ -128,10 +127,6 @@
 	font-weight: 600
 }
 
-.menu-section:first-child {
-	margin-top: 12px
-}
-
 .menu-item {
 	width: 100%;
 	display: flex;
@@ -197,14 +192,35 @@
 }
 
 .menu-arrow {
-	transition: transform .15s ease
+	margin-left: auto;
+	font-size: 10px !important;
+	opacity: .5;
+	transition: transform .2s ease
+}
+
+.menu-arrow.open {
+	transform: rotate(90deg)
+}
+
+/* Botão "Recolher submenus" */
+.menu-collapse-all {
+	font-size: 11.5px;
+	padding: 7px 11px;
+	margin-bottom: 4px;
+	color: rgba(255, 255, 255, .5);
+	border: 1px dashed rgba(255, 255, 255, .14);
+	border-left: 1px dashed rgba(255, 255, 255, .14)
+}
+
+.menu-collapse-all i {
+	font-size: 12px
 }
 
 .submenu {
 	margin: 2px 0 6px 29px;
 	border-left: 1px solid rgba(255, 255, 255, .1);
 	padding-left: 12px;
-	display: flex;
+	display: none;
 	flex-direction: column;
 	gap: 1px
 }
@@ -240,7 +256,6 @@
 }
 
 /* ---------- MAIN / TOPBAR ---------- */
-
 .main {
 	flex: 1;
 	display: flex;
@@ -355,6 +370,34 @@
 }
 </style>
 
+		<script>
+//<![CDATA[
+/* Abre/fecha um submenu e roda a seta do botão que o controla */
+function toggleSubmenu(btn, submenuId) {
+	var sub = document.getElementById(submenuId);
+	var arrow = btn.querySelector('.menu-arrow');
+	var isOpen = sub.style.display === 'flex';
+	sub.style.display = isOpen ? 'none' : 'flex';
+	if (arrow) {
+		if (isOpen) { arrow.classList.remove('open'); }
+		else { arrow.classList.add('open'); }
+	}
+}
+
+/* Recolhe todos os submenus do menu principal */
+function collapseAllSubmenus() {
+	var subs = document.querySelectorAll('#sidebar .submenu');
+	for (var i = 0; i < subs.length; i++) {
+		subs[i].style.display = 'none';
+	}
+	var arrows = document.querySelectorAll('#sidebar .menu-arrow.open');
+	for (var j = 0; j < arrows.length; j++) {
+		arrows[j].classList.remove('open');
+	}
+}
+//]]>
+</script>
+
 		<div class="app">
 			<div
 				class="sidebar #{dashboardBean.sidebarCollapsed ? 'collapsed' : ''}"
@@ -373,152 +416,215 @@
 
 				<h:form id="menuForm" style="display:contents">
 					<div class="menu">
+
+						<!-- RECOLHER SUBMENUS -->
+						<button type="button" class="menu-item menu-collapse-all"
+							onclick="collapseAllSubmenus()">
+							<i class="pi pi-angle-double-up" /><span class="menu-label">Recolher
+								submenus</span>
+						</button>
+
+						<!-- DASHBOARD -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('dashboard') ? 'active' : ''}"
-							onclick="PF('navigateDashboard').jq.click()">
+							onclick="PF('navDashboard').jq.click()">
 							<i class="pi pi-home" /><span>Dashboard</span>
 						</button>
-						<p:commandButton id="btnDash" widgetVar="navigateDashboard"
+						<p:commandButton id="btnDash" widgetVar="navDashboard"
 							style="display:none"
 							action="#{dashboardBean.navigate('welcome','dashboard')}"
 							update=":contentPanel :topbarInfo" />
 
 						<div class="menu-section">Académico</div>
 
+						<!-- ALUNOS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('alunos') ? 'active' : ''}"
 							onclick="PF('navAlunos').jq.click()">
 							<i class="pi pi-users" /><span>Alunos</span><span
-								class="menu-badge">1.2k</span><i
-								class="pi pi-angle-right menu-arrow"
-								style="margin-left: auto; font-size: 10px; opacity: .5" />
+								class="menu-badge">1.2k</span>
 						</button>
-						<p:commandButton id="navAlunos" widgetVar="navAlunos"
+						<p:commandButton id="btnAlunos" widgetVar="navAlunos"
 							style="display:none"
-							action="#{dashboardBean.navigate('alunos/list','alunos')}"
+							action="#{dashboardBean.navigate('alunos/student-list','alunos')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- TURMAS & SALAS -->
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('salas') ? 'active' : ''}"
+							onclick="PF('navSalas').jq.click()">
+							<i class="pi pi-building" /><span>Turmas &amp; Salas</span>
+						</button>
+						<p:commandButton id="btnSalas" widgetVar="navSalas"
+							style="display:none"
+							action="#{dashboardBean.navigate('turmas/list','salas')}"
+							update=":contentPanel :topbarInfo" />
+
+						<!-- TURMAS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('turmas') ? 'active' : ''}"
 							onclick="PF('navTurmas').jq.click()">
-							<i class="pi pi-building" /><span>Turmas &amp; Salas</span>
+							<i class="pi pi-users" /><span>Turmas</span> <span
+								class="menu-badge" style="background: rgba(255, 255, 255, .16)">#{classroomBean.classrooms.size()}</span>
 						</button>
-						<p:commandButton widgetVar="navTurmas" style="display:none"
-							action="#{dashboardBean.navigate('turmas/list','turmas')}"
+						<p:commandButton id="btnTurmas" widgetVar="navTurmas"
+							style="display:none"
+							action="#{dashboardBean.navigate('classroom/classroom-list','turmas')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- PROFESSORES -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('professores') ? 'active' : ''}"
-							onclick="PF('navProf').jq.click()">
+							onclick="PF('navProfessores').jq.click()">
 							<i class="pi pi-briefcase" /><span>Professores</span><span
-								class="menu-badge" style="background: rgba(16,185,129,.22); color:#6ee7b0">48</span>
+								class="menu-badge"
+								style="background: rgba(16, 185, 129, .22); color: #6ee7b0">48</span>
 						</button>
-						<p:commandButton widgetVar="navProf" style="display:none"
+						<p:commandButton id="btnProfessores" widgetVar="navProfessores"
+							style="display:none"
 							action="#{dashboardBean.navigate('professores/list','professores')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- DISCIPLINAS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('disciplinas') ? 'active' : ''}"
-							onclick="PF('navDisc').jq.click()">
+							onclick="PF('navDisciplinas').jq.click()">
 							<i class="pi pi-book" /><span>Disciplinas</span>
 						</button>
-						<p:commandButton widgetVar="navDisc" style="display:none"
+						<p:commandButton id="btnDisciplinas" widgetVar="navDisciplinas"
+							style="display:none"
 							action="#{dashboardBean.navigate('disciplinas/list','disciplinas')}"
 							update=":contentPanel :topbarInfo" />
 
 						<div class="menu-section">Avaliação &amp; Presença</div>
 
+						<!-- NOTAS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('notas') ? 'active' : ''}"
 							onclick="PF('navNotas').jq.click()">
 							<i class="pi pi-file-edit" /><span>Notas &amp; Pautas</span>
 						</button>
-						<p:commandButton widgetVar="navNotas" style="display:none"
+						<p:commandButton id="btnNotas" widgetVar="navNotas"
+							style="display:none"
 							action="#{dashboardBean.navigate('notas/list','notas')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- FREQUÊNCIA -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('frequencia') ? 'active' : ''}"
-							onclick="PF('navFreq').jq.click()">
+							onclick="PF('navFrequencia').jq.click()">
 							<i class="pi pi-calendar-check" /><span>Frequência</span>
 						</button>
-						<p:commandButton widgetVar="navFreq" style="display:none"
+						<p:commandButton id="btnFrequencia" widgetVar="navFrequencia"
+							style="display:none"
 							action="#{dashboardBean.navigate('frequencia/list','frequencia')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- CALENDÁRIO -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('calendario') ? 'active' : ''}"
-							onclick="PF('navCal').jq.click()">
+							onclick="PF('navCalendario').jq.click()">
 							<i class="pi pi-calendar" /><span>Calendário Escolar</span>
 						</button>
-						<p:commandButton widgetVar="navCal" style="display:none"
+						<p:commandButton id="btnCalendario" widgetVar="navCalendario"
+							style="display:none"
 							action="#{dashboardBean.navigate('calendario/index','calendario')}"
 							update=":contentPanel :topbarInfo" />
 
 						<div class="menu-section">Gestão</div>
 
+						<!-- FINANCEIRO -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('financeiro') ? 'active' : ''}"
-							onclick="PF('navFin').jq.click()">
+							onclick="PF('navFinanceiro').jq.click()">
 							<i class="pi pi-wallet" /><span>Financeiro</span><span
-								class="menu-badge" style="background: rgba(245,158,11,.2); color:#fcd34d">Propinas</span>
+								class="menu-badge"
+								style="background: rgba(245, 158, 11, .2); color: #fcd34d">Propinas</span>
 						</button>
-						<p:commandButton widgetVar="navFin" style="display:none"
+						<p:commandButton id="btnFinanceiro" widgetVar="navFinanceiro"
+							style="display:none"
 							action="#{dashboardBean.navigate('financeiro/index','financeiro')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- PREÇOS -->
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('precos') ? 'active' : ''}"
+							onclick="PF('navPrecos').jq.click()">
+							<i class="pi pi-dollar" /><span>Preços</span>
+						</button>
+						<p:commandButton id="btnPrecos" widgetVar="navPrecos"
+							style="display:none"
+							action="#{dashboardBean.navigate('payment-price/payment-price-list','precos')}"
+							update=":contentPanel :topbarInfo" />
+
+						<!-- BIBLIOTECA -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('biblioteca') ? 'active' : ''}"
-							onclick="PF('navBib').jq.click()">
+							onclick="PF('navBiblioteca').jq.click()">
 							<i class="pi pi-bookmark" /><span>Biblioteca</span>
 						</button>
-						<p:commandButton widgetVar="navBib" style="display:none"
+						<p:commandButton id="btnBiblioteca" widgetVar="navBiblioteca"
+							style="display:none"
 							action="#{dashboardBean.navigate('biblioteca/index','biblioteca')}"
 							update=":contentPanel :topbarInfo" />
 
+						<!-- RELATÓRIOS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('relatorios') ? 'active' : ''}"
-							onclick="PF('navRel').jq.click()">
+							onclick="PF('navRelatorios').jq.click()">
 							<i class="pi pi-chart-bar" /><span>Relatórios</span>
 						</button>
-						<p:commandButton widgetVar="navRel" style="display:none"
+						<p:commandButton id="btnRelatorios" widgetVar="navRelatorios"
+							style="display:none"
 							action="#{dashboardBean.navigate('relatorios/index','relatorios')}"
 							update=":contentPanel :topbarInfo" />
 
 						<div class="menu-section">Sistema</div>
 
-						<!-- MENU ESCOLAS - NOVO -->
+						<!-- ESCOLAS -->
 						<button type="button"
 							class="menu-item #{dashboardBean.isActive('escolas') ? 'active' : ''}"
 							onclick="PF('navEscolas').jq.click()">
 							<i class="pi pi-building" /><span>Escolas</span> <span
-								class="menu-badge" style="background: rgba(255,255,255,.16)">#{schoolBean.schools.size()}</span>
+								class="menu-badge" style="background: rgba(255, 255, 255, .16)">#{schoolBean.schools.size()}</span>
 						</button>
-						<p:commandButton widgetVar="navEscolas" style="display:none"
+						<p:commandButton id="btnEscolas" widgetVar="navEscolas"
+							style="display:none"
 							action="#{dashboardBean.navigate('schools/school-list','escolas')}"
 							update=":contentPanel :topbarInfo" />
 
-						<!-- SUBMENU CONFIGURAÇÕES -->
+						<!-- ANO ACADÉMICO -->
 						<button type="button"
-							class="menu-item #{dashboardBean.isActive('config') or dashboardBean.isActive('escolas') ? 'active' : ''}"
-							onclick="document.getElementById('submenu-config').classList.toggle('hidden'); this.querySelector('.menu-arrow').classList.toggle('pi-angle-down');">
+							class="menu-item #{dashboardBean.isActive('anoAcademico') ? 'active' : ''}"
+							onclick="PF('navAnoAcademico').jq.click()">
+							<i class="pi pi-calendar-plus" /><span>Ano Académico</span>
+							<span class="menu-badge">#{empty academicYearBean.academicYears ? 0 : academicYearBean.academicYears.size()}</span>
+						</button>
+						<p:commandButton id="btnAnoAcademico" widgetVar="navAnoAcademico"
+							style="display:none"
+							action="#{dashboardBean.navigate('academic-year/academic-year-list','anoAcademico')}"
+							update=":contentPanel :topbarInfo" />
+
+						<!-- CONFIGURAÇÕES (com submenu) -->
+						<button type="button"
+							class="menu-item #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'active' : ''}"
+							onclick="toggleSubmenu(this, 'submenu-config')">
 							<i class="pi pi-cog" /><span>Configurações</span> <i
-								class="pi pi-angle-right menu-arrow"
-								style="margin-left: auto; font-size: 10px; opacity: .5; transition: .2s" />
+								class="pi pi-angle-right menu-arrow #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'open' : ''}" />
 						</button>
 
-						<div id="submenu-config"
-							class="submenu #{dashboardBean.isActive('escolas') or dashboardBean.isActive('config') or dashboardBean.isActive('users') ? '' : 'hidden'}"
-							style="display: #{dashboardBean.isActive('escolas') or dashboardBean.isActive('config') or dashboardBean.isActive('users') ? 'flex' : 'none'}">
+						<div id="submenu-config" class="submenu"
+							style="display: #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'flex' : 'none'}">
 
 							<button type="button"
-								class="menu-item #{dashboardBean.isActive('escolas') ? 'active' : ''}"
-								onclick="PF('navEscolasSub').jq.click()">
+								class="menu-item #{dashboardBean.isActive('cadastroEscolas') ? 'active' : ''}"
+								onclick="PF('navCadastroEscolas').jq.click()">
 								<i class="pi pi-building" style="font-size: 12px" /><span>Cadastro
 									de Escolas</span>
 							</button>
-							<p:commandButton widgetVar="navEscolasSub" style="display:none"
-								action="#{dashboardBean.navigate('escolas/school-list','escolas')}"
+							<p:commandButton id="btnCadastroEscolas"
+								widgetVar="navCadastroEscolas" style="display:none"
+								action="#{dashboardBean.navigate('escolas/school-list','cadastroEscolas')}"
 								update=":contentPanel :topbarInfo" />
 
 							<button type="button" class="menu-item"
@@ -526,8 +632,9 @@
 								<i class="pi pi-plus" style="font-size: 12px" /><span>Nova
 									Escola</span>
 							</button>
-							<p:commandButton widgetVar="navEscolaNova" style="display:none"
-								action="#{dashboardBean.navigate('escolas/school-include','escolas')}"
+							<p:commandButton id="btnEscolaNova" widgetVar="navEscolaNova"
+								style="display:none"
+								action="#{dashboardBean.navigate('escolas/school-include','cadastroEscolas')}"
 								update=":contentPanel :topbarInfo" />
 
 							<button type="button"
@@ -535,7 +642,8 @@
 								onclick="PF('navUsers').jq.click()">
 								<i class="pi pi-users" style="font-size: 12px" /><span>Utilizadores</span>
 							</button>
-							<p:commandButton widgetVar="navUsers" style="display:none"
+							<p:commandButton id="btnUsers" widgetVar="navUsers"
+								style="display:none"
 								action="#{dashboardBean.navigate('admin/users','users')}"
 								update=":contentPanel :topbarInfo" />
 
@@ -545,7 +653,8 @@
 								<i class="pi pi-sliders-h" style="font-size: 12px" /><span>Parâmetros
 									Gerais</span>
 							</button>
-							<p:commandButton widgetVar="navConfig" style="display:none"
+							<p:commandButton id="btnConfig" widgetVar="navConfig"
+								style="display:none"
 								action="#{dashboardBean.navigate('admin/config','config')}"
 								update=":contentPanel :topbarInfo" />
 						</div>
@@ -556,15 +665,16 @@
 				<div class="sidebar-footer">
 					<div class="sidebar-user">
 						<div class="avatar"
-							style="width: 32px; height: 32px; background: rgba(255,255,255,.12); color: #fff; flex-shrink:0">#{loginBean.fullname.substring(0,1)}</div>
+							style="width: 32px; height: 32px; background: rgba(255, 255, 255, .12); color: #fff; flex-shrink: 0">#{loginBean.fullname.substring(0,1)}</div>
 						<div style="flex: 1; min-width: 0" class="menu-label">
 							<div
-								style="font-size: 12px; font-weight: 600; color:#fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.fullname}</div>
-							<div style="font-size: 10.5px; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.role}
+								style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.fullname}</div>
+							<div
+								style="font-size: 10.5px; color: rgba(255, 255, 255, .5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.role}
 								· #{loginBean.loggedSchool.name}</div>
 						</div>
 					</div>
-					<h:form class="menu-label">
+					<h:form styleClass="menu-label">
 						<p:commandButton value="Terminar sessão" icon="pi pi-sign-out"
 							style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);border-radius:8px;font-size:11.5px;font-weight:500"
 							action="#{loginBean.logout}" ajax="false" />

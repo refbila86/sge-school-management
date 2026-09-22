@@ -1,0 +1,187 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<h:form id="formYearList">
+		<p:growl id="growlYear" showDetail="true" life="3000" />
+
+		<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px
+}
+
+.year-table .ui-datatable-data td {
+	padding: 12px 8px !important;
+	font-size: 13.5px !important
+}
+
+.year-table .ui-datatable-thead th {
+	padding: 12px 8px !important;
+	font-size: 12px !important;
+	font-weight: 700;
+	text-transform: uppercase
+}
+</style>
+
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-calendar" style="margin-right: 8px; color: #2563eb" />Ano
+				Acadêmico
+			</div>
+			<p:commandButton value="Novo Ano" icon="pi pi-plus"
+				style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+				action="#{academicYearBean.prepareNew}"
+				oncomplete="PF('dlgAcademicYear').show()" update=":formDialogYear" />
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{academicYearBean.filterYear}"
+				placeholder="Pesquisar por ano... Ex: 2026"
+				style="width:280px;font-size:13px">
+				<p:ajax event="keyup" listener="#{academicYearBean.filter}"
+					update=":formYearList:tableYears" delay="400" />
+			</p:inputText>
+			<p:commandButton icon="pi pi-search" styleClass="ui-button-secondary"
+				style="border-radius:10px" action="#{academicYearBean.filter}"
+				update=":formYearList:tableYears" />
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{academicYearBean.academicYears.size()}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="year-table">
+			<p:dataTable id="tableYears"
+				value="#{academicYearBean.academicYears}" var="a" paginator="true"
+				rows="8" paginatorPosition="bottom" stripedRows="true"
+				emptyMessage="Nenhum ano encontrado" sortBy="#{a.year}"
+				sortOrder="descending">
+
+				<p:column headerText="Ano" width="90" sortBy="#{a.year}">
+					<b style="color: #0a2540; font-size: 14px">#{a.year}</b>
+				</p:column>
+				<p:column headerText="Início" width="110">
+					<h:outputText value="#{a.startDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Fim" width="110">
+					<h:outputText value="#{a.endDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Estado" width="90" style="text-align:center">
+					<p:tag value="#{a.active ? 'ATIVO' : 'INATIVO'}"
+						severity="#{a.active ? 'success' : 'danger'}"
+						style="font-size:11px;font-weight:700;padding:4px 10px" />
+				</p:column>
+				<p:column headerText="Criado em" width="130">
+					<h:outputText value="#{a.createdAt}">
+						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="Ações" width="180" style="text-align:center">
+					<p:commandButton icon="pi pi-check-circle" title="Ativar"
+						rendered="#{!a.active}"
+						styleClass="ui-button-rounded ui-button-text ui-button-success"
+						style="width:34px;height:34px"
+						action="#{academicYearBean.activate(a)}"
+						update=":formYearList:tableYears :formYearList:growlYear">
+						<p:confirm header="Ativar" message="Tornar #{a.year} ativo?"
+							icon="pi pi-exclamation-triangle" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-times-circle" title="Inativar"
+						rendered="#{a.active}"
+						styleClass="ui-button-rounded ui-button-text ui-button-warning"
+						style="width:34px;height:34px"
+						action="#{academicYearBean.deactivate(a)}"
+						update=":formYearList:tableYears :formYearList:growlYear">
+						<p:confirm header="Inativar" message="Inativar #{a.year}?"
+							icon="pi pi-exclamation-triangle" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						style="width:34px;height:34px"
+						action="#{academicYearBean.prepareEdit(a)}"
+						oncomplete="PF('dlgAcademicYear').show()" update=":formDialogYear" />
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						style="width:34px;height:34px"
+						action="#{academicYearBean.delete(a)}"
+						update=":formYearList:tableYears :formYearList:growlYear">
+						<p:confirm header="Remover" message="Remover #{a.year}?"
+							icon="pi pi-exclamation-triangle" />
+					</p:commandButton>
+				</p:column>
+			</p:dataTable>
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+				width="350">
+				<p:commandButton value="Não" type="button"
+					styleClass="ui-confirmdialog-no ui-button-flat" />
+				<p:commandButton value="Sim" type="button"
+					styleClass="ui-confirmdialog-yes" />
+			</p:confirmDialog>
+		</div>
+	</h:form>
+
+	<p:dialog widgetVar="dlgAcademicYear"
+		header="#{academicYearBean.editing ? 'Editar Ano' : 'Novo Ano'}"
+		modal="true" width="550" appendTo="@(body)">
+		<h:form id="formDialogYear">
+			<div style="display: grid; gap: 14px">
+				<div>
+					<label style="font-size: 12.5px; font-weight: 600">Ano *</label>
+					<p:inputText value="#{academicYearBean.academicYear.year}"
+						required="true" style="width:100%"
+						disabled="#{academicYearBean.editing}" />
+				</div>
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+					<div>
+						<label style="font-size: 12.5px; font-weight: 600">Início
+							*</label>
+						<p:datePicker value="#{academicYearBean.academicYear.startDate}"
+							pattern="dd/MM/yyyy" style="width:100%" required="true" />
+					</div>
+					<div>
+						<label style="font-size: 12.5px; font-weight: 600">Fim *</label>
+						<p:datePicker value="#{academicYearBean.academicYear.endDate}"
+							pattern="dd/MM/yyyy" style="width:100%" required="true" />
+					</div>
+				</div>
+				<div
+					style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px">
+					<p:commandButton value="Cancelar"
+						styleClass="ui-button-secondary ui-button-outlined"
+						onclick="PF('dlgAcademicYear').hide();return false;" />
+					<p:commandButton value="Salvar" icon="pi pi-check"
+						style="background:#0a2540;border:none"
+						action="#{academicYearBean.save}"
+						update=":formYearList:tableYears :formYearList:growlYear"
+						oncomplete="if(!args.validationFailed) PF('dlgAcademicYear').hide()" />
+				</div>
+			</div>
+		</h:form>
+	</p:dialog>
+</ui:composition>
