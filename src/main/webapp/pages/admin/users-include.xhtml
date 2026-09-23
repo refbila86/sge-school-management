@@ -1,0 +1,275 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.user-form-page {
+	max-width: 900px;
+	margin: 0
+}
+
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px
+}
+
+.page-title {
+	font-size: 22px;
+	font-weight: 800;
+	color: #0a2540;
+	letter-spacing: -.3px;
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.page-title i {
+	width: 38px;
+	height: 38px;
+	background: #0a2540;
+	color: #fff;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px
+}
+
+.form-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
+}
+
+.form-section {
+	padding: 22px 24px;
+	border-bottom: 1px solid #eef2f7
+}
+
+.form-section:last-child {
+	border-bottom: none
+}
+
+.section-label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .8px;
+	text-transform: uppercase;
+	color: #6b7686;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+	gap: 6px
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+.grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 16px
+}
+
+@media ( max-width :800px) {
+	.grid-2, .grid-3 {
+		grid-template-columns: 1fr
+	}
+}
+
+.field label {
+	display: block;
+	font-size: 12.5px;
+	font-weight: 600;
+	color: #344054;
+	margin-bottom: 6px
+}
+
+.field label .required {
+	color: #ef4444;
+	margin-left: 3px
+}
+
+.field .hint {
+	font-size: 11px;
+	color: #98a2b3;
+	margin-top: 5px
+}
+
+.btn-primary {
+	background: #0a2540 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	height: 42px !important;
+	font-weight: 600 !important
+}
+
+.btn-ghost {
+	border-radius: 10px !important;
+	height: 42px !important
+}
+
+.p-inputtext, .p-dropdown, .p-inputnumber input, .p-password input {
+	border-radius: 10px !important;
+	height: 42px !important
+}
+
+.auto-box {
+	background: #f8fafc;
+	border: 1px dashed #cbd5e1;
+	border-radius: 10px;
+	padding: 10px 12px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
+</style>
+
+	<div class="user-form-page">
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-user-plus" />
+				<div>
+					<div>#{userBean.user.id == null ? 'Novo Utilizador' : 'Editar
+						Utilizador'}</div>
+					<div
+						style="font-size: 12px; font-weight: 500; color: #667085; margin-top: 2px">Associado
+						automaticamente à escola logada • #{loginBean.loggedSchool.name}</div>
+				</div>
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined btn-ghost"
+				action="#{dashboardBean.navigate('admin/users-list','users')}"
+				update=":contentPanel" immediate="true" process="@this" />
+		</div>
+
+		<h:form id="formInclude">
+			<p:growl id="growl" showDetail="true" life="4000" />
+
+			<div class="form-card">
+
+				<!-- AUTO ASSOCIAÇÃO -->
+				<div class="form-section"
+					style="background: linear-gradient(180deg, #fbfdff 0%, #fff 100%)">
+					<div class="section-label">
+						<i class="pi pi-link" /> Associação Automática
+					</div>
+					<div class="grid-2">
+						<div class="auto-box">
+							<div>
+								<span
+									style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700">School
+									ID</span><br />
+								<b style="color: #0a2540">#{userBean.user.schoolId} -
+									#{loginBean.loggedSchool.name}</b>
+							</div>
+							<i class="pi pi-lock" style="color: #94a3b8" />
+						</div>
+						<div class="field">
+							<label>Ano Lectivo <span class="required">*</span></label>
+							<p:selectOneMenu value="#{userBean.user.academicYearId}"
+								style="width:100%" placeholder="Selecione o ano">
+								<f:selectItem itemLabel="Todos os anos (Geral)"
+									itemValue="#{null}" />
+								<f:selectItems value="#{academicYearBean.academicYears}"
+									var="ay" itemLabel="Ano académico de #{ay.year}"
+									itemValue="#{ay.id}" />
+							</p:selectOneMenu>
+							<div class="hint">Se deixar em branco, terá acesso a todos
+								os anos.</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- DADOS PRINCIPAIS -->
+				<div class="form-section">
+					<div class="section-label">
+						<i class="pi pi-id-card" /> Dados Principais
+					</div>
+					<div class="grid-2">
+						<div class="field">
+							<label>Nome Completo <span class="required">*</span></label>
+							<p:inputText value="#{userBean.user.name}" required="true"
+								requiredMessage="Informe o nome" placeholder="Ex: João Silva"
+								style="width:100%" />
+						</div>
+						<div class="field">
+							<label>Email</label>
+							<p:inputText value="#{userBean.user.email}"
+								placeholder="Ex: joao@escola.edu.mz" style="width:100%" />
+						</div>
+					</div>
+				</div>
+
+				<!-- ACESSO -->
+				<div class="form-section">
+					<div class="section-label">
+						<i class="pi pi-lock" /> Dados de Acesso
+					</div>
+					<div class="grid-3">
+						<div class="field">
+							<label>Username <span class="required">*</span></label>
+							<p:inputText value="#{userBean.user.username}" required="true"
+								requiredMessage="Informe username" placeholder="Ex: joao.silva"
+								style="width:100%;text-transform:lowercase" />
+							<div class="hint">Único dentro da escola.</div>
+						</div>
+						<div class="field">
+							<label>#{userBean.user.id == null ? 'Senha' : 'Nova
+								Senha'} #{userBean.user.id == null ? '*' : ''}</label>
+							<p:password value="#{userBean.user.password}"
+								placeholder="#{userBean.user.id == null ? 'Min. 6 caracteres' : 'Deixe vazio para manter'}"
+								style="width:100%" toggleMask="true" redisplay="true" />
+						</div>
+						<div class="field">
+							<label>Perfil <span class="required">*</span></label>
+							<p:selectOneMenu value="#{userBean.user.role}" style="width:100%">
+								<f:selectItems value="#{userBean.roles}" var="r"
+									itemLabel="#{r}" itemValue="#{r}" />
+							</p:selectOneMenu>
+						</div>
+					</div>
+					<div class="field" style="margin-top: 16px">
+						<label>Estado</label>
+						<div
+							style="display: flex; align-items: center; gap: 10px; height: 42px; background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; padding: 0 12px">
+							<p:toggleSwitch value="#{userBean.user.active}" onLabel="Ativo"
+								offLabel="Inativo" />
+							<span style="font-size: 13px; font-weight: 600; color: #0a2540">#{userBean.user.active
+								? 'Utilizador Ativo' : 'Utilizador Inativo'}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- AÇÕES -->
+				<div class="form-section"
+					style="background: #fcfcfd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+					<div
+						style="font-size: 11.5px; color: #667085; display: flex; align-items: center; gap: 6px">
+						<i class="pi pi-info-circle" /> School ID associado
+						automaticamente ao criar. Username único por escola.
+					</div>
+					<div style="display: flex; gap: 10px">
+						<p:commandButton value="Cancelar"
+							styleClass="ui-button-secondary ui-button-outlined btn-ghost"
+							action="#{dashboardBean.navigate('admin/users-list','users')}"
+							update=":contentPanel" immediate="true" process="@this" />
+						<p:commandButton
+							value="#{userBean.user.id == null ? 'Salvar Utilizador' : 'Atualizar Utilizador'}"
+							icon="pi pi-check" styleClass="btn-primary"
+							action="#{userBean.save}" update=":contentPanel"
+							style="min-width:170px" />
+					</div>
+				</div>
+
+			</div>
+		</h:form>
+	</div>
+</ui:composition>

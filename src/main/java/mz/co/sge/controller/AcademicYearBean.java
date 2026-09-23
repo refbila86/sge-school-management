@@ -56,6 +56,15 @@ public class AcademicYearBean implements Serializable
 		this.academicYearService = academicYearService;
 	}
 
+	public String getYearLabel(Long id)
+	{
+		if (id == null)
+			return "Geral";
+		if (academicYears == null)
+			return id.toString();
+		return academicYears.stream().filter(ay -> ay.getId().equals(id)).map(ay -> String.valueOf(ay.getYear())).findFirst().orElse(id.toString());
+	}
+
 	public void filter()
 	{
 		if (filterYear == null || filterYear.isBlank())
@@ -67,7 +76,7 @@ public class AcademicYearBean implements Serializable
 		{
 			String term = filterYear.trim();
 			// carrega tudo uma vez e filtra - não depende de método no service
-			//List<AcademicYearEntity> all = academicYearService.loadAcademicYears();
+			// List<AcademicYearEntity> all = academicYearService.loadAcademicYears();
 			academicYears = academicYearService.getAllAcademicYears();
 
 			// tenta filtrar por número exato ou contém

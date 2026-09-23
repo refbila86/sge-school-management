@@ -17,55 +17,50 @@ import mz.co.sge.enumes.Role;
 
 @Entity
 @Table(name = "user")
-@NamedQueries({
-    @NamedQuery(
-        name = "UserEntity.findByUsernameAndSchoolId",
-        query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId"
-    ),
-    @NamedQuery(
-        name = "UserEntity.findBySchoolIdOrderByNameAsc",
-        query = "SELECT u FROM UserEntity u WHERE u.schoolId = :schoolId ORDER BY u.name ASC"
-    ),
-    @NamedQuery(
-        name = "UserEntity.existsByUsernameAndSchoolId",
-        query = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId"
-    )
-})
-public class UserEntity implements Serializable {
+@NamedQueries(
+{ @NamedQuery(name = "UserEntity.findByUsernameAndSchoolId", query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId"),
+		@NamedQuery(name = "UserEntity.findBySchoolIdOrderByNameAsc", query = "SELECT u FROM UserEntity u WHERE u.schoolId = :schoolId ORDER BY u.name ASC"),
+		@NamedQuery(name = "UserEntity.findBySchoolIdAndAcademicYearId", query = "SELECT u FROM UserEntity u WHERE u.schoolId = :schoolId AND u.academicYearId = :academicYearId ORDER BY u.name ASC"),
+		@NamedQuery(name = "UserEntity.existsByUsernameAndSchoolId", query = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId") })
+public class UserEntity implements Serializable
+{
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(name = "school_id", nullable = false)
-    private Long schoolId;
+	@Column(name = "school_id", nullable = false)
+	private Long schoolId;
 
-    @Column(name = "name", nullable = false, length = 150)
-    private String name;
+	@Column(name = "academic_year_id")
+	private Long academicYearId;
 
-    @Column(name = "username", nullable = false, length = 80)
-    private String username;
+	@Column(name = "name", nullable = false, length = 150)
+	private String name;
 
-    @Column(name = "password", nullable = false, length = 255)
-    private String password;
+	@Column(name = "username", nullable = false, length = 80)
+	private String username;
 
-    @Column(name = "email", length = 100)
-    private String email;
+	@Column(name = "password", nullable = false, length = 255)
+	private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role;
+	@Column(name = "email", length = 100)
+	private String email;
 
-    @Column(name = "active", nullable = false)
-    private Boolean active = true;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role", nullable = false)
+	private Role role;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+	@Column(name = "active", nullable = false)
+	private Boolean active = true;
 
-    @Column(name = "last_login")
-    private LocalDateTime lastLogin;
+	@Column(name = "created_at", nullable = false)
+	private LocalDateTime createdAt;
+
+	@Column(name = "last_login")
+	private LocalDateTime lastLogin;
 
 	public UserEntity()
 	{
@@ -89,6 +84,16 @@ public class UserEntity implements Serializable {
 	public void setSchoolId(Long schoolId)
 	{
 		this.schoolId = schoolId;
+	}
+
+	public Long getAcademicYearId()
+	{
+		return academicYearId;
+	}
+
+	public void setAcademicYearId(Long academicYearId)
+	{
+		this.academicYearId = academicYearId;
 	}
 
 	public String getName()
@@ -170,5 +175,4 @@ public class UserEntity implements Serializable {
 	{
 		this.lastLogin = lastLogin;
 	}
-
 }

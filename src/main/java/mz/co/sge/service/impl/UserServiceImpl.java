@@ -29,28 +29,14 @@ public class UserServiceImpl implements IUserService
 	@Override
 	public UserEntity authenticate(String username, String rawPassword, Long schoolId)
 	{
-		System.out.println("=== DEPURANDO LOGIN ===");
-		System.out.println("Username: [" + username + "]");
-		System.out.println("SchoolId: [" + schoolId + "]");
-		System.out.println("RawPassword length: " + (rawPassword != null ? rawPassword.length() : "null"));
-		System.out.println("RawPassword bytes: [" + rawPassword + "]");
-
 		Optional<UserEntity> found = userRepository.findByUsernameAndSchoolId(username, schoolId);
 		if (found.isEmpty())
-		{
-			System.out.println("--> FALHA: Utilizador não encontrado");
 			return null;
-		}
-		UserEntity user = found.get();
-		System.out.println("Hash no BD: [" + user.getPassword() + "] len=" + user.getPassword().length());
 
+		UserEntity user = found.get();
 		if (!Boolean.TRUE.equals(user.getActive()))
 			return null;
-
-		// Teste importante
-		boolean passwordMatches = passwordEncoder.matches(rawPassword.trim(), user.getPassword());
-		System.out.println("Matches: " + passwordMatches);
-		if (!passwordMatches)
+		if (!passwordEncoder.matches(rawPassword.trim(), user.getPassword()))
 			return null;
 
 		user.setLastLogin(LocalDateTime.now());
@@ -73,21 +59,18 @@ public class UserServiceImpl implements IUserService
 
 	@Override
 	@Transactional(readOnly = true)
+	public List<UserEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
+	{
+		if (academicYearId == null)
+			return findBySchoolId(schoolId);
+		return userRepository.findBySchoolIdAndAcademicYearIdOrderByNameAsc(schoolId, academicYearId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public Optional<UserEntity> findById(Long id)
 	{
 		return userRepository.findById(id);
-	}
-
-	@Transactional(readOnly = true)
-	public List<UserEntity> findAllBySchool(Long schoolId)
-	{
-		return userRepository.findBySchoolIdOrderByNameAsc(schoolId);
-	}
-
-	@Transactional(readOnly = true)
-	public boolean usernameExists(String username, Long schoolId)
-	{
-		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
 	}
 
 	@Override
@@ -98,12 +81,11 @@ public class UserServiceImpl implements IUserService
 		if (user.getActive() == null)
 			user.setActive(true);
 
-		// CORRIGIDO: detecta qualquer hash BCrypt válido
+		// Só codifica se ainda não for BCrypt
 		String pwd = user.getPassword();
 		if (pwd != null && !pwd.matches("^\\$2[aby]?\\$\\d+\\$.*"))
 		{
-			System.out.println("Codificando senha nova para o user: " + user.getUsername());
-			user.setPassword(passwordEncoder.encode(pwd));
+			user.setPassword(passwordEncoder.encode(pwd.trim()));
 		}
 		return userRepository.save(user);
 	}
@@ -119,5 +101,12 @@ public class UserServiceImpl implements IUserService
 	public boolean existsByUsernameAndSchoolId(String username, Long schoolId)
 	{
 		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsByUsernameAndSchoolIdAndIdNot(String username, Long schoolId, Long id)
+	{
+		return userRepository.existsByUsernameAndSchoolIdAndIdNot(username, schoolId, id);
 	}
 }

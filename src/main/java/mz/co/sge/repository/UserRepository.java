@@ -16,8 +16,14 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>
 
 	@Query("SELECT u FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId")
 	Optional<UserEntity> findByUsernameAndSchoolId(@Param("username") String username, @Param("schoolId") Long schoolId);
-	
-	List<UserEntity> findBySchoolIdOrderByNameAsc(@Param("schoolId") Long schoolId);
 
-	boolean existsByUsernameAndSchoolId(@Param("username") String username, @Param("schoolId") Long schoolId);
+	List<UserEntity> findBySchoolIdOrderByNameAsc(Long schoolId);
+
+	List<UserEntity> findBySchoolIdAndAcademicYearIdOrderByNameAsc(Long schoolId, Long academicYearId);
+
+	List<UserEntity> findByAcademicYearIdOrderByNameAsc(Long academicYearId);
+
+	boolean existsByUsernameAndSchoolId(String username, Long schoolId);
+
+	boolean existsByUsernameAndSchoolIdAndIdNot(String username, Long schoolId, Long id);
 }
