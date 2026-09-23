@@ -12,5 +12,11 @@ public interface ILicenseRepository extends JpaRepository<LicenseEntity, Long>
 {
 	Optional<LicenseEntity> findByCode(String code);
 
+	Optional<LicenseEntity> findByLicenseKey(String licenseKey);
+
+	Optional<LicenseEntity> findByUuid(String uuid);
+
 	boolean existsByCode(String code);
+
+	boolean existsByLicenseKey(String licenseKey);
 }

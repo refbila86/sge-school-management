@@ -1,0 +1,114 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<h:form id="formLicenseList">
+		<p:growl id="growl" showDetail="true" life="4000" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+				<i class="pi pi-key" style="margin-right: 8px" />Licenças -
+				#{licenseBean.licenses.size()}
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Nova Licença" icon="pi pi-plus"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					actionListener="#{licenseBean.cleanForm}"
+					action="#{dashboardBean.navigate('licenses/license-include','licencas')}"
+					update=":contentPanel :menuForm" />
+				<p:commandButton icon="pi pi-refresh"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" action="#{licenseBean.loadLicenses}"
+					update=":contentPanel :menuForm" />
+			</div>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px">
+			<p:dataTable value="#{licenseBean.licenses}" var="lic"
+				paginator="true" rows="10" paginatorPosition="bottom"
+				emptyMessage="Nenhuma licença">
+				<p:column headerText="CHAVE" width="220">
+					<b style="font-size: 12.5px">#{lic.licenseKey}</b>
+					<br />
+					<span style="font-size: 10px; color: #64748b">#{lic.code}</span>
+				</p:column>
+				<p:column headerText="TIPO" width="90">
+					<span
+						style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px">#{lic.type}</span>
+				</p:column>
+				<p:column headerText="ATIVAÇÃO" width="110">
+					<h:outputText value="#{lic.activationDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="EXPIRA" width="110">
+					<h:outputText value="#{lic.expirationDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="DIAS REST." width="90"
+					style="text-align:center">
+					<b style="color:#{lic.daysRemaining lt 30? '#dc2626' : '#16a34a'}">#{lic.daysRemaining}</b>
+				</p:column>
+				<p:column headerText="STATUS" width="100">
+					<p:tag value="#{lic.status}" />
+				</p:column>
+				<p:column headerText="AÇÕES" width="130" style="text-align:center">
+					<p:commandButton icon="pi pi-eye"
+						styleClass="ui-button-rounded ui-button-text"
+						action="#{licenseBean.prepareView(lic)}"
+						update=":formLicenseList:viewDialog"
+						oncomplete="PF('viewDialog').show()" process="@this" />
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						action="#{dashboardBean.navigate('licenses/license-include','licencas')}"
+						update=":contentPanel">
+						<f:setPropertyActionListener value="#{lic}"
+							target="#{licenseBean.license}" />
+						<f:setPropertyActionListener value="#{true}"
+							target="#{licenseBean.editing}" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						action="#{licenseBean.prepareDelete(lic)}"
+						update=":formLicenseList:confirmDialog"
+						oncomplete="PF('confirmDialog').show()" process="@this" />
+				</p:column>
+			</p:dataTable>
+		</div>
+
+		<p:dialog widgetVar="viewDialog" id="viewDialog" header="Detalhes"
+			modal="true" width="550">
+			<h:panelGroup rendered="#{licenseBean.selectedLicense!= null}">
+				<b>#{licenseBean.selectedLicense.licenseKey}</b>
+				<br />
+				Ativação: <h:outputText
+					value="#{licenseBean.selectedLicense.activationDate}">
+					<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+				</h:outputText>
+				<br />
+				Expiração: <h:outputText
+					value="#{licenseBean.selectedLicense.expirationDate}">
+					<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+				</h:outputText>
+				<br />
+				Status: #{licenseBean.selectedLicense.status}
+			</h:panelGroup>
+		</p:dialog>
+
+		<p:confirmDialog widgetVar="confirmDialog" id="confirmDialog"
+			header="Remover?"
+			message="Remover #{licenseBean.selectedLicense.licenseKey}?"
+			severity="warn">
+			<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
+				action="#{licenseBean.deleteLicense}"
+				update=":contentPanel :menuForm"
+				oncomplete="PF('confirmDialog').hide()" process="@this" />
+			<p:commandButton value="Não"
+				styleClass="ui-button-secondary ui-button-outlined"
+				onclick="PF('confirmDialog').hide()" type="button" />
+		</p:confirmDialog>
+	</h:form>
+</ui:composition>

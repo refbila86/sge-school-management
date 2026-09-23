@@ -7,27 +7,19 @@
 		<h:outputStylesheet library="primefaces"
 			name="primeicons/primeicons.css" />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
 			rel="stylesheet" />
 	</h:head>
 
 	<h:body
 		style="margin:0;background:#f6f8fb;font-family:'Inter',sans-serif">
-
 		<style>
 :root {
 	--primary: #0b1f3a;
-	--primary-soft: #16305a;
-	--primary-tint: #eef2f8;
-	--accent: #3b6fd4;
-	--bg: #f4f6fa;
+	--accent: #3b82f6;
+	--bg: #f5f7fb;
 	--card: #fff;
-	--border: #e3e8f0;
-	--muted: #6b7686;
-	--ink: #101828;
-	--radius-sm: 8px;
-	--radius-md: 12px;
-	--radius-lg: 16px
+	--border: #e6eaf0
 }
 
 * {
@@ -36,95 +28,89 @@
 
 .app {
 	display: flex;
-	min-height: 100vh;
-	color: var(--ink)
+	min-height: 100vh
 }
 
-/* ---------- SIDEBAR ---------- */
 .sidebar {
-	width: 268px;
+	width: 278px;
 	background: var(--primary);
-	color: rgba(255, 255, 255, .88);
+	color: rgba(255, 255, 255, .85);
 	display: flex;
 	flex-direction: column;
 	transition: width .25s ease;
 	position: sticky;
 	top: 0;
 	height: 100vh;
-	overflow: hidden;
-	z-index: 20;
-	border-right: 1px solid rgba(255, 255, 255, .06)
+	z-index: 30
 }
 
 .sidebar.collapsed {
-	width: 76px
+	width: 74px
+}
+
+.sidebar.collapsed .brand-text, .sidebar.collapsed .menu-label, .sidebar.collapsed .menu-section-title,
+	.sidebar.collapsed .menu-arrow, .sidebar.collapsed .menu-badge,
+	.sidebar.collapsed .user-details, .sidebar.collapsed .logout-text {
+	display: none !important
 }
 
 .brand {
-	padding: 20px 18px;
+	padding: 0 12px 0 16px;
 	display: flex;
 	align-items: center;
-	gap: 11px;
+	gap: 12px;
 	border-bottom: 1px solid rgba(255, 255, 255, .08);
-	min-height: 68px
+	min-height: 64px
 }
 
 .brand-logo {
 	width: 36px;
 	height: 36px;
-	background: white;
-	border-radius: var(--radius-sm);
+	background: #fff;
+	border-radius: 8px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: var(--primary);
-	font-weight: 800;
-	font-size: 15px;
-	flex-shrink: 0
+	font-weight: 800
 }
 
-.brand-text b {
-	display: block;
-	font-size: 15px;
-	font-weight: 700;
-	letter-spacing: .2px;
-	line-height: 1.2;
-	color: #fff
+.collapse-btn {
+	margin-left: auto;
+	background: rgba(255, 255, 255, .08) !important;
+	border: 1px solid rgba(255, 255, 255, .08) !important;
+	color: #fff !important;
+	width: 30px !important;
+	height: 30px !important;
+	border-radius: 8px !important
 }
 
-.brand-text span {
-	font-size: 10.5px;
-	color: rgba(255, 255, 255, .5);
-	letter-spacing: .2px
+.sidebar.collapsed .brand {
+	justify-content: center;
+	padding: 0
 }
 
-.sidebar.collapsed .brand-text, .sidebar.collapsed .menu-label, .sidebar.collapsed .menu-section,
-	.sidebar.collapsed .menu-arrow, .sidebar.collapsed .menu-badge {
-	display: none !important
+.sidebar.collapsed .collapse-btn {
+	margin: 0
 }
 
 .menu {
 	flex: 1;
 	overflow-y: auto;
-	overflow-x: hidden;
-	padding: 10px 10px 16px
-}
-
-.menu::-webkit-scrollbar {
-	width: 4px
-}
-
-.menu::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, .14);
-	border-radius: 10px
+	padding: 10px
 }
 
 .menu-section {
-	font-size: 10.5px;
-	letter-spacing: .3px;
-	color: rgba(255, 255, 255, .38);
-	margin: 20px 10px 8px;
-	font-weight: 600
+	margin: 18px 0 6px
+}
+
+.menu-section-title {
+	font-size: 10px;
+	letter-spacing: .8px;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, .35);
+	font-weight: 700;
+	padding: 0 10px 6px
 }
 
 .menu-item {
@@ -133,17 +119,16 @@
 	align-items: center;
 	gap: 11px;
 	padding: 9px 11px;
-	border-radius: var(--radius-sm);
-	color: rgba(255, 255, 255, .68);
+	border-radius: 8px;
+	color: rgba(255, 255, 255, .6);
 	font-size: 13px;
 	font-weight: 500;
-	font-family: inherit;
 	background: transparent;
 	border: none;
 	border-left: 2px solid transparent;
 	cursor: pointer;
 	text-align: left;
-	transition: background .15s ease, color .15s ease;
+	font-family: inherit;
 	position: relative
 }
 
@@ -152,28 +137,16 @@
 	color: #fff
 }
 
-.menu-item:focus-visible {
-	outline: 2px solid rgba(255, 255, 255, .5);
-	outline-offset: -2px
-}
-
 .menu-item.active {
-	background: rgba(255, 255, 255, .1);
+	background: rgba(59, 130, 246, .18);
 	color: #fff;
-	font-weight: 600;
-	border-left: 2px solid #fff
-}
-
-.menu-item.active i {
-	color: #fff
+	border-left-color: var(--accent)
 }
 
 .menu-item i {
-	font-size: 14px;
-	width: 18px;
-	text-align: center;
-	color: rgba(255, 255, 255, .55);
-	transition: color .15s ease
+	font-size: 15px;
+	width: 20px;
+	text-align: center
 }
 
 .menu-badge {
@@ -181,9 +154,11 @@
 	background: rgba(255, 255, 255, .12);
 	color: rgba(255, 255, 255, .85);
 	font-size: 10px;
-	padding: 2px 7px;
+	font-weight: 700;
+	padding: 3px 8px;
 	border-radius: 20px;
-	font-weight: 600
+	min-width: 22px;
+	text-align: center
 }
 
 .menu-item.active .menu-badge {
@@ -191,71 +166,6 @@
 	color: #fff
 }
 
-.menu-arrow {
-	margin-left: auto;
-	font-size: 10px !important;
-	opacity: .5;
-	transition: transform .2s ease
-}
-
-.menu-arrow.open {
-	transform: rotate(90deg)
-}
-
-/* Botão "Recolher submenus" */
-.menu-collapse-all {
-	font-size: 11.5px;
-	padding: 7px 11px;
-	margin-bottom: 4px;
-	color: rgba(255, 255, 255, .5);
-	border: 1px dashed rgba(255, 255, 255, .14);
-	border-left: 1px dashed rgba(255, 255, 255, .14)
-}
-
-.menu-collapse-all i {
-	font-size: 12px
-}
-
-.submenu {
-	margin: 2px 0 6px 29px;
-	border-left: 1px solid rgba(255, 255, 255, .1);
-	padding-left: 12px;
-	display: none;
-	flex-direction: column;
-	gap: 1px
-}
-
-.submenu .menu-item {
-	padding: 7px 10px;
-	font-size: 12px;
-	color: rgba(255, 255, 255, .58)
-}
-
-.sidebar.collapsed .submenu {
-	display: none !important
-}
-
-.sidebar-footer {
-	padding: 12px;
-	border-top: 1px solid rgba(255, 255, 255, .08);
-	display: flex;
-	flex-direction: column;
-	gap: 8px
-}
-
-.sidebar-user {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	padding: 8px;
-	border-radius: var(--radius-sm)
-}
-
-.sidebar-user:hover {
-	background: rgba(255, 255, 255, .05)
-}
-
-/* ---------- MAIN / TOPBAR ---------- */
 .main {
 	flex: 1;
 	display: flex;
@@ -266,89 +176,15 @@
 
 .topbar {
 	height: 64px;
-	background: var(--card);
+	background: #fff;
 	border-bottom: 1px solid var(--border);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0 24px;
+	padding: 0 20px;
 	position: sticky;
 	top: 0;
 	z-index: 10
-}
-
-.topbar-left {
-	display: flex;
-	align-items: center;
-	gap: 16px
-}
-
-.icon-btn {
-	width: 36px;
-	height: 36px;
-	border-radius: var(--radius-sm);
-	border: 1px solid var(--border);
-	background: var(--card);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	color: var(--muted);
-	transition: background .15s ease, color .15s ease
-}
-
-.icon-btn:hover {
-	background: var(--primary-tint);
-	color: var(--primary)
-}
-
-.search {
-	width: 300px;
-	position: relative
-}
-
-.search input {
-	width: 100%;
-	height: 36px;
-	background: var(--bg);
-	border: 1px solid var(--border);
-	border-radius: var(--radius-sm);
-	padding: 0 12px 0 36px;
-	font-size: 12.5px;
-	outline: none;
-	transition: border-color .15s ease
-}
-
-.search input:focus {
-	border-color: var(--accent);
-	background: #fff
-}
-
-.search i {
-	position: absolute;
-	left: 12px;
-	top: 11px;
-	color: var(--muted);
-	font-size: 13px
-}
-
-.topbar-right {
-	display: flex;
-	align-items: center;
-	gap: 12px
-}
-
-.avatar {
-	width: 34px;
-	height: 34px;
-	border-radius: var(--radius-sm);
-	background: var(--primary);
-	color: white;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 600;
-	font-size: 12.5px
 }
 
 .content-area {
@@ -356,47 +192,47 @@
 	flex: 1
 }
 
-@media ( max-width :900px) {
-	.sidebar {
-		position: fixed;
-		left: -268px
-	}
-	.sidebar.open {
-		left: 0
-	}
-	.search {
-		display: none
-	}
+.sidebar-footer {
+	padding: 12px;
+	border-top: 1px solid rgba(255, 255, 255, .08);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: auto
+}
+
+.sidebar-user {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	padding: 8px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, .04)
+}
+
+.user-avatar {
+	width: 34px;
+	height: 34px;
+	background: rgba(255, 255, 255, .12);
+	color: #fff;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 13px
+}
+
+.logout-btn {
+	width: 100%;
+	background: transparent !important;
+	border: 1px solid rgba(255, 255, 255, .14) !important;
+	color: rgba(255, 255, 255, .7) !important;
+	border-radius: 8px !important;
+	font-size: 12px !important;
+	height: 36px !important
 }
 </style>
-
-		<script>
-//<![CDATA[
-/* Abre/fecha um submenu e roda a seta do botão que o controla */
-function toggleSubmenu(btn, submenuId) {
-	var sub = document.getElementById(submenuId);
-	var arrow = btn.querySelector('.menu-arrow');
-	var isOpen = sub.style.display === 'flex';
-	sub.style.display = isOpen ? 'none' : 'flex';
-	if (arrow) {
-		if (isOpen) { arrow.classList.remove('open'); }
-		else { arrow.classList.add('open'); }
-	}
-}
-
-/* Recolhe todos os submenus do menu principal */
-function collapseAllSubmenus() {
-	var subs = document.querySelectorAll('#sidebar .submenu');
-	for (var i = 0; i < subs.length; i++) {
-		subs[i].style.display = 'none';
-	}
-	var arrows = document.querySelectorAll('#sidebar .menu-arrow.open');
-	for (var j = 0; j < arrows.length; j++) {
-		arrows[j].classList.remove('open');
-	}
-}
-//]]>
-</script>
 
 		<div class="app">
 			<div
@@ -405,268 +241,204 @@ function collapseAllSubmenus() {
 				<div class="brand">
 					<div class="brand-logo">S</div>
 					<div class="brand-text">
-						<b>SGE</b><span>Gestão Escolar v2.0</span>
+						<b style="color: #fff; display: block; line-height: 1">SGE</b><span
+							style="font-size: 10px; color: rgba(255, 255, 255, .5)">v2.0</span>
 					</div>
-					<p:commandButton icon="pi pi-angle-left"
-						style="margin-left:auto;background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:8px"
+					<p:commandButton id="collapseBtn" styleClass="collapse-btn"
+						icon="pi #{dashboardBean.sidebarCollapsed ? 'pi-angle-right' : 'pi-angle-left'}"
 						action="#{dashboardBean.toggleSidebar}" update="@none"
-						oncomplete="document.getElementById('sidebar').classList.toggle('collapsed')"
-						styleClass="menu-btn" />
+						oncomplete="toggleSidebarUI()" />
 				</div>
 
 				<h:form id="menuForm" style="display:contents">
 					<div class="menu">
-
-						<!-- RECOLHER SUBMENUS -->
-						<button type="button" class="menu-item menu-collapse-all"
-							onclick="collapseAllSubmenus()">
-							<i class="pi pi-angle-double-up" /><span class="menu-label">Recolher
-								submenus</span>
-						</button>
-
-						<!-- DASHBOARD -->
 						<button type="button"
-							class="menu-item #{dashboardBean.isActive('dashboard') ? 'active' : ''}"
+							class="menu-item #{dashboardBean.activeMenu eq 'dashboard' ? 'active' : ''}"
 							onclick="PF('navDashboard').jq.click()">
-							<i class="pi pi-home" /><span>Dashboard</span>
+							<i class="pi pi-home" /><span class="menu-label">Dashboard</span>
 						</button>
-						<p:commandButton id="btnDash" widgetVar="navDashboard"
+
+						<div class="menu-section">
+							<div class="menu-section-title">
+								<span class="menu-label">Academico</span>
+							</div>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'alunos' ? 'active' : ''}"
+								onclick="PF('navAlunos').jq.click()">
+								<i class="pi pi-users" /><span class="menu-label">Alunos</span><span
+									class="menu-badge menu-label">1.2k</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'professores' ? 'active' : ''}"
+								onclick="PF('navProf').jq.click()">
+								<i class="pi pi-briefcase" /><span class="menu-label">Professores</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'turmas' ? 'active' : ''}"
+								onclick="PF('navTurmas').jq.click()">
+								<i class="pi pi-building" /><span class="menu-label">Turmas</span><span
+									class="menu-badge menu-label">#{classroomBean.classrooms.size()}</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'classes' ? 'active' : ''}"
+								onclick="PF('navClasses').jq.click()">
+								<i class="pi pi-sitemap" /><span class="menu-label">Classes</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'disciplinas' ? 'active' : ''}"
+								onclick="PF('navDisc').jq.click()">
+								<i class="pi pi-book" /><span class="menu-label">Disciplinas</span>
+							</button>
+						</div>
+
+						<div class="menu-section">
+							<div class="menu-section-title">
+								<span class="menu-label">Avaliação</span>
+							</div>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'notas' ? 'active' : ''}"
+								onclick="PF('navNotas').jq.click()">
+								<i class="pi pi-pencil" /><span class="menu-label">Lançamento
+									de Notas</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'pautas' ? 'active' : ''}"
+								onclick="PF('navPautas').jq.click()">
+								<i class="pi pi-file" /><span class="menu-label">Pautas</span>
+							</button>
+						</div>
+
+						<div class="menu-section">
+							<div class="menu-section-title">
+								<span class="menu-label">Financeiro</span>
+							</div>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'mensalidades' ? 'active' : ''}"
+								onclick="PF('navMens').jq.click()">
+								<i class="pi pi-wallet" /><span class="menu-label">Mensalidades</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'pagamentos' ? 'active' : ''}"
+								onclick="PF('navPag').jq.click()">
+								<i class="pi pi-credit-card" /><span class="menu-label">Pagamentos</span>
+							</button>
+						</div>
+
+						<div class="menu-section">
+							<div class="menu-section-title">
+								<span class="menu-label">Sistema</span>
+							</div>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'users' ? 'active' : ''}"
+								onclick="PF('navUsers').jq.click()">
+								<i class="pi pi-user" /><span class="menu-label">Utilizadores</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'backups' ? 'active' : ''}"
+								onclick="PF('navBackups').jq.click()">
+								<i class="pi pi-database" /><span class="menu-label">Backups</span>
+							</button>
+						</div>
+
+						<div class="menu-section">
+							<div class="menu-section-title">
+								<span class="menu-label">Configurações</span>
+							</div>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'licencas' ? 'active' : ''}"
+								onclick="PF('navLic').jq.click()">
+								<i class="pi pi-key" /><span class="menu-label">Licenças</span><span
+									class="menu-badge menu-label"
+									style="background: rgba(59, 130, 246, .25); color: #93b4ff">#{licenseBean.licenses.size()}</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'escolas' ? 'active' : ''}"
+								onclick="PF('navEscolas').jq.click()">
+								<i class="pi pi-building" /><span class="menu-label">Escolas</span><span
+									class="menu-badge menu-label">#{schoolBean.schools.size()}</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'ano' ? 'active' : ''}"
+								onclick="PF('navAno').jq.click()">
+								<i class="pi pi-calendar" /><span class="menu-label">Ano
+									Académico</span><span class="menu-badge menu-label">#{academicYearBean.academicYears.size()}</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'sms' ? 'active' : ''}"
+								onclick="PF('navSms').jq.click()">
+								<i class="pi pi-envelope" /><span class="menu-label">SMS
+									/ Emails</span>
+							</button>
+						</div>
+
+						<!-- NAVS ESCONDIDOS -->
+						<p:commandButton id="btnDashboard" widgetVar="navDashboard"
 							style="display:none"
 							action="#{dashboardBean.navigate('welcome','dashboard')}"
 							update=":contentPanel :topbarInfo" />
-
-						<div class="menu-section">Académico</div>
-
-						<!-- ALUNOS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('alunos') ? 'active' : ''}"
-							onclick="PF('navAlunos').jq.click()">
-							<i class="pi pi-users" /><span>Alunos</span><span
-								class="menu-badge">1.2k</span>
-						</button>
-						<p:commandButton id="btnAlunos" widgetVar="navAlunos"
+						<p:commandButton id="cAlunos" widgetVar="navAlunos"
 							style="display:none"
 							action="#{dashboardBean.navigate('alunos/student-list','alunos')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- TURMAS & SALAS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('salas') ? 'active' : ''}"
-							onclick="PF('navSalas').jq.click()">
-							<i class="pi pi-building" /><span>Turmas &amp; Salas</span>
-						</button>
-						<p:commandButton id="btnSalas" widgetVar="navSalas"
+						<p:commandButton id="cProf" widgetVar="navProf"
 							style="display:none"
-							action="#{dashboardBean.navigate('turmas/list','salas')}"
+							action="#{dashboardBean.navigate('teachers/teacher-list','professores')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- TURMAS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('turmas') ? 'active' : ''}"
-							onclick="PF('navTurmas').jq.click()">
-							<i class="pi pi-users" /><span>Turmas</span> <span
-								class="menu-badge" style="background: rgba(255, 255, 255, .16)">#{classroomBean.classrooms.size()}</span>
-						</button>
-						<p:commandButton id="btnTurmas" widgetVar="navTurmas"
+						<p:commandButton id="cTurmas" widgetVar="navTurmas"
 							style="display:none"
 							action="#{dashboardBean.navigate('classroom/classroom-list','turmas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- PROFESSORES -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('professores') ? 'active' : ''}"
-							onclick="PF('navProfessores').jq.click()">
-							<i class="pi pi-briefcase" /><span>Professores</span><span
-								class="menu-badge"
-								style="background: rgba(16, 185, 129, .22); color: #6ee7b0">48</span>
-						</button>
-						<p:commandButton id="btnProfessores" widgetVar="navProfessores"
+						<p:commandButton id="cClasses" widgetVar="navClasses"
 							style="display:none"
-							action="#{dashboardBean.navigate('professores/list','professores')}"
+							action="#{dashboardBean.navigate('classes/class-list','classes')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- DISCIPLINAS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('disciplinas') ? 'active' : ''}"
-							onclick="PF('navDisciplinas').jq.click()">
-							<i class="pi pi-book" /><span>Disciplinas</span>
-						</button>
-						<p:commandButton id="btnDisciplinas" widgetVar="navDisciplinas"
+						<p:commandButton id="cDisc" widgetVar="navDisc"
 							style="display:none"
-							action="#{dashboardBean.navigate('disciplinas/list','disciplinas')}"
+							action="#{dashboardBean.navigate('subjects/subject-list','disciplinas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<div class="menu-section">Avaliação &amp; Presença</div>
-
-						<!-- NOTAS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('notas') ? 'active' : ''}"
-							onclick="PF('navNotas').jq.click()">
-							<i class="pi pi-file-edit" /><span>Notas &amp; Pautas</span>
-						</button>
-						<p:commandButton id="btnNotas" widgetVar="navNotas"
+						<p:commandButton id="cNotas" widgetVar="navNotas"
 							style="display:none"
-							action="#{dashboardBean.navigate('notas/list','notas')}"
+							action="#{dashboardBean.navigate('evaluation/grade-entry','notas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- FREQUÊNCIA -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('frequencia') ? 'active' : ''}"
-							onclick="PF('navFrequencia').jq.click()">
-							<i class="pi pi-calendar-check" /><span>Frequência</span>
-						</button>
-						<p:commandButton id="btnFrequencia" widgetVar="navFrequencia"
+						<p:commandButton id="cPautas" widgetVar="navPautas"
 							style="display:none"
-							action="#{dashboardBean.navigate('frequencia/list','frequencia')}"
+							action="#{dashboardBean.navigate('evaluation/report-cards','pautas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- CALENDÁRIO -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('calendario') ? 'active' : ''}"
-							onclick="PF('navCalendario').jq.click()">
-							<i class="pi pi-calendar" /><span>Calendário Escolar</span>
-						</button>
-						<p:commandButton id="btnCalendario" widgetVar="navCalendario"
+						<p:commandButton id="cMens" widgetVar="navMens"
 							style="display:none"
-							action="#{dashboardBean.navigate('calendario/index','calendario')}"
+							action="#{dashboardBean.navigate('finance/fees-list','mensalidades')}"
 							update=":contentPanel :topbarInfo" />
-
-						<div class="menu-section">Gestão</div>
-
-						<!-- FINANCEIRO -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('financeiro') ? 'active' : ''}"
-							onclick="PF('navFinanceiro').jq.click()">
-							<i class="pi pi-wallet" /><span>Financeiro</span><span
-								class="menu-badge"
-								style="background: rgba(245, 158, 11, .2); color: #fcd34d">Propinas</span>
-						</button>
-						<p:commandButton id="btnFinanceiro" widgetVar="navFinanceiro"
+						<p:commandButton id="cPag" widgetVar="navPag" style="display:none"
+							action="#{dashboardBean.navigate('finance/payments-list','pagamentos')}"
+							update=":contentPanel :topbarInfo" />
+						<p:commandButton id="cUsers" widgetVar="navUsers"
 							style="display:none"
-							action="#{dashboardBean.navigate('financeiro/index','financeiro')}"
+							action="#{dashboardBean.navigate('admin/users','users')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- PREÇOS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('precos') ? 'active' : ''}"
-							onclick="PF('navPrecos').jq.click()">
-							<i class="pi pi-dollar" /><span>Preços</span>
-						</button>
-						<p:commandButton id="btnPrecos" widgetVar="navPrecos"
+						<p:commandButton id="cBackups" widgetVar="navBackups"
 							style="display:none"
-							action="#{dashboardBean.navigate('payment-price/payment-price-list','precos')}"
+							action="#{dashboardBean.navigate('admin/backups','backups')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- BIBLIOTECA -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('biblioteca') ? 'active' : ''}"
-							onclick="PF('navBiblioteca').jq.click()">
-							<i class="pi pi-bookmark" /><span>Biblioteca</span>
-						</button>
-						<p:commandButton id="btnBiblioteca" widgetVar="navBiblioteca"
-							style="display:none"
-							action="#{dashboardBean.navigate('biblioteca/index','biblioteca')}"
+						<p:commandButton id="cLic" widgetVar="navLic" style="display:none"
+							action="#{dashboardBean.navigate('licenses/license-list','licencas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- RELATÓRIOS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('relatorios') ? 'active' : ''}"
-							onclick="PF('navRelatorios').jq.click()">
-							<i class="pi pi-chart-bar" /><span>Relatórios</span>
-						</button>
-						<p:commandButton id="btnRelatorios" widgetVar="navRelatorios"
-							style="display:none"
-							action="#{dashboardBean.navigate('relatorios/index','relatorios')}"
-							update=":contentPanel :topbarInfo" />
-
-						<div class="menu-section">Sistema</div>
-
-						<!-- ESCOLAS -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('escolas') ? 'active' : ''}"
-							onclick="PF('navEscolas').jq.click()">
-							<i class="pi pi-building" /><span>Escolas</span> <span
-								class="menu-badge" style="background: rgba(255, 255, 255, .16)">#{schoolBean.schools.size()}</span>
-						</button>
-						<p:commandButton id="btnEscolas" widgetVar="navEscolas"
+						<p:commandButton id="cEscolas" widgetVar="navEscolas"
 							style="display:none"
 							action="#{dashboardBean.navigate('schools/school-list','escolas')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- ANO ACADÉMICO -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('anoAcademico') ? 'active' : ''}"
-							onclick="PF('navAnoAcademico').jq.click()">
-							<i class="pi pi-calendar-plus" /><span>Ano Académico</span>
-							<span class="menu-badge">#{empty academicYearBean.academicYears ? 0 : academicYearBean.academicYears.size()}</span>
-						</button>
-						<p:commandButton id="btnAnoAcademico" widgetVar="navAnoAcademico"
-							style="display:none"
-							action="#{dashboardBean.navigate('academic-year/academic-year-list','anoAcademico')}"
+						<p:commandButton id="cAno" widgetVar="navAno" style="display:none"
+							action="#{dashboardBean.navigate('academic-year/academic-year-list','ano')}"
 							update=":contentPanel :topbarInfo" />
-
-						<!-- CONFIGURAÇÕES (com submenu) -->
-						<button type="button"
-							class="menu-item #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'active' : ''}"
-							onclick="toggleSubmenu(this, 'submenu-config')">
-							<i class="pi pi-cog" /><span>Configurações</span> <i
-								class="pi pi-angle-right menu-arrow #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'open' : ''}" />
-						</button>
-
-						<div id="submenu-config" class="submenu"
-							style="display: #{dashboardBean.isActive('config') or dashboardBean.isActive('cadastroEscolas') or dashboardBean.isActive('users') ? 'flex' : 'none'}">
-
-							<button type="button"
-								class="menu-item #{dashboardBean.isActive('cadastroEscolas') ? 'active' : ''}"
-								onclick="PF('navCadastroEscolas').jq.click()">
-								<i class="pi pi-building" style="font-size: 12px" /><span>Cadastro
-									de Escolas</span>
-							</button>
-							<p:commandButton id="btnCadastroEscolas"
-								widgetVar="navCadastroEscolas" style="display:none"
-								action="#{dashboardBean.navigate('escolas/school-list','cadastroEscolas')}"
-								update=":contentPanel :topbarInfo" />
-
-							<button type="button" class="menu-item"
-								onclick="PF('navEscolaNova').jq.click()">
-								<i class="pi pi-plus" style="font-size: 12px" /><span>Nova
-									Escola</span>
-							</button>
-							<p:commandButton id="btnEscolaNova" widgetVar="navEscolaNova"
-								style="display:none"
-								action="#{dashboardBean.navigate('escolas/school-include','cadastroEscolas')}"
-								update=":contentPanel :topbarInfo" />
-
-							<button type="button"
-								class="menu-item #{dashboardBean.isActive('users') ? 'active' : ''}"
-								onclick="PF('navUsers').jq.click()">
-								<i class="pi pi-users" style="font-size: 12px" /><span>Utilizadores</span>
-							</button>
-							<p:commandButton id="btnUsers" widgetVar="navUsers"
-								style="display:none"
-								action="#{dashboardBean.navigate('admin/users','users')}"
-								update=":contentPanel :topbarInfo" />
-
-							<button type="button"
-								class="menu-item #{dashboardBean.isActive('config') ? 'active' : ''}"
-								onclick="PF('navConfig').jq.click()">
-								<i class="pi pi-sliders-h" style="font-size: 12px" /><span>Parâmetros
-									Gerais</span>
-							</button>
-							<p:commandButton id="btnConfig" widgetVar="navConfig"
-								style="display:none"
-								action="#{dashboardBean.navigate('admin/config','config')}"
-								update=":contentPanel :topbarInfo" />
-						</div>
-
+						<p:commandButton id="cSms" widgetVar="navSms" style="display:none"
+							action="#{dashboardBean.navigate('config/sms-email','sms')}"
+							update=":contentPanel :topbarInfo" />
 					</div>
 				</h:form>
 
 				<div class="sidebar-footer">
 					<div class="sidebar-user">
-						<div class="avatar"
-							style="width: 32px; height: 32px; background: rgba(255, 255, 255, .12); color: #fff; flex-shrink: 0">#{loginBean.fullname.substring(0,1)}</div>
-						<div style="flex: 1; min-width: 0" class="menu-label">
+						<div class="user-avatar">#{loginBean.fullname.substring(0,1)}</div>
+						<div class="user-details" style="flex: 1; min-width: 0">
 							<div
 								style="font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{loginBean.fullname}</div>
 							<div
@@ -674,41 +446,19 @@ function collapseAllSubmenus() {
 								· #{loginBean.loggedSchool.name}</div>
 						</div>
 					</div>
-					<h:form styleClass="menu-label">
+					<h:form>
 						<p:commandButton value="Terminar sessão" icon="pi pi-sign-out"
-							style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);border-radius:8px;font-size:11.5px;font-weight:500"
-							action="#{loginBean.logout}" ajax="false" />
+							styleClass="logout-btn" action="#{loginBean.logout}" ajax="false" />
 					</h:form>
 				</div>
 			</div>
 
 			<div class="main">
 				<div class="topbar">
-					<div class="topbar-left">
-						<button class="icon-btn"
-							onclick="document.getElementById('sidebar').classList.toggle('open')">
-							<i class="pi pi-bars" />
-						</button>
-						<div class="search">
-							<i class="pi pi-search" /><input
-								placeholder="Pesquisar alunos, turmas, professores..." />
-						</div>
-					</div>
-					<div class="topbar-right">
-						<h:panelGroup id="topbarInfo"
-							style="display:flex;align-items:center;gap:14px">
-							<span style="font-size: 11px; color: var(--muted)"><i
-								class="pi pi-clock" style="margin-right: 4px" /> <h:outputText
-									value="#{now}">
-									<f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
-								</h:outputText></span>
-							<p:commandButton icon="pi pi-bell" styleClass="icon-btn"
-								style="width:40px;height:40px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);color:var(--muted)" />
-							<div class="avatar">#{loginBean.fullname.substring(0,1)}</div>
-						</h:panelGroup>
-					</div>
+					<h:panelGroup id="topbarInfo">
+						<span style="font-size: 13px; font-weight: 600">#{dashboardBean.pageTitle}</span>
+					</h:panelGroup>
 				</div>
-
 				<div class="content-area">
 					<h:panelGroup id="contentPanel">
 						<ui:include src="#{dashboardBean.currentPage}" />
@@ -716,5 +466,10 @@ function collapseAllSubmenus() {
 				</div>
 			</div>
 		</div>
+		<script>
+//<![CDATA[
+function toggleSidebarUI(){document.getElementById('sidebar').classList.toggle('collapsed');}
+//]]>
+</script>
 	</h:body>
 </ui:composition>

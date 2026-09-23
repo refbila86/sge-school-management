@@ -1,52 +1,58 @@
 package mz.co.sge.controller;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.SessionScope;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Named;
 import java.io.Serializable;
 
-@Component("dashboardBean")
-@SessionScope
+@Named
+@SessionScoped
 public class DashboardBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
-    
-    private String currentPage;
-    private String activeMenu = "dashboard";
     private boolean sidebarCollapsed = false;
-
-    @PostConstruct
-    public void init() {
-        this.currentPage = "/pages/welcome.xhtml"; // onde teu arquivo está
-        this.activeMenu = "dashboard";
-    }
-
-    public void navigate(String page, String menuId) {
-        this.currentPage = "/pages/" + page + ".xhtml";
-        this.activeMenu = menuId;
-    }
-    
-    public void navigate(String page) {
-        // overload para compatibilidade
-        this.currentPage = "/pages/" + page + ".xhtml";
-        // extrai menu do path
-        if(page.contains("/")) this.activeMenu = page.split("/")[0];
-        else this.activeMenu = page;
-    }
+    private String currentPage = "/pages/welcome.xhtml";
+    private String activeMenu = "dashboard";
+    private String pageTitle = "Dashboard";
 
     public void toggleSidebar() {
-        this.sidebarCollapsed = !this.sidebarCollapsed;
+        sidebarCollapsed = !sidebarCollapsed;
     }
 
-    // GETTERS / SETTERS
-    public String getCurrentPage() { return currentPage; }
-    public void setCurrentPage(String currentPage) { this.currentPage = currentPage; }
-    public String getActiveMenu() { return activeMenu; }
-    public void setActiveMenu(String activeMenu) { this.activeMenu = activeMenu; }
-    public boolean isSidebarCollapsed() { return sidebarCollapsed; }
-    public void setSidebarCollapsed(boolean sidebarCollapsed) { this.sidebarCollapsed = sidebarCollapsed; }
-    
-    public boolean isActive(String menu) {
-        return activeMenu != null && activeMenu.equals(menu);
+    public void navigate(String page, String menu) {
+        // page vem sem .xhtml
+        this.currentPage = "/pages/" + page + ".xhtml";
+        this.activeMenu = menu;
+        this.pageTitle = toTitle(menu);
     }
+
+    private String toTitle(String menu) {
+        if (menu == null) return "Dashboard";
+        return switch (menu) {
+            case "alunos" -> "Alunos";
+            case "professores" -> "Professores";
+            case "turmas" -> "Turmas";
+            case "classes" -> "Classes";
+            case "disciplinas" -> "Disciplinas";
+            case "notas" -> "Lançamento de Notas";
+            case "pautas" -> "Pautas";
+            case "mensalidades" -> "Mensalidades";
+            case "pagamentos" -> "Pagamentos";
+            case "users" -> "Utilizadores";
+            case "backups" -> "Backups";
+            case "licencas" -> "Licenças";
+            case "escolas" -> "Escolas";
+            case "ano" -> "Ano Académico";
+            case "sms" -> "SMS / Emails";
+            default -> "Dashboard";
+        };
+    }
+
+    public boolean isActive(String menu) {
+        return activeMenu.equals(menu);
+    }
+
+    // GETTERS
+    public boolean isSidebarCollapsed() { return sidebarCollapsed; }
+    public String getCurrentPage() { return currentPage; }
+    public String getActiveMenu() { return activeMenu; }
+    public String getPageTitle() { return pageTitle; }
 }

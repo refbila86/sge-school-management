@@ -1,0 +1,287 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.license-page {
+	max-width: 900px;
+	margin: 0
+}
+
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px
+}
+
+.page-title {
+	font-size: 22px;
+	font-weight: 800;
+	color: #0a2540;
+	letter-spacing: -.3px;
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.page-title i {
+	width: 38px;
+	height: 38px;
+	background: #0a2540;
+	color: #fff;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px
+}
+
+.license-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
+}
+
+.card-section {
+	padding: 22px 24px;
+	border-bottom: 1px solid #eef2f7
+}
+
+.card-section:last-child {
+	border-bottom: none
+}
+
+.section-label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .8px;
+	text-transform: uppercase;
+	color: #6b7686;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+	gap: 6px
+}
+
+.field label {
+	display: block;
+	font-size: 12.5px;
+	font-weight: 600;
+	color: #344054;
+	margin-bottom: 6px
+}
+
+.field .hint {
+	font-size: 11px;
+	color: #98a2b3;
+	margin-top: 5px
+}
+
+.key-box {
+	background: #f8fafc;
+	border: 1px dashed #d0d5dd;
+	border-radius: 12px;
+	padding: 14px;
+	display: flex;
+	gap: 10px;
+	align-items: center
+}
+
+.key-input {
+	flex: 1
+}
+
+.key-input input {
+	font-family: monospace !important;
+	font-weight: 800 !important;
+	letter-spacing: 1px !important;
+	font-size: 14px !important;
+	text-transform: uppercase
+}
+
+.btn-primary {
+	background: #0a2540 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	height: 42px !important;
+	font-weight: 600 !important
+}
+
+.btn-ghost {
+	border-radius: 10px !important;
+	height: 42px !important
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+.grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 16px
+}
+
+@media ( max-width :800px) {
+	.grid-2, .grid-3 {
+		grid-template-columns: 1fr
+	}
+}
+
+.p-inputtext, .p-dropdown, .p-inputnumber input {
+	border-radius: 10px !important;
+	height: 42px !important
+}
+
+.p-inputtextarea {
+	border-radius: 10px !important
+}
+</style>
+
+	<div class="license-page">
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-key"></i>
+				<div>
+					<div>#{licenseBean.editing ? 'Editar Licença' : 'Nova
+						Licença'}</div>
+					<div
+						style="font-size: 12px; font-weight: 500; color: #667085; margin-top: 2px">#{licenseBean.editing
+						? 'Atualize os dados da licença' : 'Gere uma chave válida para uma
+						escola'}</div>
+				</div>
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined btn-ghost"
+				action="#{dashboardBean.navigate('licenses/license-list','licencas')}"
+				update=":contentPanel" immediate="true" process="@this" />
+		</div>
+
+		<h:form id="formLicenseInclude">
+			<p:growl id="growl" showDetail="true" life="4000" />
+
+			<div class="license-card">
+				<!-- SEÇÃO 1: CHAVE -->
+				<div class="card-section"
+					style="background: linear-gradient(180deg, #fbfdff 0%, #fff 100%)">
+					<div class="section-label">
+						<i class="pi pi-lock" /> Segurança da Licença
+					</div>
+					<div class="grid-2">
+						<div class="field">
+							<label>License Key *</label>
+							<div class="key-box">
+								<div class="key-input">
+									<p:inputText value="#{licenseBean.license.licenseKey}"
+										placeholder="SGE-MZ-XXXX-XXXX-XXXX-XXXX" style="width:100%" />
+								</div>
+								<p:commandButton value="Gerar" icon="pi pi-bolt"
+									styleClass="btn-primary" action="#{licenseBean.generateKey}"
+									update="@form" process="@this" />
+							</div>
+							<div class="hint">Chave única, formato SGE-MZ. Clique em
+								Gerar para criar automaticamente.</div>
+						</div>
+						<div class="field">
+							<label>Código Interno</label>
+							<p:inputText value="#{licenseBean.license.code}"
+								placeholder="Ex: LIC-2026-001" style="width:100%" />
+							<div class="hint">Código para controlo interno (opcional).</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- SEÇÃO 2: CONFIGURAÇÃO -->
+				<div class="card-section">
+					<div class="section-label">
+						<i class="pi pi-sliders-h" /> Configuração
+					</div>
+					<div class="grid-3">
+						<div class="field">
+							<label>Tipo de Licença *</label>
+							<p:selectOneMenu value="#{licenseBean.license.type}"
+								style="width:100%">
+								<f:selectItems value="#{licenseBean.licenseTypes}" var="t"
+									itemLabel="#{t}" itemValue="#{t}" />
+								<p:ajax listener="#{licenseBean.onTypeChange}"
+									update="durationField expDate" />
+							</p:selectOneMenu>
+						</div>
+						<div class="field">
+							<label>Duração (dias)</label>
+							<p:inputNumber id="durationField"
+								value="#{licenseBean.license.durationDays}" style="width:100%"
+								decimalPlaces="0" placeholder="365">
+								<p:ajax listener="#{licenseBean.calculateExpiration}"
+									update="expDate" />
+							</p:inputNumber>
+						</div>
+						<div class="field">
+							<label>Status</label>
+							<p:selectOneMenu value="#{licenseBean.license.status}"
+								style="width:100%">
+								<f:selectItems value="#{licenseBean.licenseStatuses}" var="s"
+									itemLabel="#{s}" itemValue="#{s}" />
+							</p:selectOneMenu>
+						</div>
+					</div>
+				</div>
+
+				<!-- SEÇÃO 3: VALIDADE -->
+				<div class="card-section">
+					<div class="section-label">
+						<i class="pi pi-calendar" /> Validade
+					</div>
+					<div class="grid-2">
+						<div class="field">
+							<label>Data de Ativação *</label>
+							<p:datePicker value="#{licenseBean.license.activationDate}"
+								pattern="dd/MM/yyyy" showIcon="true" style="width:100%"
+								placeholder="Selecione a data">
+								<p:ajax listener="#{licenseBean.calculateExpiration}"
+									update="expDate" />
+							</p:datePicker>
+						</div>
+						<div class="field">
+							<label>Data de Expiração</label>
+							<p:datePicker id="expDate"
+								value="#{licenseBean.license.expirationDate}"
+								pattern="dd/MM/yyyy" showIcon="true" style="width:100%"
+								placeholder="Calculado automaticamente" />
+							<div class="hint">Calculada com base na ativação + duração.</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- SEÇÃO 4: NOTA -->
+				<div class="card-section" style="background: #fcfcfd">
+					<div class="field">
+						<label>Observação / Nota</label>
+						<p:inputTextarea value="#{licenseBean.license.note}" rows="3"
+							style="width:100%"
+							placeholder="Ex: Licença para Escola Primária de Maputo - Ano 2026..."
+							autoResize="false" />
+					</div>
+
+					<div
+						style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px">
+						<p:commandButton value="Cancelar"
+							styleClass="ui-button-secondary ui-button-outlined btn-ghost"
+							action="#{dashboardBean.navigate('licenses/license-list','licencas')}"
+							update=":contentPanel" immediate="true" process="@this" />
+						<p:commandButton
+							value="#{licenseBean.editing ? 'Atualizar Licença' : 'Salvar Licença'}"
+							icon="pi pi-check" styleClass="btn-primary"
+							action="#{licenseBean.save}" update=":contentPanel :menuForm"
+							process="@form" style="min-width:160px" />
+					</div>
+				</div>
+			</div>
+		</h:form>
+	</div>
+</ui:composition>

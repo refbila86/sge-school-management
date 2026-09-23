@@ -12,8 +12,10 @@ public interface ILicenseService
 	Optional<LicenseEntity> getById(Long id);
 
 	Optional<LicenseEntity> getByCode(String code);
-
+	
 	LicenseEntity save(LicenseEntity license);
 
 	void delete(Long id);
+	
+	String generateLicenseKey();
 }
