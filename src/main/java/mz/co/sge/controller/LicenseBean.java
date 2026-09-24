@@ -3,9 +3,10 @@ package mz.co.sge.controller;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;

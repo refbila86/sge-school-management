@@ -3,23 +3,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
 	xmlns:f="jakarta.faces.core" xmlns:p="http://primefaces.org/ui">
 <h:head>
-
 	<title>SGE - Acesso ao Sistema</title>
-
 	<meta charset="UTF-8" />
-
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 	<link
 		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"
 		rel="stylesheet" />
-
 	<style type="text/css">
 /*<![CDATA[*/
-
-/* =========================================================
-           RESET & GLOBAL
-        ========================================================= */
 * {
 	margin: 0;
 	padding: 0;
@@ -374,7 +365,6 @@ translateY(
 	box-shadow: 0 0 0 4px rgba(21, 85, 138, .10);
 }
 
-/* Estilização PrimeFaces */
 .custom-select.ui-selectonemenu {
 	width: 100% !important;
 	height: 54px !important;
@@ -384,18 +374,6 @@ translateY(
 	display: flex !important;
 	align-items: center !important;
 	box-shadow: none !important;
-	transition: border-color .25s ease, box-shadow .25s ease !important;
-}
-
-.custom-select.ui-selectonemenu:hover {
-	border-color: #aebfd0 !important;
-	background: #ffffff !important;
-}
-
-.custom-select.ui-selectonemenu.ui-state-focus {
-	border-color: #15558a !important;
-	background: #ffffff !important;
-	box-shadow: 0 0 0 4px rgba(21, 85, 138, .10) !important;
 }
 
 .custom-select .ui-selectonemenu-label {
@@ -403,18 +381,12 @@ translateY(
 	font-family: 'Poppins', sans-serif !important;
 	font-size: 12px !important;
 	color: #1e293b !important;
-	display: flex !important;
-	align-items: center !important;
-	height: 100% !important;
 }
 
 .custom-select .ui-selectonemenu-trigger {
 	width: 40px !important;
 	background: transparent !important;
 	border: none !important;
-	display: flex !important;
-	align-items: center !important;
-	justify-content: center !important;
 }
 
 .remember-forgot {
@@ -440,11 +412,6 @@ translateY(
 	text-decoration: none;
 }
 
-.forgot-link:hover {
-	color: #0a2545;
-	text-decoration: underline;
-}
-
 .login-button {
 	width: 100%;
 	height: 55px;
@@ -459,7 +426,6 @@ translateY(
 	font-family: 'Poppins', sans-serif;
 	font-size: 13px;
 	font-weight: 600;
-	letter-spacing: .3px;
 	cursor: pointer;
 	box-shadow: 0 9px 22px rgba(9, 37, 65, .25);
 	transition: transform .25s ease, box-shadow .25s ease;
@@ -473,28 +439,47 @@ translateY(
 .profiles-title {
 	text-align: center;
 	margin-top: 28px;
-	margin-bottom: 15px;
-	color: #a0acba;
-	font-size: 9px;
+	margin-bottom: 12px;
+	color: #64748b;
+	font-size: 10px;
 	text-transform: uppercase;
 	letter-spacing: 1px;
+	font-weight: 700;
 }
 
-.profiles {
+.profiles-select {
 	display: flex;
 	justify-content: center;
-	gap: 25px;
+	gap: 10px
 }
 
-.profile {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-	min-width: 70px;
-	color: #8b98a7;
-	font-size: 9px;
-	font-weight: 500;
+.profile-opt {
+	cursor: pointer;
+	flex: 1;
+	padding: 12px 8px;
+	border-radius: 14px;
+	border: 1.5px solid #e2e8f0;
+	background: #f8fafc;
+	text-align: center;
+	transition: all .2s
+}
+
+.profile-opt:hover {
+	border-color: #15558a;
+	transform: translateY(-2px);
+	background: #fff
+}
+
+.profile-opt.active {
+	background: #0a2540 !important;
+	border-color: #0a2540 !important;
+	color: #fff !important;
+	box-shadow: 0 8px 20px rgba(10, 37, 64, .25)
+}
+
+.profile-opt.active .profile-icon {
+	background: rgba(255, 255, 255, .15) !important;
+	color: #fff !important
 }
 
 .profile-icon {
@@ -506,6 +491,7 @@ translateY(
 	border-radius: 11px;
 	background: #f1f5f8;
 	color: #47739d;
+	margin: 0 auto 6px
 }
 
 .login-footer {
@@ -523,7 +509,6 @@ translateY(
 	font-weight: 600;
 }
 
-/* Mensagens de erro/info */
 .alert-error {
 	background-color: #fde8e8;
 	border: 1px solid #f8b4b4;
@@ -537,20 +522,6 @@ translateY(
 	gap: 10px;
 }
 
-.alert-info {
-	background-color: #e8f4fd;
-	border: 1px solid #b4d8f8;
-	color: #1c4b9b;
-	padding: 12px 16px;
-	border-radius: 12px;
-	font-size: 12px;
-	margin-bottom: 20px;
-}
-
-.ui-messages-info, .ui-messages-error {
-	margin-bottom: 20px;
-}
-
 .field-error {
 	color: #9b1c1c;
 	font-size: 11px;
@@ -559,287 +530,190 @@ translateY(
 
 @media ( max-width :850px) {
 	body {
-		padding: 20px;
+		padding: 20px
 	}
 	.login-container {
 		max-width: 520px;
-		grid-template-columns: 1fr;
+		grid-template-columns: 1fr
 	}
 	.features-list {
-		display: none;
+		display: none
 	}
 	.login-right {
-		padding: 40px 30px;
+		padding: 40px 30px
 	}
 }
-
 /*]]>*/
 </style>
-
 </h:head>
-
 <h:body>
-
 	<div class="background-shape shape-one"></div>
-
 	<div class="background-shape shape-two"></div>
-
 	<div class="login-container">
-
-		<!-- PAINEL ESQUERDO -->
-
 		<div class="login-left">
-
 			<div class="left-content">
-
 				<div class="brand-logo">
-
 					<i class="pi pi-graduation-cap"></i>
-
 				</div>
-
 				<h1 class="brand-title">SGE</h1>
-
 				<p class="brand-subtitle">Sistema de Gestão Escolar</p>
-
 				<div class="features-list">
-
 					<div class="feature-item">
-
 						<div class="feature-icon">
 							<i class="pi pi-users"></i>
 						</div>
-
 						<div class="feature-text">
 							<strong>Alunos e Turmas</strong><span>Gestão académica
 								simplificada</span>
 						</div>
-
 					</div>
-
 					<div class="feature-item">
-
 						<div class="feature-icon">
 							<i class="pi pi-book"></i>
 						</div>
-
 						<div class="feature-text">
 							<strong>Notas e Frequência</strong><span>Acompanhamento do
 								desempenho</span>
 						</div>
-
 					</div>
-
 					<div class="feature-item">
-
 						<div class="feature-icon">
 							<i class="pi pi-chart-bar"></i>
 						</div>
-
 						<div class="feature-text">
 							<strong>Relatórios Académicos</strong><span>Informação
 								clara e organizada</span>
 						</div>
-
 					</div>
-
 					<div class="feature-item">
-
 						<div class="feature-icon">
 							<i class="pi pi-shield"></i>
 						</div>
-
 						<div class="feature-text">
 							<strong>Ambiente Seguro</strong><span>Acesso protegido ao
 								sistema</span>
 						</div>
-
 					</div>
-
 				</div>
-
 			</div>
-
 		</div>
-
-		<!-- PAINEL DIREITO -->
-
 		<div class="login-right">
-
 			<div class="login-form-container">
-
 				<h:form id="loginForm">
-
 					<div class="login-header">
-
 						<div class="welcome-icon">
 							<i class="pi pi-lock"></i>
 						</div>
-
 						<h2 class="login-title">Bem-vindo(a)!</h2>
-
-						<p class="login-subtitle">Entre com as suas credenciais para
-							aceder ao Sistema de Gestão Escolar.</p>
-
+						<p class="login-subtitle">Entre com as suas credenciais e
+							selecione o perfil para aceder.</p>
 					</div>
 
-					<!-- Mensagens globais (erros e info) -->
-
 					<h:messages globalOnly="true" styleClass="alert-error"
-						infoStyleClass="alert-info" errorStyleClass="alert-error"
 						showDetail="true" showSummary="false" />
 
-					<!-- ESCOLA -->
-
 					<div class="input-group">
-
 						<label class="input-label" for="schoolSelect">Escola</label>
-
 						<div class="input-wrapper">
-
 							<i class="pi pi-building input-icon"></i>
-
 							<p:selectOneMenu id="schoolSelect" value="#{loginBean.schoolId}"
 								styleClass="custom-select" required="true"
 								requiredMessage="Selecione uma escola.">
-
 								<f:selectItem itemLabel="Selecione a escola..." itemValue=""
 									noSelectionOption="true" />
-
 								<f:selectItems value="#{loginBean.schools}" var="s"
 									itemLabel="#{s.name}" itemValue="#{s.id}" />
-
 							</p:selectOneMenu>
-
 						</div>
-
 						<h:message for="schoolSelect" styleClass="field-error" />
-
 					</div>
 
-					<!-- UTILIZADOR -->
-
 					<div class="input-group">
-
 						<label class="input-label" for="username">Utilizador</label>
-
 						<div class="input-wrapper">
-
 							<i class="pi pi-user input-icon"></i>
-
 							<h:inputText id="username" value="#{loginBean.username}"
 								styleClass="custom-input" placeholder="Digite o seu utilizador"
 								required="true" requiredMessage="Informe o utilizador." />
-
 						</div>
-
 						<h:message for="username" styleClass="field-error" />
-
 					</div>
 
-					<!-- SENHA -->
-
 					<div class="input-group">
-
 						<label class="input-label" for="password">Senha</label>
-
 						<div class="input-wrapper">
-
 							<i class="pi pi-lock input-icon"></i>
-
 							<h:inputSecret id="password" value="#{loginBean.password}"
 								styleClass="custom-input" placeholder="Digite a sua senha"
 								required="true" requiredMessage="Informe a senha." />
-
 						</div>
-
 						<h:message for="password" styleClass="field-error" />
-
 					</div>
 
-					<div class="remember-forgot">
+					<h:inputHidden id="selectedProfile"
+						value="#{loginBean.selectedProfile}" />
 
-						<div class="remember-me">
-
-							<h:selectBooleanCheckbox id="remember-me"
-								value="#{loginBean.rememberMe}" />
-
-							<label for="remember-me">Lembrar-me</label>
-
-						</div>
-
-						<a href="#" class="forgot-link" onclick="return false;">Esqueceu
-							a senha?</a>
-
-					</div>
-
-					<!-- Botão de login com JSF -->
-
-					<h:commandButton value="Entrar no Sistema"
-						action="#{loginBean.login}" styleClass="login-button">
-
-						<f:ajax execute="@form" render="@form" />
-
-					</h:commandButton>
-
-					<!-- Perfis -->
-
-					<div class="profiles-title">Tipos de acesso disponíveis</div>
-
-					<div class="profiles">
-
-						<div class="profile">
-
+					<div class="profiles-title">Selecione o perfil de acesso</div>
+					<div class="profiles-select">
+						<div
+							class="profile-opt #{loginBean.selectedProfile eq 'ADMIN' ? 'active' : ''}"
+							onclick="selectProfile('ADMIN', this)">
 							<div class="profile-icon">
-								<i class="pi pi-user"></i>
+								<i class="pi pi-cog"></i>
 							</div>
-
-							<span>Administração</span>
-
+							<span style="font-size: 11px; font-weight: 600">Administração</span>
 						</div>
-
-						<div class="profile">
-
+						<div
+							class="profile-opt #{loginBean.selectedProfile eq 'TEACHER' ? 'active' : ''}"
+							onclick="selectProfile('TEACHER', this)">
 							<div class="profile-icon">
 								<i class="pi pi-book"></i>
 							</div>
-
-							<span>Professor</span>
-
+							<span style="font-size: 11px; font-weight: 600">Professor</span>
 						</div>
-
-						<div class="profile">
-
+						<div
+							class="profile-opt #{loginBean.selectedProfile eq 'GUARDIAN' ? 'active' : ''}"
+							onclick="selectProfile('GUARDIAN', this)">
 							<div class="profile-icon">
 								<i class="pi pi-users"></i>
 							</div>
-
-							<span>Encarregado</span>
-
+							<span style="font-size: 11px; font-weight: 600">Encarregado</span>
 						</div>
-
 					</div>
 
-					<!-- Rodapé -->
+					<div class="remember-forgot" style="margin-top: 18px">
+						<div class="remember-me">
+							<h:selectBooleanCheckbox id="remember-me"
+								value="#{loginBean.rememberMe}" />
+							<label for="remember-me">Lembrar-me</label>
+						</div>
+						<a href="#" class="forgot-link" onclick="return false;">Esqueceu
+							a senha?</a>
+					</div>
+
+					<h:commandButton value="Entrar no Sistema"
+						action="#{loginBean.login}" styleClass="login-button">
+						<f:ajax execute="@form" render="@form" />
+					</h:commandButton>
 
 					<div class="login-footer">
-
 						<p>
 							<strong>SGE</strong> — Sistema de Gestão Escolar
 						</p>
-
 						<p>© 2026 • Acesso seguro e gerido pela escola</p>
-
 					</div>
-
 				</h:form>
-
 			</div>
-
 		</div>
-
 	</div>
-
+	<script>
+//<![CDATA[
+function selectProfile(profile, el){
+    document.getElementById('loginForm:selectedProfile').value = profile;
+    document.querySelectorAll('.profile-opt').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+}
+//]]>
+</script>
 </h:body>
-
 </html>

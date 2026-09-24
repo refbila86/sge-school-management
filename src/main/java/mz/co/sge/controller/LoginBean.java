@@ -33,10 +33,11 @@ public class LoginBean implements Serializable
 	private String username;
 	private String password;
 	private boolean rememberMe;
+	private String selectedProfile = "ADMIN"; // ADMIN, TEACHER, GUARDIAN
 
 	private List<SchoolEntity> schools;
 
-	// DADOS DO LOGADO - AGORA COM ESCOLA COMPLETA
+	// DADOS DO LOGADO
 	private UserEntity loggedUser;
 	private SchoolEntity loggedSchool;
 	private String fullname;
@@ -68,10 +69,6 @@ public class LoginBean implements Serializable
 		}
 	}
 
-	/**
-	 * Autentica o utilizador considerando a escola selecionada. AGORA BUSCA A
-	 * ESCOLA NA TABELA school E GUARDA NA SESSÃO
-	 */
 	public String login()
 	{
 		try
@@ -91,12 +88,16 @@ public class LoginBean implements Serializable
 				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Informe a senha.");
 				return null;
 			}
+			if (selectedProfile == null)
+			{
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Selecione o perfil de acesso.");
+				return null;
+			}
 
-			// 1. Busca a escola primeiro para validar e exibir no welcome
 			var schoolOpt = schoolService.findById(schoolId);
 			if (schoolOpt.isEmpty())
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Escola selecionada não encontrada.");
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Escola não encontrada.");
 				return null;
 			}
 			SchoolEntity school = schoolOpt.get();
@@ -106,7 +107,6 @@ public class LoginBean implements Serializable
 				return null;
 			}
 
-			// 2. Autentica o utilizador
 			UserEntity user = userService.authenticate(username.trim(), password.trim(), schoolId);
 
 			if (user == null)
@@ -115,8 +115,17 @@ public class LoginBean implements Serializable
 				return null;
 			}
 
-			// 3. Spring Security
-			var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + (user.getRole() != null ? user.getRole().name() : "USER")));
+			// VALIDA SE O PERFIL ESCOLHIDO CORRESPONDE AO ROLE
+			// ADMIN pode entrar em qualquer aba (facilita testes)
+			String userRole = user.getRole() != null ? user.getRole().name() : "";
+			if (!userRole.equals("ADMIN") && !userRole.equals(selectedProfile))
+			{
+				addMessage(FacesMessage.SEVERITY_ERROR, "Acesso negado!",
+						"Este utilizador é " + userRole + " e não tem acesso à aba " + getProfileLabel(selectedProfile) + ".");
+				return null;
+			}
+
+			var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + userRole));
 			var authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
 			SecurityContextHolder.getContext().setAuthentication(authToken);
 
@@ -124,15 +133,15 @@ public class LoginBean implements Serializable
 			HttpSession session = (HttpSession) externalContext.getSession(true);
 			session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 			session.setAttribute("usuarioLogado", user);
-			session.setAttribute("escolaLogada", school); // NOVO: guarda objeto completo
+			session.setAttribute("escolaLogada", school);
 			session.setAttribute("schoolId", schoolId);
 			session.setAttribute("schoolName", school.getName());
+			session.setAttribute("selectedProfile", selectedProfile);
 
-			// 4. Guarda no Bean de sessão para usar no welcome.xhtml
 			this.loggedUser = user;
 			this.loggedSchool = school;
 			this.fullname = user.getName();
-			this.role = (user.getRole() != null) ? user.getRole().name() : "";
+			this.role = userRole;
 			this.password = null;
 			this.logged = true;
 
@@ -147,16 +156,14 @@ public class LoginBean implements Serializable
 	}
 
 	public String logout()
-	{
+	{ /* ... mantém igual ao teu ... */
 		try
 		{
 			SecurityContextHolder.clearContext();
 			ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
 			HttpSession session = (HttpSession) externalContext.getSession(false);
 			if (session != null)
-			{
 				session.invalidate();
-			}
 		} catch (Exception e)
 		{
 			e.printStackTrace();
@@ -170,6 +177,7 @@ public class LoginBean implements Serializable
 			this.fullname = null;
 			this.role = null;
 			this.schoolId = null;
+			this.selectedProfile = "ADMIN";
 		}
 		return "/login.xhtml?faces-redirect=true";
 	}
@@ -177,6 +185,39 @@ public class LoginBean implements Serializable
 	private void addMessage(FacesMessage.Severity severity, String summary, String detail)
 	{
 		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+	}
+
+	public String getProfileLabel(String profile)
+	{
+		if (profile == null)
+			return "";
+		switch (profile)
+		{
+		case "ADMIN":
+			return "Administração";
+		case "TEACHER":
+			return "Professor";
+		case "GUARDIAN":
+			return "Encarregado";
+		default:
+			return profile;
+		}
+	}
+
+	// HELPERS PARA O MENU
+	public boolean isAdmin()
+	{
+		return "ADMIN".equals(role);
+	}
+
+	public boolean isTeacher()
+	{
+		return "TEACHER".equals(role);
+	}
+
+	public boolean isGuardian()
+	{
+		return "GUARDIAN".equals(role);
 	}
 
 	// GETTERS E SETTERS
@@ -193,9 +234,7 @@ public class LoginBean implements Serializable
 	public List<SchoolEntity> getSchools()
 	{
 		if (this.schools == null || this.schools.isEmpty())
-		{
 			schoolList();
-		}
 		return schools;
 	}
 
@@ -234,7 +273,6 @@ public class LoginBean implements Serializable
 		this.loggedUser = loggedUser;
 	}
 
-	// NOVOS GETTERS PARA A ESCOLA
 	public SchoolEntity getLoggedSchool()
 	{
 		return loggedSchool;
@@ -293,5 +331,25 @@ public class LoginBean implements Serializable
 	public void setRememberMe(boolean rememberMe)
 	{
 		this.rememberMe = rememberMe;
+	}
+
+	public String getSelectedProfile()
+	{
+		return selectedProfile;
+	}
+
+	public void setSelectedProfile(String selectedProfile)
+	{
+		this.selectedProfile = selectedProfile;
+	}
+
+	public String getProfileLabel()
+	{
+		return getProfileLabel(this.selectedProfile);
+	}
+
+	public String getRoleLabel()
+	{
+		return getProfileLabel(this.role);
 	}
 }
