@@ -1,8 +1,11 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -12,6 +15,7 @@ import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import mz.co.sge.entity.LicenseEntity;
 import mz.co.sge.entity.SchoolEntity;
+import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.service.ILicenseService;
 import mz.co.sge.service.ISchoolService;
 
@@ -22,18 +26,29 @@ public class SchoolBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	private final ISchoolService schoolService;
+	
 	private final ILicenseService licenseService;
+	
 	private final DashboardBean dashboardBean;
 
 	private List<LicenseEntity> availableLicenses = new ArrayList<>();
+	
 	private LicenseEntity selectedLicense;
+	
 	private Map<Long, LicenseEntity> licenseCache = new HashMap<>();
 
 	private SchoolEntity school;
+	
 	private SchoolEntity selectedSchool;
+	
 	private List<SchoolEntity> schools;
+	
 	private List<SchoolEntity> filteredSchools;
+	
+	 private List<StudentEntity> students;
+	
 	private String searchTerm;
+	
 	private boolean editing;
 
 	public SchoolBean(ISchoolService schoolService, ILicenseService licenseService, DashboardBean dashboardBean)
@@ -74,7 +89,6 @@ public class SchoolBean implements Serializable
 		}
 	}
 
-	// ESTE MÉTODO QUE FALTAVA - O ERRO ESTAVA AQUI
 	public LicenseEntity getLicenseForSchool(Long licenseId)
 	{
 		if (licenseId == null)

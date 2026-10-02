@@ -9,25 +9,29 @@ import jakarta.enterprise.context.ApplicationScoped;
 import mz.co.sge.entity.AcademicYearEntity;
 
 @ApplicationScoped
-public class AcademicYearService {
+public class AcademicYearService
+{
 
-    @Autowired
-    private IAcademicYearService academicYearServiceImpl;
+	@Autowired
+	private IAcademicYearService academicYearServiceImpl;
 
-    public List<AcademicYearEntity> findAll() {
-        return academicYearServiceImpl.getAllAcademicYears();
-    }
+	public List<AcademicYearEntity> findAll()
+	{
+		return academicYearServiceImpl.getAllAcademicYears();
+	}
 
-    public Optional<AcademicYearEntity> findActive() {
-        return academicYearServiceImpl.getActiveAcademicYear();
-    }
+	public Optional<AcademicYearEntity> findActive()
+	{
+		return academicYearServiceImpl.getActiveAcademicYear();
+	}
 
-    public AcademicYearEntity save(AcademicYearEntity entity) {
-        if (entity.getId() == null) {
-            return academicYearServiceImpl.createAcademicYear(entity);
-        }
-        return academicYearServiceImpl.updateAcademicYear(entity);
-    }
-    
-    
+	public AcademicYearEntity save(AcademicYearEntity entity)
+	{
+		if (entity.getId() == null)
+		{
+			return academicYearServiceImpl.createAcademicYear(entity);
+		}
+		return academicYearServiceImpl.updateAcademicYear(entity);
+	}
+
 }

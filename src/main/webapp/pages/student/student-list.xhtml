@@ -1,0 +1,297 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap
+}
+
+.compact-table .ui-datatable-data td {
+	padding: 12px 8px !important;
+	font-size: 13.5px !important;
+	font-weight: 400;
+	color: #1e293b
+}
+
+.compact-table .ui-datatable-thead th {
+	padding: 12px 8px !important;
+	font-size: 12px !important;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px
+}
+
+.compact-table .ui-datatable-data tr {
+	height: 52px
+}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-users" style="margin-right: 8px; color: #2563eb" />Gestão
+				de Estudantes
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Novo Estudante" icon="pi pi-plus"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					actionListener="#{studentBean.cleanForm}"
+					action="#{dashboardBean.navigate('student/student-include','estudantes')}"
+					update=":contentPanel" />
+				<p:commandButton icon="pi pi-refresh"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" action="#{studentBean.loadStudents}"
+					update=":contentPanel" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{studentBean.searchTerm}"
+				placeholder="Código, nome, email ou encarregado..."
+				style="width:340px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar"
+				style="border-radius:10px;font-size:13px"
+				action="#{studentBean.search}" update=":contentPanel" />
+			<p:commandButton value="Limpar"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px;font-size:13px"
+				action="#{studentBean.loadStudents}" update=":contentPanel"
+				process="@this">
+				<f:setPropertyActionListener value=""
+					target="#{studentBean.searchTerm}" />
+			</p:commandButton>
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{studentBean.students.size()}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="compact-table">
+			<p:dataTable value="#{studentBean.students}" var="s" paginator="true"
+				rows="8" paginatorPosition="bottom" stripedRows="true"
+				emptyMessage="Nenhum estudante cadastrado">
+				<p:column headerText="CÓDIGO" width="95">
+					<b style="color: #0a2540; font-size: 13.5px">#{s.code}</b>
+				</p:column>
+				<p:column headerText="NOME DO ESTUDANTE" width="300">
+					<div style="display: flex; align-items: center; gap: 10px">
+						<div
+							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">#{s.firstName.substring(0,1)}</div>
+						<div>
+							<b style="font-size: 14px; display: block">#{s.fullName}</b><span
+								style="font-size: 12px; color: #64748b">#{s.email}</span>
+						</div>
+					</div>
+				</p:column>
+				<p:column headerText="ENCARREGADO" width="220">
+					<div>
+						<b style="font-size: 13.5px">#{s.guardian.fullName}</b><br /> <span
+							style="font-size: 11px; color: #64748b">#{s.guardian.relationship}
+							• #{s.guardian.phone}</span>
+					</div>
+				</p:column>
+				<p:column headerText="ANO LETIVO" width="110">
+					<p:tag value="#{s.academicYear.year}"
+						style="font-size:11px;font-weight:700;padding:4px 10px" />
+				</p:column>
+				<p:column headerText="TELEFONE" width="120">
+					<span style="font-size: 13.5px">#{s.phone}</span>
+				</p:column>
+				<p:column headerText="ESTADO" width="100" style="text-align:center">
+					<p:tag value="#{s.status}"
+						severity="#{s.status eq 'ACTIVE' ? 'success' : s.status eq 'REGISTERED' ? 'info' : 'warning'}"
+						style="font-size:11px;font-weight:700;padding:4px 10px" />
+				</p:column>
+				<p:column headerText="AÇÕES" width="130" style="text-align:center">
+					<p:commandButton icon="pi pi-eye"
+						styleClass="ui-button-rounded ui-button-text"
+						style="width:34px;height:34px;font-size:14px" title="Visualizar"
+						action="#{studentBean.prepareView(s)}"
+						update=":formList:viewDialog" oncomplete="PF('viewDialog').show()" />
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						style="width:34px;height:34px" title="Editar"
+						action="#{dashboardBean.navigate('students/student-include','estudantes')}"
+						update=":contentPanel">
+						<f:setPropertyActionListener value="#{s}"
+							target="#{studentBean.student}" />
+						<f:setPropertyActionListener value="#{true}"
+							target="#{studentBean.editing}" />
+						<f:setPropertyActionListener value="#{s.guardian.id}"
+							target="#{studentBean.selectedGuardianId}" />
+						<f:setPropertyActionListener value="#{s.academicYear.id}"
+							target="#{studentBean.selectedAcademicYearId}" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						style="width:34px;height:34px" title="Remover"
+						action="#{studentBean.prepareDelete(s)}"
+						update=":formList:confirmDialog"
+						oncomplete="PF('confirmDialog').show()" />
+				</p:column>
+			</p:dataTable>
+		</div>
+
+		<p:dialog widgetVar="viewDialog" id="viewDialog"
+			header="Detalhes do Estudante" modal="true" width="620"
+			responsive="true">
+			<h:panelGroup rendered="#{studentBean.selectedStudent != null}"
+				style="display:grid;gap:12px;font-size:13.5px">
+				<div
+					style="display: flex; gap: 14px; align-items: center; margin-bottom: 6px">
+					<div
+						style="width: 54px; height: 54px; border-radius: 16px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">#{studentBean.selectedStudent.firstName.substring(0,1)}</div>
+					<div>
+						<b style="font-size: 16px">#{studentBean.selectedStudent.fullName}</b><br />
+						<span style="color: #64748b; font-size: 13px">#{studentBean.selectedStudent.code}
+							• #{studentBean.selectedStudent.status}</span>
+					</div>
+				</div>
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Data
+							Nasc.</span><br /> <b style="font-size: 13.5px"><h:outputText
+								value="#{studentBean.selectedStudent.birthDate}">
+								<f:convertDateTime pattern="dd/MM/yyyy" type="localDate" />
+							</h:outputText></b>
+					</div>
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Gênero</span><br />
+						<b style="font-size: 13.5px">#{studentBean.selectedStudent.gender}</b>
+					</div>
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Telefone</span><br />
+						<b style="font-size: 13.5px">#{studentBean.selectedStudent.phone}</b>
+					</div>
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Email</span><br />
+						<b style="font-size: 13.5px">#{studentBean.selectedStudent.email}</b>
+					</div>
+					<div style="grid-column: span 2">
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Endereço</span><br />
+						<b style="font-size: 13.5px">#{studentBean.selectedStudent.address}</b>
+					</div>
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Criado
+							em</span><br /> <b style="font-size: 13.5px"><h:outputText
+								value="#{studentBean.selectedStudent.createdAt}">
+								<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+									type="localDateTime" />
+							</h:outputText></b>
+					</div>
+				</div>
+				<div
+					style="margin-top: 8px; background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
+					<div
+						style="font-size: 11px; font-weight: 700; color: #0a2540; letter-spacing: .3px; margin-bottom: 10px; text-transform: uppercase">
+						<i class="pi pi-users" style="margin-right: 6px" />Encarregado
+						Vinculado (1 Guardian tem N Students)
+					</div>
+					<h:panelGroup
+						rendered="#{studentBean.selectedStudent.guardian != null}">
+						<div
+							style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+							<div>
+								<span style="color: #64748b; font-size: 10px">CÓDIGO</span><br />
+								<b style="font-size: 14px; color: #0a2540">#{studentBean.selectedStudent.guardian.code}</b>
+							</div>
+							<div>
+								<span style="color: #64748b; font-size: 10px">NOME</span><br />
+								<b style="font-size: 13.5px">#{studentBean.selectedStudent.guardian.fullName}</b>
+							</div>
+							<div>
+								<span style="color: #64748b; font-size: 10px">PARENTESCO</span><br />
+								<span
+									style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px; text-transform: uppercase">#{studentBean.selectedStudent.guardian.relationship}</span>
+							</div>
+							<div>
+								<span style="color: #64748b; font-size: 10px">TELEFONE</span><br />
+								<b>#{studentBean.selectedStudent.guardian.phone}</b>
+							</div>
+							<div>
+								<span style="color: #64748b; font-size: 10px">EMAIL</span><br />
+								<b>#{studentBean.selectedStudent.guardian.email}</b>
+							</div>
+							<div>
+								<span style="color: #64748b; font-size: 10px">TOTAL DE
+									ESTUDANTES</span><br /> <b style="color: #2563eb">#{studentBean.selectedStudent.guardian.students.size()}
+									estudante(s)</b>
+							</div>
+						</div>
+					</h:panelGroup>
+				</div>
+				<div
+					style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px">
+					<div
+						style="font-size: 11px; font-weight: 700; color: #92400e; letter-spacing: .3px; margin-bottom: 10px; text-transform: uppercase">
+						<i class="pi pi-calendar" style="margin-right: 6px" />Ano Letivo
+					</div>
+					<h:panelGroup
+						rendered="#{studentBean.selectedStudent.academicYear != null}">
+						<div
+							style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+							<div>
+								<span style="color: #78716c; font-size: 10px">ANO</span><br />
+								<b>#{studentBean.selectedStudent.academicYear.year}</b>
+							</div>
+							<div>
+								<span style="color: #78716c; font-size: 10px">NOME</span><br />
+								<b>#{studentBean.selectedStudent.academicYear.name}</b>
+							</div>
+						</div>
+					</h:panelGroup>
+				</div>
+			</h:panelGroup>
+			<f:facet name="footer">
+				<p:commandButton value="Fechar" icon="pi pi-times"
+					onclick="PF('viewDialog').hide()" styleClass="ui-button-secondary" />
+			</f:facet>
+		</p:dialog>
+
+		<p:confirmDialog widgetVar="confirmDialog" id="confirmDialog"
+			header="Confirmar Remoção"
+			message="Remover #{studentBean.selectedStudent.fullName}?"
+			severity="warn">
+			<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
+				action="#{studentBean.delete}" update=":contentPanel"
+				oncomplete="PF('confirmDialog').hide()" />
+			<p:commandButton value="Cancelar"
+				styleClass="ui-button-secondary ui-button-outlined"
+				onclick="PF('confirmDialog').hide()" />
+		</p:confirmDialog>
+	</h:form>
+</ui:composition>

@@ -74,6 +74,15 @@ public class SchoolEntity implements Serializable
 	{
 	}
 
+//	public class SchoolEntity
+//	{
+//		Long id;
+//		String name;
+//		String code;
+//		Long licenseId;
+//		Boolean active;
+//	}
+
 	public Long getId()
 	{
 		return id;

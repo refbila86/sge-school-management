@@ -1,119 +1,326 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="jakarta.faces.html"
-                xmlns:f="jakarta.faces.core"
-                xmlns:ui="jakarta.faces.facelets"
-                xmlns:p="http://primefaces.org/ui">
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
 
-    <h:outputScript library="primefaces" name="jquery/jquery.js"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+	<h:outputScript library="primefaces" name="jquery/jquery.js" />
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+		rel="stylesheet" />
 
-    <style>
-        :root{--primary:#0a2540;--border:#e6eaf0;--muted:#64748b;--bg:#f6f8fb}
-        .welcome{font-family:'Inter',sans-serif}
-        .school-banner{background:linear-gradient(135deg,#0a2540 0%,#1e40af 100%);border-radius:18px;padding:22px 24px;color:white;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;position:relative;overflow:hidden}
-        .school-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(255,255,255,.08);border-radius:50%}
-        .school-info h2{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
-        .school-info p{margin:6px 0 0 0;font-size:12px;opacity:.8;display:flex;gap:12px;flex-wrap:wrap}
-        .school-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:20px;font-size:10px;font-weight:700}
-        .user-card{background:white;border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:center;min-width:260px}
-        .avatar{width:46px;height:46px;border-radius:14px;background:#0a2540;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0}
-        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-        .kpi{background:white;border:1px solid var(--border);border-radius:16px;padding:16px 18px}
-        .kpi b{font-size:22px;color:#0a2540} .kpi span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600}
-        .charts{display:grid;grid-template-columns:1.5fr .9fr;gap:14px;margin-bottom:14px}
-        .box{background:white;border:1px solid var(--border);border-radius:16px;padding:18px}
-        .bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-        @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts,.bottom{grid-template-columns:1fr}.school-banner{flex-direction:column;align-items:flex-start;gap:16px}}
-    </style>
+	<style>
+:root {
+	--primary: #0a2540;
+	--border: #e6eaf0;
+	--muted: #64748b;
+	--bg: #f6f8fb
+}
 
-    <div class="welcome">
+.welcome {
+	font-family: 'Inter', sans-serif
+}
 
-        <!-- BANNER DA ESCOLA SELECIONADA NO LOGIN -->
-        <div class="school-banner">
-            <div class="school-info">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                    <i class="pi pi-building" style="font-size:18px;background:rgba(255,255,255,.15);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px"/>
-                    <span style="font-size:10px;letter-spacing:1px;opacity:.7;text-transform:uppercase;font-weight:700">Escola Selecionada no Login</span>
-                </div>
-                <h2>#{loginBean.loggedSchool.name}</h2>
-                <p>
-                    <span><i class="pi pi-tag" style="margin-right:4px"/> Código: <b>#{loginBean.loggedSchool.code}</b></span>
-                    <span><i class="pi pi-id-card" style="margin-right:4px"/> NUIT: #{loginBean.loggedSchool.nuit}</span>
-                    <span><i class="pi pi-map-marker" style="margin-right:4px"/> #{loginBean.loggedSchool.address}</span>
-                    <span><i class="pi pi-phone" style="margin-right:4px"/> #{loginBean.loggedSchool.phone}</span>
-                </p>
-            </div>
+.school-banner {
+	background: linear-gradient(135deg, #0a2540 0%, #1e40af 100%);
+	border-radius: 18px;
+	padding: 22px 24px;
+	color: white;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	position: relative;
+	overflow: hidden
+}
 
-            <!-- CARD DO UTILIZADOR LOGADO -->
-            <div class="user-card">
-                <div class="avatar">#{loginBean.fullname.substring(0,1)}</div>
-                <div style="flex:1">
-                    <div style="font-size:13px;font-weight:700;color:#0a2540">#{loginBean.fullname}</div>
-                    <div style="font-size:11px;color:var(--muted)">#{loginBean.username} • <b>#{loginBean.role}</b></div>
-                    <div style="margin-top:6px;display:flex;gap:6px">
-                        <span class="school-badge" style="background:#dcfce7;color:#166534;border-color:#bbf7d0"><i class="pi pi-circle-fill" style="font-size:6px"/> ONLINE</span>
-                        <span class="school-badge" style="background:#e0f2fe;color:#1e40af">ID Escola: #{loginBean.schoolId}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+.school-banner::after {
+	content: '';
+	position: absolute;
+	right: -40px;
+	top: -40px;
+	width: 180px;
+	height: 180px;
+	background: rgba(255, 255, 255, .08);
+	border-radius: 50%
+}
 
-        <!-- KPIs -->
-        <div class="kpi-grid">
-            <div class="kpi"><span>Alunos Matriculados</span><br/><b>1.248</b><div style="margin-top:8px"><p:progressBar value="85" displayOnly="true" style="height:5px"/></div></div>
-            <div class="kpi"><span>Turmas Ativas</span><br/><b>32</b><div style="font-size:11px;color:var(--muted);margin-top:4px">4 turnos • #{loginBean.loggedSchool.name}</div></div>
-            <div class="kpi"><span>Professores</span><br/><b>48</b><div style="font-size:11px;color:#10b981;margin-top:4px">▲ 2 novos este mês</div></div>
-            <div class="kpi"><span>Taxa Presença</span><br/><b>92.5%</b><div style="font-size:11px;color:#10b981;margin-top:4px">Meta 90%</div></div>
-        </div>
+.school-info h2 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 700;
+	letter-spacing: .2px
+}
 
-        <!-- GRÁFICOS -->
-        <div class="charts">
-            <div class="box"><b style="font-size:13px">Desempenho por Disciplina - #{loginBean.loggedSchool.code}</b><canvas id="barChart" style="margin-top:12px"></canvas></div>
-            <div class="box"><b style="font-size:13px">Distribuição por Classe</b><canvas id="doughnutChart" style="margin-top:12px"></canvas></div>
-        </div>
+.school-info p {
+	margin: 6px 0 0 0;
+	font-size: 12px;
+	opacity: .8;
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap
+}
 
-        <!-- TABELAS -->
-        <div class="bottom">
-            <div class="box" style="padding:0;overflow:hidden">
-                <div style="padding:14px 18px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border)"><b style="font-size:13px">Últimas Matrículas em #{loginBean.loggedSchool.name}</b><span style="font-size:10px;color:var(--muted)">#{loginBean.loggedSchool.code}</span></div>
-                <p:dataTable value="#{welcomeBean.ultimasMatriculas}" var="a" rows="5" style="font-size:11px" stripedRows="true">
-                    <p:column headerText="CÓDIGO" width="95"><b>#{a.codigo}</b></p:column>
-                    <p:column headerText="ALUNO">#{a.nome}</p:column>
-                    <p:column headerText="TURMA" width="80">#{a.turma}</p:column>
-                    <p:column headerText="ESTADO" width="90"><p:tag value="#{a.estado}" severity="#{a.estado eq 'Ativa' ? 'success' : 'warning'}" style="font-size:9px"/></p:column>
-                </p:dataTable>
-            </div>
-            <div class="box">
-                <b style="font-size:13px">Dados da Escola Logada</b>
-                <div style="margin-top:14px;display:grid;gap:10px;font-size:12px">
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Nome Completo</span><b>#{loginBean.loggedSchool.name}</b></div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Código</span><b>#{loginBean.loggedSchool.code}</b></div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">NUIT</span><b>#{loginBean.loggedSchool.nuit}</b></div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Email</span><b>#{loginBean.loggedSchool.email}</b></div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="color:var(--muted)">Endereço</span><b>#{loginBean.loggedSchool.address}</b></div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:var(--muted)">Licença ID</span><b>#{loginBean.loggedSchool.licenseId}</b></div>
-                </div>
-                <div style="margin-top:14px;background:#f6f8fb;padding:10px 12px;border-radius:10px;font-size:10px;color:var(--muted)">
-                    <i class="pi pi-info-circle" style="margin-right:4px"/> Esta escola foi selecionada na tela de login em <b>#{loginBean.schoolId}</b> e está em sessão como <b>#{loginBean.loggedSchool.name}</b> para filtrar todos os dados do sistema.
-                </div>
-            </div>
-        </div>
-    </div>
+.school-badge {
+	background: rgba(255, 255, 255, .15);
+	border: 1px solid rgba(255, 255, 255, .2);
+	padding: 6px 12px;
+	border-radius: 20px;
+	font-size: 10px;
+	font-weight: 700
+}
 
-    <script>
+.user-card {
+	background: white;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	padding: 16px 18px;
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	min-width: 260px
+}
+
+.avatar {
+	width: 46px;
+	height: 46px;
+	border-radius: 14px;
+	background: #0a2540;
+	color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-size: 16px;
+	flex-shrink: 0
+}
+
+.kpi-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 14px;
+	margin-bottom: 18px
+}
+
+.kpi {
+	background: white;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	padding: 16px 18px
+}
+
+.kpi b {
+	font-size: 22px;
+	color: #0a2540
+}
+
+.kpi span {
+	font-size: 10px;
+	color: var(--muted);
+	text-transform: uppercase;
+	font-weight: 600
+}
+
+.charts {
+	display: grid;
+	grid-template-columns: 1.5fr .9fr;
+	gap: 14px;
+	margin-bottom: 14px
+}
+
+.box {
+	background: white;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	padding: 18px
+}
+
+.bottom {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px
+}
+
+@media ( max-width :1100px) {
+	.kpi-grid {
+		grid-template-columns: repeat(2, 1fr)
+	}
+	.charts, .bottom {
+		grid-template-columns: 1fr
+	}
+	.school-banner {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 16px
+	}
+}
+</style>
+
+	<div class="welcome">
+
+		<div class="school-banner">
+			<div class="school-info">
+				<div
+					style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
+					<i class="pi pi-building"
+						style="font-size: 18px; background: rgba(255, 255, 255, .15); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px" />
+					<span
+						style="font-size: 10px; letter-spacing: 1px; opacity: .7; text-transform: uppercase; font-weight: 700">Escola
+						Selecionada no Login</span>
+				</div>
+				<h2>#{loginBean.loggedSchool.name}</h2>
+				<p>
+					<span><i class="pi pi-tag" style="margin-right: 4px" />
+						Código: <b>#{loginBean.loggedSchool.code}</b></span> <span><i
+						class="pi pi-id-card" style="margin-right: 4px" /> NUIT:
+						#{loginBean.loggedSchool.nuit}</span> <span><i
+						class="pi pi-map-marker" style="margin-right: 4px" />
+						#{loginBean.loggedSchool.address}</span> <span
+						style="background: #fff; color: #0a2540; padding: 4px 10px; border-radius: 20px; font-weight: 800"><i
+						class="pi pi-calendar" /> ANO ACTUAL:
+						#{loginBean.academicYearLabel}</span>
+				</p>
+			</div>
+
+			<div class="user-card">
+				<div class="avatar">#{loginBean.fullname.substring(0,1)}</div>
+				<div style="flex: 1">
+					<div style="font-size: 13px; font-weight: 700; color: #0a2540">#{loginBean.fullname}</div>
+					<div style="font-size: 11px; color: var(--muted)">
+						#{loginBean.username} • <b>#{loginBean.role}</b>
+					</div>
+					<div
+						style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap">
+						<span class="school-badge"
+							style="background: #dcfce7; color: #166534; border-color: #bbf7d0"><i
+							class="pi pi-circle-fill" style="font-size: 6px" /> ONLINE</span> <span
+							class="school-badge" style="background: #0a2540; color: #fff"><i
+							class="pi pi-calendar" /> #{loginBean.academicYearLabel}</span> <span
+							class="school-badge" style="background: #e0f2fe; color: #1e40af">ID
+							Escola: #{loginBean.schoolId}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="kpi-grid">
+			<div class="kpi">
+				<span>Alunos Matriculados - #{loginBean.academicYearLabel}</span><br />
+				<b>1.248</b>
+				<div style="margin-top: 8px">
+					<p:progressBar value="85" displayOnly="true" style="height:5px" />
+				</div>
+			</div>
+			<div class="kpi">
+				<span>Turmas Ativas - #{loginBean.academicYearLabel}</span><br />
+				<b>32</b>
+				<div style="font-size: 11px; color: var(--muted); margin-top: 4px">4
+					turnos • #{loginBean.loggedSchool.name}</div>
+			</div>
+			<div class="kpi">
+				<span>Professores</span><br />
+				<b>48</b>
+				<div style="font-size: 11px; color: #10b981; margin-top: 4px">▲
+					2 novos este mês</div>
+			</div>
+			<div class="kpi">
+				<span>Taxa Presença - #{loginBean.academicYearLabel}</span><br />
+				<b>92.5%</b>
+				<div style="font-size: 11px; color: #10b981; margin-top: 4px">Meta
+					90%</div>
+			</div>
+		</div>
+
+		<div class="charts">
+			<div class="box">
+				<b style="font-size: 13px">Desempenho por Disciplina -
+					#{loginBean.loggedSchool.code} - #{loginBean.academicYearLabel}</b>
+				<canvas id="barChart" style="margin-top: 12px"></canvas>
+			</div>
+			<div class="box">
+				<b style="font-size: 13px">Distribuição por Classe -
+					#{loginBean.academicYearLabel}</b>
+				<canvas id="doughnutChart" style="margin-top: 12px"></canvas>
+			</div>
+		</div>
+
+		<div class="bottom">
+			<div class="box" style="padding: 0; overflow: hidden">
+				<div
+					style="padding: 14px 18px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border)">
+					<b style="font-size: 13px">Últimas Matrículas em
+						#{loginBean.loggedSchool.name} - #{loginBean.academicYearLabel}</b><span
+						style="font-size: 10px; color: var(--muted)">#{loginBean.loggedSchool.code}</span>
+				</div>
+				<p:dataTable value="#{welcomeBean.ultimasMatriculas}" var="a"
+					rows="5" style="font-size:11px" stripedRows="true">
+					<p:column headerText="CÓDIGO" width="95">
+						<b>#{a.codigo}</b>
+					</p:column>
+					<p:column headerText="ALUNO">#{a.nome}</p:column>
+					<p:column headerText="TURMA" width="80">#{a.turma}</p:column>
+					<p:column headerText="ESTADO" width="90">
+						<p:tag value="#{a.estado}"
+							severity="#{a.estado eq 'Ativa' ? 'success' : 'warning'}"
+							style="font-size:9px" />
+					</p:column>
+				</p:dataTable>
+			</div>
+			<div class="box">
+				<b style="font-size: 13px">Dados da Escola Logada -
+					#{loginBean.academicYearLabel}</b>
+				<div
+					style="margin-top: 14px; display: grid; gap: 10px; font-size: 12px">
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">Nome Completo</span><b>#{loginBean.loggedSchool.name}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">Código</span><b>#{loginBean.loggedSchool.code}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">NUIT</span><b>#{loginBean.loggedSchool.nuit}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">Email</span><b>#{loginBean.loggedSchool.email}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">Endereço</span><b>#{loginBean.loggedSchool.address}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9">
+						<span style="color: var(--muted)">Ano Actual Selecionado</span><b
+							style="background: #0a2540; color: #fff; padding: 3px 8px; border-radius: 12px">#{loginBean.academicYearLabel}</b>
+					</div>
+					<div
+						style="display: flex; justify-content: space-between; padding: 8px 0">
+						<span style="color: var(--muted)">Licença ID</span><b>#{loginBean.loggedSchool.licenseId}</b>
+					</div>
+				</div>
+				<div
+					style="margin-top: 14px; background: #f6f8fb; padding: 10px 12px; border-radius: 10px; font-size: 10px; color: var(--muted)">
+					<i class="pi pi-info-circle" style="margin-right: 4px" /> Esta
+					escola foi selecionada na tela de login em <b>#{loginBean.schoolId}</b>
+					e o ano <b>#{loginBean.academicYearLabel}</b> foi selecionado na 2ª
+					aba. Tudo filtrado em sessão.
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
         document.addEventListener("DOMContentLoaded", function(){
             new Chart(document.getElementById('barChart'), {
                 type: 'bar',
-                data: {
-                    labels: ['Mat','Port','Física','Química','Bio','Hist'],
-                    datasets: [{ label:'Média', data:[14.2,12.8,15.1,13.5,16.0,11.9], backgroundColor:'#0a2540', borderRadius:6 }]
-                },
+                data: { labels: ['Mat','Port','Física','Química','Bio','Hist'], datasets: [{ label:'Média', data:[14.2,[STRIPPED] backgroundColor:'#0a2540', borderRadius:6 }] },
                 options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{max:20}}}
             });
             new Chart(document.getElementById('doughnutChart'), {
                 type: 'doughnut',
-                data: { labels:['8ª','9ª','10ª','11ª'], datasets:[{ data:[420,380,280,168], backgroundColor:['#0a2540','#2563eb','#10b981','#f59e0b'], borderWidth:0 }] },
+                data: { labels:['8ª','9ª','10ª','11ª'], datasets:[{ data:[420,[STRIPPED] backgroundColor:['#0a2540','#2563eb','#10b981','#f59e0b'], borderWidth:0 }] },
                 options:{responsive:true, cutout:'68%'}
             });
         });
