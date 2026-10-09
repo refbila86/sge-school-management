@@ -12,6 +12,8 @@ public interface IAcademicYearService {
     
     Optional<AcademicYearEntity> getAcademicYearById(Long id);
     
+    AcademicYearEntity findByYearId(Long id);
+    
     Optional<AcademicYearEntity> getAcademicYearByYear(String year);
     
     AcademicYearEntity createAcademicYear(AcademicYearEntity academicYear);
@@ -23,4 +25,6 @@ public interface IAcademicYearService {
     AcademicYearEntity activateAcademicYear(Long id);
     
     List<AcademicYearEntity> findByYear(String year);
+    
+    AcademicYearEntity getActiveYear();
 }

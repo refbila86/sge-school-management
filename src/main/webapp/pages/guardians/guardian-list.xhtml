@@ -1,0 +1,240 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap
+}
+
+.compact-table .ui-datatable-data td {
+	padding: 12px 8px !important;
+	font-size: 13.5px !important;
+	font-weight: 400;
+	color: #1e293b
+}
+
+.compact-table .ui-datatable-thead th {
+	padding: 12px 8px !important;
+	font-size: 12px !important;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px
+}
+
+.compact-table .ui-datatable-data tr {
+	height: 52px
+}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-users" style="margin-right: 8px; color: #2563eb" />Gestão
+				de Encarregados (1 Guardian → N Students)
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Novo Encarregado" icon="pi pi-plus"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					actionListener="#{guardianBean.prepareNew}"
+					action="#{dashboardBean.navigate('guardians/guardian-include','encarregados')}"
+					update=":contentPanel" />
+				<p:commandButton icon="pi pi-refresh"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" action="#{guardianBean.loadGuardians}"
+					update=":contentPanel" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{guardianBean.searchTerm}"
+				placeholder="Código, nome, telefone, parentesco..."
+				style="width:340px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar"
+				style="border-radius:10px;font-size:13px"
+				action="#{guardianBean.search}" update=":contentPanel" />
+			<p:commandButton value="Limpar"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px;font-size:13px"
+				action="#{guardianBean.loadGuardians}" update=":contentPanel"
+				process="@this">
+				<f:setPropertyActionListener value=""
+					target="#{guardianBean.searchTerm}" />
+			</p:commandButton>
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{guardianBean.guardians.size()}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="compact-table">
+			<p:dataTable value="#{guardianBean.guardians}" var="g"
+				paginator="true" rows="8" paginatorPosition="bottom"
+				stripedRows="true" emptyMessage="Nenhum encarregado cadastrado">
+				<p:column headerText="CÓDIGO" width="95">
+					<b style="color: #0a2540; font-size: 13.5px">#{g.code}</b>
+				</p:column>
+				<p:column headerText="NOME" width="280">
+					<div style="display: flex; align-items: center; gap: 10px">
+						<div
+							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">
+							#{empty g.firstName ? '?' :
+							g.firstName.substring(0,1).toUpperCase()}</div>
+						<div>
+							<b style="font-size: 14px; display: block">#{g.firstName}
+								#{g.lastName}</b> <span style="font-size: 12px; color: #64748b">#{empty
+								g.email ? 'sem email' : g.email}</span>
+						</div>
+					</div>
+				</p:column>
+				<p:column headerText="PARENTESCO" width="120">
+					<p:tag value="#{empty g.relationship ? 'N/A' : g.relationship}"
+						style="font-size:11px;font-weight:700;padding:4px 10px" />
+				</p:column>
+				<p:column headerText="CONTACTO" width="130">
+					<span style="font-size: 13.5px">#{empty g.phone ? '-' :
+						g.phone}</span>
+				</p:column>
+				<p:column headerText="ESTUDANTES" width="110"
+					style="text-align:center">
+					<p:badge value="#{g.students.size()}"
+						severity="#{g.students.size() gt 0 ? 'success' : 'warning'}" />
+					<span style="margin-left: 6px; font-size: 12px">aluno(s)</span>
+				</p:column>
+				<p:column headerText="ANO" width="90">
+					<p:tag value="#{g.academicYear.year}" style="font-size:11px"
+						rendered="#{g.academicYear != null}" />
+					<span style="font-size: 11px; color: #94a3b8"
+						rendered="#{g.academicYear == null}">N/A</span>
+				</p:column>
+				<p:column headerText="AÇÕES" width="130" style="text-align:center">
+					<p:commandButton icon="pi pi-eye"
+						styleClass="ui-button-rounded ui-button-text"
+						style="width:34px;height:34px" title="Ver alunos"
+						action="#{guardianBean.prepareView(g)}"
+						update=":formList:viewDialog" oncomplete="PF('viewDialog').show()" />
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						style="width:34px;height:34px" title="Editar"
+						action="#{dashboardBean.navigate('guardians/guardian-include','encarregados')}"
+						update=":contentPanel">
+						<f:setPropertyActionListener value="#{g}"
+							target="#{guardianBean.guardian}" />
+						<f:setPropertyActionListener value="#{true}"
+							target="#{guardianBean.editing}" />
+						<f:setPropertyActionListener
+							value="#{g.academicYear != null ? g.academicYear.id : null}"
+							target="#{guardianBean.selectedAcademicYearId}" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						style="width:34px;height:34px" title="Remover"
+						action="#{guardianBean.prepareDelete(g)}"
+						update=":formList:confirmDialog"
+						oncomplete="PF('confirmDialog').show()" />
+				</p:column>
+			</p:dataTable>
+		</div>
+
+		<p:dialog widgetVar="viewDialog" id="viewDialog"
+			header="Detalhes do Encarregado" modal="true" width="600"
+			responsive="true">
+			<h:panelGroup rendered="#{guardianBean.selectedGuardian != null}"
+				style="display:grid;gap:12px;font-size:13.5px">
+				<div
+					style="display: flex; gap: 14px; align-items: center; margin-bottom: 6px">
+					<div
+						style="width: 54px; height: 54px; border-radius: 16px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">
+						#{empty guardianBean.selectedGuardian.firstName ? '?' :
+						guardianBean.selectedGuardian.firstName.substring(0,1).toUpperCase()}
+					</div>
+					<div>
+						<b style="font-size: 16px">#{guardianBean.selectedGuardian.firstName}
+							#{guardianBean.selectedGuardian.lastName}</b><br /> <span
+							style="color: #64748b; font-size: 13px">#{guardianBean.selectedGuardian.code}
+							• #{guardianBean.selectedGuardian.relationship}</span>
+					</div>
+				</div>
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Telefone</span><br />
+						<b>#{guardianBean.selectedGuardian.phone}</b>
+					</div>
+					<div>
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Email</span><br />
+						<b>#{empty guardianBean.selectedGuardian.email ? '-' :
+							guardianBean.selectedGuardian.email}</b>
+					</div>
+					<div style="grid-column: span 2">
+						<span
+							style="color: #64748b; font-size: 11px; text-transform: uppercase">Endereço</span><br />
+						<b>#{empty guardianBean.selectedGuardian.address ? '-' :
+							guardianBean.selectedGuardian.address}</b>
+					</div>
+				</div>
+				<div
+					style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
+					<div
+						style="font-size: 11px; font-weight: 700; color: #0a2540; text-transform: uppercase; margin-bottom: 10px">
+						<i class="pi pi-users" style="margin-right: 6px" />Estudantes
+						deste Guardian (#{guardianBean.selectedGuardian.students.size()})
+					</div>
+					<p:dataTable value="#{guardianBean.studentsOfGuardian}" var="s"
+						emptyMessage="Nenhum estudante vinculado" paginator="true"
+						rows="5">
+						<p:column headerText="CÓDIGO">#{s.code}</p:column>
+						<p:column headerText="NOME">#{s.firstName} #{s.lastName}</p:column>
+						<p:column headerText="STATUS">
+							<p:tag value="#{s.status}" />
+						</p:column>
+					</p:dataTable>
+				</div>
+			</h:panelGroup>
+			<f:facet name="footer">
+				<p:commandButton value="Fechar" icon="pi pi-times"
+					onclick="PF('viewDialog').hide()" styleClass="ui-button-secondary" />
+			</f:facet>
+		</p:dialog>
+
+		<p:confirmDialog widgetVar="confirmDialog" id="confirmDialog"
+			header="Confirmar Remoção"
+			message="Remover #{guardianBean.selectedGuardian.firstName} #{guardianBean.selectedGuardian.lastName}? Ele tem #{guardianBean.selectedGuardian.students.size()} estudante(s)."
+			severity="warn">
+			<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
+				action="#{guardianBean.delete}" update=":contentPanel"
+				oncomplete="PF('confirmDialog').hide()" />
+			<p:commandButton value="Cancelar"
+				styleClass="ui-button-secondary ui-button-outlined"
+				onclick="PF('confirmDialog').hide()" />
+		</p:confirmDialog>
+	</h:form>
+</ui:composition>

@@ -9,13 +9,15 @@ import java.util.List;
 @Table(name = "guardians", uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries(
 { @NamedQuery(name = "Guardian.findAll", query = "SELECT g FROM GuardianEntity g ORDER BY g.firstName"),
+		@NamedQuery(name = "Guardian.findAllWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students ORDER BY g.firstName"),
 		@NamedQuery(name = "Guardian.findByCode", query = "SELECT g FROM GuardianEntity g WHERE g.code = :code"),
 		@NamedQuery(name = "Guardian.findByUserId", query = "SELECT g FROM GuardianEntity g WHERE g.user.id = :userId"),
 		@NamedQuery(name = "Guardian.findWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students WHERE g.id = :id"),
 		@NamedQuery(name = "Guardian.findByAcademicYear", query = "SELECT g FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId"),
-		@NamedQuery(name = "Guardian.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g JOIN g.students s WHERE s.school.id = :schoolId ORDER BY g.firstName"),
-		@NamedQuery(name = "Guardian.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g JOIN g.students s WHERE s.school.id = :schoolId AND s.academicYear.id = :academicYearId"),
+		@NamedQuery(name = "Guardian.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE s.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName"),
+		@NamedQuery(name = "Guardian.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE (s.school.id = :schoolId AND s.academicYear.id = :academicYearId) OR s.id IS NULL"),
 		@NamedQuery(name = "Guardian.countAll", query = "SELECT COUNT(g) FROM GuardianEntity g") })
+
 public class GuardianEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -38,12 +40,12 @@ public class GuardianEntity implements java.io.Serializable
 	private String address;
 	private String relationship;
 
-	@OneToOne(optional = false)
+	@OneToOne(optional = true)
 	@JoinColumn(name = "user_id", unique = true)
 	private UserEntity user;
 
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "academic_year_id")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "academic_year_id",nullable = false)
 	private AcademicYearEntity academicYear;
 
 	@OneToMany(mappedBy = "guardian", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = false)

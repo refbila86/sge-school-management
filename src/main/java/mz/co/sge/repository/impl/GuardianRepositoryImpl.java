@@ -6,14 +6,12 @@ import mz.co.sge.entity.GuardianEntity;
 import mz.co.sge.repository.IGuardianRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class GuardianRepositoryImpl implements IGuardianRepository
 {
-
 	@PersistenceContext
 	private EntityManager em;
 
@@ -68,7 +66,6 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	@Override
 	public Optional<GuardianEntity> findWithStudents(Long id)
 	{
-		// LEFT JOIN FETCH garante carregar students para mostrar 1-N
 		List<GuardianEntity> list = em.createNamedQuery("Guardian.findWithStudents", GuardianEntity.class).setParameter("id", id).getResultList();
 		return list.stream().findFirst();
 	}
@@ -80,6 +77,12 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	}
 
 	@Override
+	public List<GuardianEntity> findAllWithStudents()
+	{
+		return em.createNamedQuery("Guardian.findAllWithStudents", GuardianEntity.class).getResultList();
+	}
+
+	@Override
 	public List<GuardianEntity> findByAcademicYearId(Long academicYearId)
 	{
 		return em.createNamedQuery("Guardian.findByAcademicYear", GuardianEntity.class).setParameter("academicYearId", academicYearId).getResultList();
@@ -88,8 +91,9 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	@Override
 	public List<GuardianEntity> findBySchoolId(Long schoolId)
 	{
-		// Guardiões que têm pelo menos 1 aluno na escola
-		return em.createQuery("SELECT DISTINCT g FROM GuardianEntity g JOIN g.students s WHERE s.school.id = :schoolId ORDER BY g.firstName",
+		// AGORA TRAZ TAMBÉM GUARDIAN SEM ALUNO - LEFT JOIN + FETCH
+		return em.createQuery(
+				"SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students s WHERE s.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName",
 				GuardianEntity.class).setParameter("schoolId", schoolId).getResultList();
 	}
 
@@ -97,7 +101,7 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	public List<GuardianEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
 	{
 		return em.createQuery(
-				"SELECT DISTINCT g FROM GuardianEntity g JOIN g.students s WHERE s.school.id = :schoolId AND s.academicYear.id = :academicYearId ORDER BY g.firstName",
+				"SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students s WHERE (s.school.id = :schoolId AND s.academicYear.id = :academicYearId) OR s.id IS NULL ORDER BY g.firstName",
 				GuardianEntity.class).setParameter("schoolId", schoolId).setParameter("academicYearId", academicYearId).getResultList();
 	}
 

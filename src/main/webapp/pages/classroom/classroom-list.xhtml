@@ -1,0 +1,182 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap
+}
+
+.compact-table .ui-datatable-data td {
+	padding: 12px 8px !important;
+	font-size: 13.5px !important;
+	font-weight: 400;
+	color: #1e293b
+}
+
+.compact-table .ui-datatable-thead th {
+	padding: 12px 8px !important;
+	font-size: 11px !important;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	background: #f8fafc
+}
+
+.compact-table .ui-datatable-data tr {
+	height: 54px
+}
+
+.shift-pill {
+	font-size: 10px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 20px;
+	text-transform: uppercase;
+	letter-spacing: .3px
+}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />Gestão
+				de Turmas
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Nova Turma" icon="pi pi-plus"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					actionListener="#{classroomBean.cleanForm}"
+					action="#{dashboardBean.navigate('classroom/classroom-include','turmas')}"
+					update=":contentPanel" />
+				<p:commandButton icon="pi pi-refresh"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" action="#{classroomBean.loadClassrooms}"
+					update=":contentPanel" process="@this" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{classroomBean.searchTerm}"
+				placeholder="Nome, classe ou professor..."
+				style="width:300px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar"
+				style="border-radius:10px;font-size:13px"
+				action="#{classroomBean.search}" update=":contentPanel" />
+			<p:commandButton value="Limpar"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px;font-size:13px"
+				action="#{classroomBean.loadClassrooms}" update=":contentPanel"
+				process="@this" />
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{empty classroomBean.classrooms ? '0' :
+					classroomBean.classrooms.size()}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="compact-table">
+			<p:dataTable value="#{classroomBean.classrooms}" var="t"
+				paginator="true" rows="8" paginatorPosition="bottom"
+				stripedRows="true"
+				emptyMessage="Nenhuma turma cadastrada para este ano letivo">
+
+				<p:column headerText="TURMA" width="280" sortBy="#{t.name}"
+					filterBy="#{t.name}">
+					<div style="display: flex; align-items: center; gap: 10px">
+						<div
+							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">#{t.name.substring(0,1)}</div>
+						<div>
+							<b style="font-size: 14px; display: block; color: #0a2540">#{t.name}</b>
+							<span style="font-size: 11px; color: #64748b">#{t.currentStudents}/#{t.capacity}
+								• #{t.percentOcupacao}%</span>
+						</div>
+					</div>
+				</p:column>
+
+				<p:column headerText="CLASSE" width="120" sortBy="#{t.classeNome}">
+					<span
+						style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px">#{t.classeNome}</span>
+				</p:column>
+
+				<p:column headerText="LOTAÇÃO MÁXIMA" width="120"
+					style="text-align:center" sortBy="#{t.capacity}">
+					<b style="font-size: 14px">#{t.capacity}</b>
+					<br />
+					<span style="font-size: 10px; color: #64748b">ALUNOS</span>
+				</p:column>
+
+				<p:column headerText="TURNO" width="110" style="text-align:center">
+					<span class="shift-pill"
+						style="background:#{t.shift eq 'MORNING' ? '#fef3c7;color:#92400e' : t.shift eq 'AFTERNOON' ? '#dbeafe;color:#1e40af' : '#ede9fe;color:#5b21b6'}">
+						#{t.shift eq 'MORNING' ? 'Manhã' : t.shift eq 'AFTERNOON' ?
+						'Tarde' : 'Noite'} </span>
+				</p:column>
+
+				<p:column headerText="PROF. RESPONSÁVEL" width="200">
+					<h:panelGroup rendered="#{t.responsibleTeacher != null}">
+						<span style="font-size: 13px">#{t.professorNome}</span>
+						<br />
+						<span style="font-size: 11px; color: #64748b">#{t.responsibleTeacher.code}</span>
+					</h:panelGroup>
+					<h:panelGroup rendered="#{t.responsibleTeacher == null}">
+						<span style="font-size: 12px; color: #94a3b8; font-style: italic">Sem
+							professor</span>
+					</h:panelGroup>
+				</p:column>
+
+				<p:column headerText="AÇÕES" width="110" style="text-align:center">
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						style="width:34px;height:34px" title="Editar"
+						action="#{dashboardBean.navigate('classroom/classroom-include','turmas')}"
+						update=":contentPanel">
+						<f:setPropertyActionListener value="#{t}"
+							target="#{classroomBean.classroom}" />
+						<f:setPropertyActionListener value="#{true}"
+							target="#{classroomBean.editing}" />
+						<f:setPropertyActionListener
+							value="#{t.responsibleTeacher != null ? t.responsibleTeacher.id : null}"
+							target="#{classroomBean.selectedTeacherId}" />
+						<f:setPropertyActionListener
+							value="#{t.classLevel != null ? t.classLevel.id : null}"
+							target="#{classroomBean.selectedClassLevelId}" />
+						<f:setPropertyActionListener
+							value="#{t.academicYear != null ? t.academicYear.id : null}"
+							target="#{classroomBean.selectedAcademicYearId}" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						style="width:34px;height:34px" title="Remover" />
+				</p:column>
+			</p:dataTable>
+		</div>
+	</h:form>
+</ui:composition>

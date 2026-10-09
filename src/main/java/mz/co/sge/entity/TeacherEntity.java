@@ -20,18 +20,18 @@ import jakarta.persistence.Table;
 public class TeacherEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@Column(unique = true)
 	private String code;
-	
+
 	private String firstName;
-	
+
 	private String lastName;
-	
+
 	private String phone;
 	private String email;
 
@@ -46,6 +46,14 @@ public class TeacherEntity implements java.io.Serializable
 	public Long getId()
 	{
 		return id;
+	}
+
+	@jakarta.persistence.Transient
+	public String getName()
+	{
+		String f = firstName != null ? firstName : "";
+		String l = lastName != null ? lastName : "";
+		return (f + " " + l).trim();
 	}
 
 	public void setId(Long id)

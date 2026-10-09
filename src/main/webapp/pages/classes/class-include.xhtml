@@ -1,0 +1,91 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 24px
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+	margin-bottom: 5px;
+	display: block
+}
+
+.required {
+	color: #ef4444
+}
+</style>
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+			<i class="pi pi-sitemap" style="margin-right: 8px; color: #2563eb" />#{classLevelBean.editing
+			? 'Editar Classe' : 'Nova Classe'}
+		</div>
+		<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+			styleClass="ui-button-secondary ui-button-outlined"
+			style="border-radius:10px;font-size:13px"
+			action="#{dashboardBean.navigate('classes/class-list','classes')}"
+			update=":contentPanel" immediate="true" process="@this" />
+	</div>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" life="4000" />
+		<div class="form-card">
+			<div class="grid-2">
+				<div>
+					<label>Nome da Classe <span class="required">*</span></label>
+					<p:inputText value="#{classLevelBean.level.name}" required="true"
+						placeholder="Ex: 10ª Classe, 1ª Classe" style="width:100%" />
+				</div>
+				<div>
+					<label>Ano Letivo</label>
+					<p:selectOneMenu value="#{classLevelBean.selectedAcademicYearId}"
+						style="width:100%" filter="true">
+						<f:selectItem itemLabel="Ano atual (#{loginBean.academicYearId})"
+							itemValue="#{null}" />
+						<f:selectItems value="#{classLevelBean.academicYears}" var="y"
+							itemLabel="#{y.year}" itemValue="#{y.id}" />
+					</p:selectOneMenu>
+				</div>
+			</div>
+			<div style="margin-top: 14px">
+				<label>Descrição</label>
+				<p:inputTextarea value="#{classLevelBean.level.description}"
+					placeholder="Ex: Ensino Secundário" rows="3" style="width:100%" />
+			</div>
+			<div style="margin-top: 14px">
+				<label>Estado</label><br />
+				<p:toggleSwitch value="#{classLevelBean.level.active}"
+					onLabel="Ativa" offLabel="Inativa" />
+			</div>
+			<div
+				style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px">
+				<p:commandButton value="Cancelar"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px"
+					action="#{dashboardBean.navigate('classes/class-list','classes')}"
+					update=":contentPanel" immediate="true" process="@this" />
+				<p:commandButton
+					value="#{classLevelBean.editing ? 'Atualizar' : 'Salvar'}"
+					icon="pi pi-check"
+					style="border-radius:10px;background:#0a2540;border:none"
+					action="#{classLevelBean.save}" update=":contentPanel"
+					process="@form" />
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

@@ -215,8 +215,6 @@ public class LoginBean implements Serializable
 		}
 	}
 
-	
-	
 	public String logout()
 	{
 		try
@@ -412,5 +410,10 @@ public class LoginBean implements Serializable
 	public String getAcademicYearLabel()
 	{
 		return loggedAcademicYear != null ? loggedAcademicYear.getYear() : "";
+	}
+
+	public Long getLoggedUserId()
+	{
+		return loggedUser.getId();
 	}
 }

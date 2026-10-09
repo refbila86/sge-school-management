@@ -1,0 +1,126 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap
+}
+
+.compact-table .ui-datatable-data td {
+	padding: 13px 10px !important;
+	font-size: 13.5px !important
+}
+
+.compact-table .ui-datatable-thead th {
+	padding: 13px 10px !important;
+	font-size: 11px !important;
+	font-weight: 700;
+	text-transform: uppercase;
+	background: #f8fafc
+}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-sitemap" style="margin-right: 8px; color: #2563eb" />Gestão
+				de Classes
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Nova Classe" icon="pi pi-plus"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					actionListener="#{classLevelBean.cleanForm}"
+					action="#{dashboardBean.navigate('classes/class-include','classes')}"
+					update=":contentPanel" />
+				<p:commandButton icon="pi pi-refresh"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" action="#{classLevelBean.load}"
+					update=":contentPanel" process="@this" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{classLevelBean.searchTerm}"
+				placeholder="Buscar classe..." style="width:300px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar"
+				style="border-radius:10px;font-size:13px"
+				action="#{classLevelBean.search}" update=":contentPanel" />
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{empty classLevelBean.levels ? '0' :
+					classLevelBean.levels.size()}</b> • Ano: <b>#{loginBean.academicYearId}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="compact-table">
+			<p:dataTable value="#{classLevelBean.levels}" var="c"
+				paginator="true" rows="10" paginatorPosition="bottom"
+				stripedRows="true"
+				emptyMessage="Nenhuma classe cadastrada para este ano">
+				<p:column headerText="CLASSE" width="250" sortBy="#{c.name}">
+					<div style="display: flex; align-items: center; gap: 10px">
+						<div
+							style="width: 38px; height: 38px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700">#{c.name.substring(0,1)}</div>
+						<div>
+							<b style="font-size: 14px">#{c.name}</b><br />
+							<span style="font-size: 11px; color: #64748b">#{c.academicYear
+								!= null ? c.academicYear.year : ''}</span>
+						</div>
+					</div>
+				</p:column>
+				<p:column headerText="DESCRIÇÃO">
+					<span style="font-size: 13px; color: #334155">#{c.description}</span>
+				</p:column>
+				<p:column headerText="ESTADO" width="100" style="text-align:center">
+					<p:tag value="#{c.active ? 'Ativa' : 'Inativa'}"
+						severity="#{c.active ? 'success' : 'danger'}"
+						style="font-size:11px" />
+				</p:column>
+				<p:column headerText="AÇÕES" width="110" style="text-align:center">
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text"
+						style="width:34px;height:34px"
+						action="#{dashboardBean.navigate('classes/class-include','classes')}"
+						update=":contentPanel">
+						<f:setPropertyActionListener value="#{c}"
+							target="#{classLevelBean.level}" />
+						<f:setPropertyActionListener value="#{true}"
+							target="#{classLevelBean.editing}" />
+						<f:setPropertyActionListener
+							value="#{c.academicYear != null ? c.academicYear.id : null}"
+							target="#{classLevelBean.selectedAcademicYearId}" />
+					</p:commandButton>
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						style="width:34px;height:34px" />
+				</p:column>
+			</p:dataTable>
+		</div>
+	</h:form>
+</ui:composition>

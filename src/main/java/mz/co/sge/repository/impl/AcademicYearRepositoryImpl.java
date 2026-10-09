@@ -2,13 +2,10 @@ package mz.co.sge.repository.impl;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.repository.IAcademicYearRepository;
 
@@ -60,7 +57,6 @@ public class AcademicYearRepositoryImpl implements IAcademicYearRepository
 	@Override
 	public Optional<AcademicYearEntity> findByYear(String year)
 	{
-		// sua query agora usa :description mas busca por year
 		return findByDescription(year);
 	}
 
@@ -94,14 +90,20 @@ public class AcademicYearRepositoryImpl implements IAcademicYearRepository
 	@Override
 	public List<AcademicYearEntity> findByYearContaining(String year)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return em.createQuery("SELECT a FROM AcademicYearEntity a WHERE a.year LIKE :y ORDER BY a.year DESC", AcademicYearEntity.class)
+				.setParameter("y", "%" + year + "%").getResultList();
 	}
 
 	@Override
 	public List<AcademicYearEntity> findByYear(int year)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return em.createQuery("SELECT a FROM AcademicYearEntity a WHERE a.year = :y", AcademicYearEntity.class).setParameter("y", String.valueOf(year))
+				.getResultList();
+	}
+
+	@Override
+	public AcademicYearEntity findByYearId(Long id)
+	{
+		return em.find(AcademicYearEntity.class, id);
 	}
 }

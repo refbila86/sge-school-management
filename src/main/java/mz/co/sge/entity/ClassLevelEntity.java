@@ -1,18 +1,14 @@
 package mz.co.sge.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "class_levels")
+@Table(name = "class_levels", uniqueConstraints = @UniqueConstraint(columnNames =
+{ "name", "academic_year_id" }))
 @NamedQueries(
-{ @NamedQuery(name = "ClassLevel.findAll", query = "SELECT c FROM ClassLevelEntity c ORDER BY c.name") })
+{ @NamedQuery(name = "ClassLevel.findAll", query = "SELECT c FROM ClassLevelEntity c ORDER BY c.name"),
+		@NamedQuery(name = "ClassLevel.findByAcademicYear", query = "SELECT c FROM ClassLevelEntity c WHERE c.academicYear.id = :yearId ORDER BY c.name") })
 public class ClassLevelEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -20,12 +16,30 @@ public class ClassLevelEntity implements java.io.Serializable
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
-	@Column(unique = true, nullable = false)
-	private String name;
-	
+
+	@Column(nullable = false, length = 100)
+	private String name;  
+
+	@Column(length = 255)
 	private String description;
 
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "academic_year_id", nullable = false)
+	private AcademicYearEntity academicYear;
+
+	@Column(nullable = false)
+	private boolean active = true;
+
+	private LocalDateTime createdAt = LocalDateTime.now();
+
+	@PrePersist
+	public void prePersist()
+	{
+		if (createdAt == null)
+			createdAt = LocalDateTime.now();
+	}
+
+	// Getters e Setters
 	public Long getId()
 	{
 		return id;
@@ -54,5 +68,35 @@ public class ClassLevelEntity implements java.io.Serializable
 	public void setDescription(String description)
 	{
 		this.description = description;
+	}
+
+	public AcademicYearEntity getAcademicYear()
+	{
+		return academicYear;
+	}
+
+	public void setAcademicYear(AcademicYearEntity academicYear)
+	{
+		this.academicYear = academicYear;
+	}
+
+	public boolean isActive()
+	{
+		return active;
+	}
+
+	public void setActive(boolean active)
+	{
+		this.active = active;
+	}
+
+	public LocalDateTime getCreatedAt()
+	{
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt)
+	{
+		this.createdAt = createdAt;
 	}
 }

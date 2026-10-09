@@ -6,7 +6,6 @@ import java.util.Optional;
 
 public interface IGuardianService
 {
-
 	// ---- Leituras no mesmo estilo do IAcademicYearService ----
 	List<GuardianEntity> getAllGuardians();
 
@@ -19,6 +18,7 @@ public interface IGuardianService
 	Optional<GuardianEntity> getGuardianWithStudents(Long id);
 
 	List<GuardianEntity> getGuardiansByAcademicYear(Long academicYearId);
+	
 
 	// Buscas equivalentes ao findByYear() do AcademicYear
 	List<GuardianEntity> findByRelationship(String relationship);

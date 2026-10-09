@@ -1,9 +1,11 @@
 package mz.co.sge.controller;
 
-import jakarta.enterprise.context.SessionScoped;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import java.io.Serializable;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Named;
 
 @Named
 @SessionScoped
@@ -15,10 +17,10 @@ public class DashboardBean implements Serializable
 	private String activeMenu = "dashboard";
 	private String pageTitle = "Dashboard";
 
-	@Inject
+	@Autowired
 	private LoginBean loginBean;
 
-	@Inject
+	@Autowired
 	private mz.co.sge.service.IStudentService studentService;
 
 	public void toggleSidebar()

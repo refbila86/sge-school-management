@@ -27,6 +27,10 @@ public interface IStudentRepository
 	List<StudentEntity> findByAcademicYearId(Long academicYearId);
 
 	List<StudentEntity> findByName(String name);
+	
+	List<StudentEntity> findAllWithDetails();
+	
+	Optional<StudentEntity> findByIdWithDetails(Long id);
 
 	long countAll();
 

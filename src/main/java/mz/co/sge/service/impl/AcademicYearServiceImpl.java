@@ -116,4 +116,17 @@ public class AcademicYearServiceImpl implements IAcademicYearService
 	{
 		 return repository.findByYearContaining(year);
 	}
+
+	@Override
+	public AcademicYearEntity findByYearId(Long id)
+	{
+	    return repository.findByYearId(id);
+	}
+
+	@Override
+	public AcademicYearEntity getActiveYear()
+	{
+		// TODO Auto-generated method stub
+	    return repository.findActive().orElse(null);
+	}
 }

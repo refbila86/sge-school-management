@@ -1,0 +1,184 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 24px
+}
+
+.form-section {
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px dashed #e6eaf0
+}
+
+.form-section:last-child {
+	border: none
+}
+
+.section-title {
+	font-size: 11px;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .8px;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+.grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 16px
+}
+
+@media ( max-width :800px) {
+	.grid-2, .grid-3 {
+		grid-template-columns: 1fr
+	}
+}
+
+label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #334155;
+	margin-bottom: 5px;
+	display: block
+}
+
+.required {
+	color: #ef4444
+}
+</style>
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+		<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+			<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />#{classroomBean.editing
+			? 'Editar Turma' : 'Nova Turma'}
+		</div>
+		<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+			styleClass="ui-button-secondary ui-button-outlined"
+			style="border-radius:10px;font-size:13px"
+			action="#{dashboardBean.navigate('classroom/classroom-list','turmas')}"
+			update=":contentPanel" immediate="true" process="@this" />
+	</div>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" life="4000" />
+		<div class="form-card">
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-info-circle" /> Dados Principais
+				</div>
+				<div class="grid-2">
+					<div>
+						<label>Nome da Turma <span class="required">*</span></label>
+						<p:inputText value="#{classroomBean.classroom.name}"
+							required="true" placeholder="Ex: 10ª A" style="width:100%" />
+					</div>
+					<div>
+						<label>Lotação Máxima <span class="required">*</span></label>
+						<p:inputNumber value="#{classroomBean.classroom.capacity}"
+							required="true" minValue="1" maxValue="120" decimalPlaces="0"
+							thousandSeparator="" placeholder="Ex: 35" style="width:100%">
+							<p:ajax update="previewVagas" process="@this" />
+						</p:inputNumber>
+						<h:panelGroup id="previewVagas">
+							<small style="font-size: 11px; color: #64748b">Vagas:
+								#{classroomBean.classroom.capacity -
+								classroomBean.classroom.currentStudents} livres
+								(#{classroomBean.classroom.currentStudents} ocupadas)</small>
+						</h:panelGroup>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-sitemap" /> Organização
+				</div>
+				<div class="grid-3">
+					<div>
+						<label>Classe <span class="required">*</span></label>
+						<p:selectOneMenu value="#{classroomBean.selectedClassLevelId}"
+							required="true" style="width:100%" filter="true">
+							<f:selectItem itemLabel="Selecione..." itemValue="#{null}"
+								noSelectionOption="true" />
+							<f:selectItems value="#{classroomBean.classLevels}" var="cl"
+								itemLabel="#{cl.name}" itemValue="#{cl.id}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<label>Turno <span class="required">*</span></label>
+						<p:selectOneMenu value="#{classroomBean.classroom.shift}"
+							required="true" style="width:100%">
+							<f:selectItem itemLabel="Selecione..." itemValue="#{null}"
+								noSelectionOption="true" />
+							<f:selectItem itemLabel="Manhã" itemValue="MORNING" />
+							<f:selectItem itemLabel="Tarde" itemValue="AFTERNOON" />
+							<f:selectItem itemLabel="Noite" itemValue="NIGHT" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<label>Ano Letivo</label>
+						<p:selectOneMenu value="#{classroomBean.selectedAcademicYearId}"
+							style="width:100%">
+							<f:selectItems value="#{classroomBean.academicYears}" var="y"
+								itemLabel="#{y.year}" itemValue="#{y.id}" />
+						</p:selectOneMenu>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-section">
+				<div class="section-title">
+					<i class="pi pi-user" /> Professor Tutor
+				</div>
+				<div class="grid-2">
+					<div>
+						<label>Professor Responsável</label>
+						<p:selectOneMenu value="#{classroomBean.selectedTeacherId}"
+							style="width:100%" filter="true" filterMatchMode="contains">
+							<f:selectItem itemLabel="Sem professor" itemValue="#{null}" />
+							<f:selectItems value="#{classroomBean.teachers}" var="prof"
+								itemLabel="#{prof.name} (#{prof.code})" itemValue="#{prof.id}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<label>Estado</label><br />
+						<p:toggleSwitch value="#{classroomBean.classroom.active}"
+							onLabel="Ativa" offLabel="Inativa" />
+					</div>
+				</div>
+			</div>
+
+			<div
+				style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px">
+				<p:commandButton value="Cancelar"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px"
+					action="#{dashboardBean.navigate('classroom/classroom-list','turmas')}"
+					update=":contentPanel" immediate="true" process="@this" />
+				<p:commandButton
+					value="#{classroomBean.editing ? 'Atualizar' : 'Salvar'}"
+					icon="pi pi-check"
+					style="border-radius:10px;background:#0a2540;border:none"
+					action="#{classroomBean.save}" update=":contentPanel"
+					process="@form" />
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

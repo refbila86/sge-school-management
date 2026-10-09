@@ -1,0 +1,138 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 20px
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+@media ( max-width :768px) {
+	.form-grid {
+		grid-template-columns: 1fr
+	}
+}
+
+.label {
+	font-size: 12px;
+	font-weight: 700;
+	color: #0a2540;
+	margin-bottom: 6px;
+	display: block;
+	text-transform: uppercase;
+	letter-spacing: .3px
+}
+</style>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+				<i class="pi pi-user-plus" style="margin-right: 8px; color: #2563eb" />
+				#{teacherBean.editing ? 'Editar Professor' : 'Novo Professor'}
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px;font-size:13px"
+				action="#{dashboardBean.navigate('teacher/teacher-list','professores')}"
+				update=":contentPanel" process="@this" />
+		</div>
+
+		<div class="form-card">
+			<div class="form-grid">
+				<!-- CÓDIGO -->
+				<div>
+					<span class="label">Código</span>
+					<p:inputText value="#{teacherBean.teacher.code}"
+						placeholder="PROF-1234 auto" style="width:100%;font-size:13px"
+						disabled="#{teacherBean.editing}" />
+					<small style="color: #64748b; font-size: 11px">Gerado
+						automaticamente se vazio</small>
+				</div>
+
+				<!-- ANO LETIVO -->
+				<div>
+					<span class="label">Ano Letivo *</span>
+					<p:selectOneMenu value="#{teacherBean.selectedAcademicYearId}"
+						style="width:100%;font-size:13px" required="true">
+						<f:selectItem itemLabel="Selecione" itemValue="#{null}"
+							noSelectionOption="true" />
+						<f:selectItems value="#{teacherBean.academicYears}" var="ay"
+							itemLabel="#{ay.year}" itemValue="#{ay.id}" />
+					</p:selectOneMenu>
+				</div>
+
+				<div>
+					<span class="label">Nome *</span>
+					<p:inputText value="#{teacherBean.teacher.firstName}"
+						required="true" placeholder="Ex: João"
+						style="width:100%;font-size:13px" />
+				</div>
+
+				<div>
+					<span class="label">Apelido *</span>
+					<p:inputText value="#{teacherBean.teacher.lastName}"
+						required="true" placeholder="Ex: Macamo"
+						style="width:100%;font-size:13px" />
+				</div>
+
+				<div>
+					<span class="label">Telefone</span>
+					<p:inputMask value="#{teacherBean.teacher.phone}"
+						mask="99 82 999 9999" placeholder="82 123 4567"
+						style="width:100%;font-size:13px" />
+				</div>
+
+				<div>
+					<span class="label">Email</span>
+					<p:inputText value="#{teacherBean.teacher.email}"
+						placeholder="professor@escola.mz"
+						style="width:100%;font-size:13px">
+						<f:validateRegex pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$" />
+					</p:inputText>
+				</div>
+
+				<div style="grid-column: 1/-1">
+					<span class="label">Utilizador do Sistema *</span>
+					<p:selectOneMenu value="#{teacherBean.selectedUserId}"
+						style="width:100%;font-size:13px" filter="true"
+						filterMatchMode="contains" required="true"
+						requiredMessage="Selecione o utilizador">
+						<f:selectItem itemLabel="Selecione o utilizador TEACHER"
+							itemValue="#{null}" noSelectionOption="true" />
+						<f:selectItems value="#{teacherBean.availableUsers}" var="u"
+							itemLabel="#{u.name} - #{u.username}" itemValue="#{u.id}" />
+					</p:selectOneMenu>
+					<small style="color: #64748b; font-size: 11px">Apenas
+						utilizadores com perfil TEACHER da escola #{loginBean.schoolId}</small>
+				</div>
+			</div>
+
+			<div
+				style="display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end">
+				<p:commandButton value="Cancelar"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px;font-size:13px"
+					action="#{dashboardBean.navigate('teacher/teacher-list','professores')}"
+					update=":contentPanel" process="@this" />
+				<p:commandButton
+					value="#{teacherBean.editing ? 'Atualizar' : 'Salvar'}"
+					icon="pi pi-check"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					action="#{teacherBean.save}"
+					update=":contentPanel :formInclude:growl" />
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

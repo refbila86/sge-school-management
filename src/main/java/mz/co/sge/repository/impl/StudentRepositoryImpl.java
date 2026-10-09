@@ -138,4 +138,21 @@ public class StudentRepositoryImpl implements IStudentRepository
 		return em.createQuery("SELECT COUNT(s) FROM StudentEntity s WHERE s.school.id = :schoolId", Long.class).setParameter("schoolId", schoolId)
 				.getSingleResult();
 	}
+
+	@Override
+	public List<StudentEntity> findAllWithDetails()
+	{
+		return em.createQuery(
+				"SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian g LEFT JOIN FETCH s.academicYear LEFT JOIN FETCH s.school ORDER BY s.firstName",
+				StudentEntity.class).getResultList();
+	}
+
+	@Override
+	public Optional<StudentEntity> findByIdWithDetails(Long id)
+	{
+		List<StudentEntity> list = em.createQuery(
+				"SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian g LEFT JOIN FETCH g.students LEFT JOIN FETCH s.academicYear LEFT JOIN FETCH s.school WHERE s.id = :id",
+				StudentEntity.class).setParameter("id", id).getResultList();
+		return list.stream().findFirst();
+	}
 }

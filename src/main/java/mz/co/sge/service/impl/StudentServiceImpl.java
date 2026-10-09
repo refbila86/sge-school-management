@@ -18,34 +18,34 @@ import java.util.stream.Collectors;
 @Service
 public class StudentServiceImpl implements IStudentService
 {
-
 	@Autowired
 	private IStudentRepository studentRepository;
-
 	@Autowired
 	private IGuardianRepository guardianRepository;
-
-	public StudentServiceImpl()
-	{
-	}
-
-	public StudentServiceImpl(IStudentRepository studentRepository, IGuardianRepository guardianRepository)
-	{
-		this.studentRepository = studentRepository;
-		this.guardianRepository = guardianRepository;
-	}
 
 	@Override
 	@Transactional
 	public StudentEntity createStudent(StudentEntity student)
 	{
 		if (student.getGuardian() == null || student.getGuardian().getId() == null)
-			throw new IllegalArgumentException("Guardian é obrigatório no cadastro do estudante.");
-		GuardianEntity guardian = guardianRepository.findById(student.getGuardian().getId())
-				.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado: " + student.getGuardian().getId()));
+			throw new IllegalArgumentException("Guardian é obrigatório.");
+
+		GuardianEntity guardian = guardianRepository.findWithStudents(student.getGuardian().getId())
+				.orElseGet(() -> guardianRepository.findById(student.getGuardian().getId()).orElse(null));
+		if (guardian == null)
+			throw new IllegalArgumentException("Guardian não encontrado: " + student.getGuardian().getId());
+
 		student.setGuardian(guardian);
+
+		// Herda Ano Letivo do Guardian se não vier da tela
+		if (student.getAcademicYear() == null && guardian.getAcademicYear() != null)
+		{
+			student.setAcademicYear(guardian.getAcademicYear());
+		}
+
 		if (student.getCode() == null || student.getCode().isBlank())
 			student.setCode("STU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+
 		return studentRepository.save(student);
 	}
 
@@ -54,10 +54,14 @@ public class StudentServiceImpl implements IStudentService
 	public StudentEntity registerStudent(StudentEntity student, Long guardianId)
 	{
 		if (guardianId == null)
-			throw new IllegalArgumentException("Deve indicar o guardian (obrigatório).");
-		GuardianEntity guardian = guardianRepository.findById(guardianId)
+			throw new IllegalArgumentException("guardianId obrigatório");
+		GuardianEntity guardian = guardianRepository.findWithStudents(guardianId)
 				.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado: " + guardianId));
 		student.setGuardian(guardian);
+		if (student.getAcademicYear() == null && guardian.getAcademicYear() != null)
+		{
+			student.setAcademicYear(guardian.getAcademicYear());
+		}
 		if (student.getCode() == null || student.getCode().isBlank())
 			student.setCode("STU-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 		return studentRepository.save(student);
@@ -68,12 +72,12 @@ public class StudentServiceImpl implements IStudentService
 	public StudentEntity updateStudent(StudentEntity student)
 	{
 		if (student.getId() == null)
-			throw new IllegalArgumentException("ID do estudante é obrigatório.");
-		StudentEntity existing = studentRepository.findById(student.getId()).orElseThrow(() -> new IllegalArgumentException("Estudante não encontrado."));
+			throw new IllegalArgumentException("ID obrigatório");
+		StudentEntity existing = studentRepository.findById(student.getId()).orElseThrow(() -> new IllegalArgumentException("Estudante não encontrado"));
 		if (student.getGuardian() != null && student.getGuardian().getId() != null)
 		{
-			GuardianEntity guardian = guardianRepository.findById(student.getGuardian().getId())
-					.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado."));
+			GuardianEntity guardian = guardianRepository.findWithStudents(student.getGuardian().getId())
+					.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado"));
 			existing.setGuardian(guardian);
 		}
 		existing.setFirstName(student.getFirstName());
@@ -84,8 +88,10 @@ public class StudentServiceImpl implements IStudentService
 		existing.setEmail(student.getEmail());
 		existing.setAddress(student.getAddress());
 		existing.setStatus(student.getStatus());
-		existing.setAcademicYear(student.getAcademicYear());
-		existing.setSchool(student.getSchool());
+		if (student.getAcademicYear() != null)
+			existing.setAcademicYear(student.getAcademicYear());
+		if (student.getSchool() != null)
+			existing.setSchool(student.getSchool());
 		return studentRepository.update(existing);
 	}
 
@@ -99,7 +105,7 @@ public class StudentServiceImpl implements IStudentService
 	@Override
 	public Optional<StudentEntity> getStudentById(Long id)
 	{
-		return studentRepository.findById(id);
+	    return studentRepository.findByIdWithDetails(id);
 	}
 
 	@Override
@@ -111,7 +117,7 @@ public class StudentServiceImpl implements IStudentService
 	@Override
 	public List<StudentEntity> getAllStudents()
 	{
-		return studentRepository.findAll();
+	    return studentRepository.findAllWithDetails(); // COM FETCH
 	}
 
 	@Override

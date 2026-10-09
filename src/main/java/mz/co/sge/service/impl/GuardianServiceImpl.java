@@ -45,10 +45,10 @@ public class GuardianServiceImpl implements IGuardianService
 	{
 		if (guardian.getId() == null)
 		{
-			throw new IllegalArgumentException("ID do guardian é obrigatório para atualização.");
+			throw new IllegalArgumentException("ID do encarregado é obrigatório para atualização.");
 		}
 		GuardianEntity existing = guardianRepository.findById(guardian.getId())
-				.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado com ID: " + guardian.getId()));
+				.orElseThrow(() -> new IllegalArgumentException("Encarregado não encontrado com ID: " + guardian.getId()));
 
 		existing.setFirstName(guardian.getFirstName());
 		existing.setLastName(guardian.getLastName());
@@ -105,7 +105,7 @@ public class GuardianServiceImpl implements IGuardianService
 	@Override
 	public List<GuardianEntity> getAllGuardians()
 	{
-		return guardianRepository.findAll();
+	    return guardianRepository.findAllWithStudents(); // com FETCH - sem LAZY
 	}
 
 	@Override
@@ -165,4 +165,6 @@ public class GuardianServiceImpl implements IGuardianService
 	{
 		return guardianRepository.countAll();
 	}
+	
+	
 }

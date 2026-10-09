@@ -19,6 +19,8 @@ public interface IGuardianRepository
 	Optional<GuardianEntity> findByUserId(Long userId);
 
 	Optional<GuardianEntity> findWithStudents(Long id);
+	
+    List<GuardianEntity> findAllWithStudents(); // NOVO
 
 	List<GuardianEntity> findAll();
 

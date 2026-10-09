@@ -14,6 +14,7 @@ import jakarta.faces.context.FacesContext;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.GuardianEntity;
 import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.entity.UserEntity;
 import mz.co.sge.service.IAcademicYearService;
 import mz.co.sge.service.IGuardianService;
 import mz.co.sge.service.IStudentService;
@@ -23,13 +24,6 @@ import mz.co.sge.service.IStudentService;
 public class GuardianBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-
-	@Autowired
-	private transient IGuardianService guardianService;
-	@Autowired
-	private transient IStudentService studentService;
-	@Autowired
-	private transient IAcademicYearService academicYearService;
 
 	private List<GuardianEntity> guardians;
 	private List<GuardianEntity> filteredGuardians;
@@ -44,16 +38,20 @@ public class GuardianBean implements Serializable
 	private String filterTerm;
 	private String searchTerm;
 
-	public GuardianBean()
-	{
-	}
+	@Autowired
+	private transient IGuardianService guardianService;
 
-	public GuardianBean(IGuardianService guardianService, IStudentService studentService, IAcademicYearService academicYearService)
-	{
-		this.guardianService = guardianService;
-		this.studentService = studentService;
-		this.academicYearService = academicYearService;
-	}
+	@Autowired
+	private transient IStudentService studentService;
+
+	@Autowired
+	private transient IAcademicYearService academicYearService;
+
+	@Autowired
+	private transient LoginBean loginBean;
+
+	@Autowired
+	private transient DashboardBean dashboardBean;
 
 	@PostConstruct
 	public void init()
@@ -70,8 +68,10 @@ public class GuardianBean implements Serializable
 			String t = term.toLowerCase().trim();
 			List<GuardianEntity> all = guardianService.getAllGuardians();
 			this.guardians = all.stream()
-					.filter(g -> g.getCode().toLowerCase().contains(t) || g.getFullName().toLowerCase().contains(t)
-							|| (g.getPhone() != null && g.getPhone().contains(t))
+					.filter(g -> (g.getCode() != null && g.getCode().toLowerCase().contains(t))
+							|| (g.getFirstName() != null && g.getFirstName().toLowerCase().contains(t))
+							|| (g.getLastName() != null && g.getLastName().toLowerCase().contains(t))
+							|| (g.getFullName() != null && g.getFullName().toLowerCase().contains(t)) || (g.getPhone() != null && g.getPhone().contains(t))
 							|| (g.getRelationship() != null && g.getRelationship().toLowerCase().contains(t)))
 					.collect(Collectors.toList());
 		} else
@@ -95,19 +95,10 @@ public class GuardianBean implements Serializable
 		this.academicYears = academicYearService.getAllAcademicYears();
 	}
 
-	public String getYearLabel(Long id)
-	{
-		if (id == null)
-			return "Geral";
-		if (academicYears == null)
-			return id.toString();
-		return academicYears.stream().filter(ay -> ay.getId().equals(id)).map(ay -> String.valueOf(ay.getYear())).findFirst().orElse(id.toString());
-	}
-
 	public void cleanForm()
 	{
 		this.guardian = new GuardianEntity();
-		this.selectedAcademicYearId = null;
+		this.selectedAcademicYearId = loginBean != null ? loginBean.getAcademicYearId() : null;
 		this.studentsOfGuardian = List.of();
 		this.editing = false;
 	}
@@ -138,18 +129,89 @@ public class GuardianBean implements Serializable
 		this.studentsOfGuardian = selectedGuardian.getStudents();
 	}
 
-	public String saves()
+	public void quickSaveForStudent()
 	{
 		try
 		{
-			saveInternal();
-			addMessage(editing ? "Atualizado" : "Criado", "Guardian " + guardian.getFullName() + (editing ? " atualizado" : " cadastrado"));
+			if (guardian.getCode() == null || guardian.getCode().isBlank())
+				guardian.setCode("ENC-" + (System.currentTimeMillis() % 100000));
+
+			if (guardian.getAcademicYear() == null)
+			{
+				Long yearId = selectedAcademicYearId != null ? selectedAcademicYearId : (loginBean != null ? loginBean.getAcademicYearId() : null);
+				if (yearId != null)
+				{
+					AcademicYearEntity ay = academicYearService.getAcademicYearById(yearId).orElse(null);
+					guardian.setAcademicYear(ay);
+				}
+			}
+
+			// USER LOGADO
+			if (guardian.getUser() == null)
+			{
+				UserEntity loggedUser = null;
+				try
+				{
+					loggedUser = loginBean.getLoggedUser();
+				} catch (Exception ignored)
+				{
+				}
+				if (loggedUser == null)
+				{
+					try
+					{
+						Long userId = loginBean.getLoggedUserId();
+						if (userId != null)
+						{
+							loggedUser = new UserEntity();
+							loggedUser.setId(userId);
+						}
+					} catch (Exception ignored)
+					{
+					}
+				}
+				if (loggedUser == null)
+					throw new IllegalArgumentException("Usuário logado não encontrado");
+				guardian.setUser(loggedUser);
+			}
+
+			// SALVA
+			GuardianEntity saved = guardianService.createGuardian(guardian);
+			Long newId = saved != null ? saved.getId() : guardian.getId();
+			if (newId == null)
+				newId = guardian.getId();
+
+			// *** ATUALIZA O STUDENTBEAN PRA APARECER NA LISTA ***
+			try
+			{
+				FacesContext ctx = FacesContext.getCurrentInstance();
+				StudentBean studentBean = ctx.getApplication().evaluateExpressionGet(ctx, "#{studentBean}", StudentBean.class);
+				if (studentBean != null)
+				{
+					studentBean.loadGuardians(); // recarrega lista
+					if (newId != null)
+					{
+						studentBean.setSelectedGuardianId(newId);
+						studentBean.onGuardianChange(); // carrega detalhe
+					}
+				}
+			} catch (Exception ex)
+			{
+				// se não achar studentBean (view diferente), só recarrega lista local
+				loadGuardians();
+			}
+
+			addMessage(FacesMessage.SEVERITY_INFO, "Sucesso", guardian.getFirstName() + " " + guardian.getLastName() + " salvo! Agora já pode selecionar.");
+
+			// limpa pro próximo
+			guardian = new GuardianEntity();
+			selectedAcademicYearId = loginBean.getAcademicYearId();
 			loadGuardians();
-			return "/pages/guardians/guardian-list?faces-redirect=true";
+
 		} catch (Exception e)
 		{
+			e.printStackTrace();
 			addMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage());
-			return null;
 		}
 	}
 
@@ -159,24 +221,60 @@ public class GuardianBean implements Serializable
 		{
 			saveInternal();
 			loadGuardians();
-			this.guardian = new GuardianEntity();
-			this.selectedAcademicYearId = null;
-			this.studentsOfGuardian = List.of();
-			this.editing = false;
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Guardian gravado"));
+			addMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Guardian gravado");
+			dashboardBean.navigate("guardians/guardian-list", "encarregados");
 		} catch (Exception e)
 		{
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
+			e.printStackTrace();
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage());
 		}
 	}
 
 	private void saveInternal()
 	{
 		if (selectedAcademicYearId == null)
+			selectedAcademicYearId = loginBean != null ? loginBean.getAcademicYearId() : null;
+		if (selectedAcademicYearId == null)
 			throw new IllegalArgumentException("Ano Letivo é obrigatório");
-		AcademicYearEntity ay = academicYears.stream().filter(a -> a.getId().equals(selectedAcademicYearId)).findFirst()
-				.orElseThrow(() -> new IllegalArgumentException("Ano Letivo não encontrado"));
+
+		AcademicYearEntity ay = academicYears != null ? academicYears.stream().filter(a -> a.getId().equals(selectedAcademicYearId)).findFirst().orElse(null)
+				: null;
+		if (ay == null)
+			ay = academicYearService.getAcademicYearById(selectedAcademicYearId).orElseThrow(() -> new IllegalArgumentException("Ano Letivo não encontrado"));
 		guardian.setAcademicYear(ay);
+
+		// USER LOGADO
+		if (guardian.getUser() == null)
+		{
+			UserEntity loggedUser = null;
+			try
+			{
+				loggedUser = loginBean.getLoggedUser();
+			} catch (Exception ignored)
+			{
+			}
+			if (loggedUser == null)
+			{
+				try
+				{
+					Long userId = loginBean.getLoggedUser().getId();
+					if (userId != null)
+					{
+						loggedUser = new UserEntity();
+						loggedUser.setId(userId);
+					}
+				} catch (Exception ignored)
+				{
+				}
+			}
+			if (loggedUser == null)
+				throw new IllegalArgumentException("Usuário logado não encontrado");
+			guardian.setUser(loggedUser);
+		}
+
+		if (guardian.getCode() == null || guardian.getCode().isBlank())
+			guardian.setCode("ENC-" + (System.currentTimeMillis() % 100000));
+
 		if (editing)
 			guardianService.updateGuardian(guardian);
 		else
@@ -191,11 +289,11 @@ public class GuardianBean implements Serializable
 			{
 				guardianService.deleteGuardian(selectedGuardian.getId());
 				loadGuardians();
-				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Removido", "Guardian removido"));
+				addMessage("Removido", "Guardian removido");
 			}
 		} catch (Exception e)
 		{
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage());
 		}
 	}
 
@@ -209,6 +307,7 @@ public class GuardianBean implements Serializable
 		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
 	}
 
+	// Getters / Setters
 	public List<GuardianEntity> getGuardians()
 	{
 		return guardians;
