@@ -1,14 +1,13 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import jakarta.annotation.PostConstruct;
 
-import jakarta.enterprise.context.SessionScoped;
-import jakarta.inject.Named;
-
-@Named
-@SessionScoped
+@Component("dashboardBean")
+@Scope("session")
 public class DashboardBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -22,6 +21,20 @@ public class DashboardBean implements Serializable
 
 	@Autowired
 	private mz.co.sge.service.IStudentService studentService;
+	
+	@Autowired
+	private MenuBean menuBean;
+
+	@PostConstruct
+	public void init()
+	{
+		try
+		{
+			menuBean.refreshCounts();
+		} catch (Exception e)
+		{
+		}
+	}
 
 	public void toggleSidebar()
 	{
@@ -32,7 +45,6 @@ public class DashboardBean implements Serializable
 	{
 		if (page == null || page.isBlank())
 			return;
-		// Aceita tanto com .xhtml quanto sem, e com ou sem /pages/
 		String normalized = page.trim();
 		if (normalized.startsWith("/pages/"))
 			normalized = normalized.substring(7);
@@ -41,10 +53,17 @@ public class DashboardBean implements Serializable
 		if (normalized.isBlank())
 			return;
 
-		// NÃO converte mais student/ para alunos/ - respeita o caminho pedido
 		this.currentPage = "/pages/" + normalized + ".xhtml";
 		this.activeMenu = menu != null ? menu : "dashboard";
 		this.pageTitle = toTitle(menu);
+
+		// ATUALIZA CONTADORES SEMPRE QUE NAVEGA
+		try
+		{
+			menuBean.refreshCounts();
+		} catch (Exception e)
+		{
+		}
 	}
 
 	public void goToStudents()
@@ -77,13 +96,15 @@ public class DashboardBean implements Serializable
 		case "estudantes" -> "Gestão de Alunos";
 		case "encarregados" -> "Gestão de Encarregados";
 		case "professores" -> "Professores";
+		case "pagamentos" -> "Pagamentos";
+		case "feeitems" -> "Items de Pagamento - " + loginBean.getLoggedAcademicYear().getYear() + " - " + loginBean.getLoggedSchool().getName();
 		case "turmas" -> "Turmas";
 		case "classes" -> "Classes";
 		case "disciplinas" -> "Disciplinas";
 		case "notas" -> "Lançamento de Notas";
 		case "pautas" -> "Pautas";
 		case "mensalidades" -> "Mensalidades";
-		case "pagamentos" -> "Pagamentos";
+		// case "pagamentos" -> "Pagamentos";
 		case "users" -> "Utilizadores";
 		case "backups" -> "Backups";
 		case "licencas" -> "Licenças";
@@ -99,7 +120,6 @@ public class DashboardBean implements Serializable
 		return activeMenu.equals(menu);
 	}
 
-	// ---------- Badge total de alunos da escola logada ----------
 	private Long getCurrentSchoolId()
 	{
 		if (loginBean == null)
@@ -191,9 +211,9 @@ public class DashboardBean implements Serializable
 		return sidebarCollapsed;
 	}
 
-	public void setSidebarCollapsed(boolean sidebarCollapsed)
+	public void setSidebarCollapsed(boolean b)
 	{
-		this.sidebarCollapsed = sidebarCollapsed;
+		this.sidebarCollapsed = b;
 	}
 
 	public String getCurrentPage()
@@ -201,9 +221,9 @@ public class DashboardBean implements Serializable
 		return currentPage;
 	}
 
-	public void setCurrentPage(String currentPage)
+	public void setCurrentPage(String s)
 	{
-		this.currentPage = currentPage;
+		this.currentPage = s;
 	}
 
 	public String getActiveMenu()
@@ -211,9 +231,9 @@ public class DashboardBean implements Serializable
 		return activeMenu;
 	}
 
-	public void setActiveMenu(String activeMenu)
+	public void setActiveMenu(String s)
 	{
-		this.activeMenu = activeMenu;
+		this.activeMenu = s;
 	}
 
 	public String getPageTitle()
@@ -221,8 +241,8 @@ public class DashboardBean implements Serializable
 		return pageTitle;
 	}
 
-	public void setPageTitle(String pageTitle)
+	public void setPageTitle(String s)
 	{
-		this.pageTitle = pageTitle;
+		this.pageTitle = s;
 	}
 }

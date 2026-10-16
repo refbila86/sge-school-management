@@ -50,6 +50,9 @@ public interface IStudentService
 	long countBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
 
 	long countByAcademicYearId(Long academicYearId);
+	
+	
+	StudentEntity getByIdAndSchoolAndYear(Long id, Long schoolId, Long yearId);
 
 	// Compatibilidade com código antigo (default methods)
 	default List<StudentEntity> findAll()

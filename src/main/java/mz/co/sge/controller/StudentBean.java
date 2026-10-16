@@ -122,7 +122,6 @@ public class StudentBean implements Serializable
 			Long currentYearId = getCurrentAcademicYearId();
 			Long currentSchoolId = getCurrentSchoolId();
 
-			// REGRA DE OURO: sem ano do login, não lista ninguém
 			if (currentYearId == null)
 			{
 				this.students = new ArrayList<>();

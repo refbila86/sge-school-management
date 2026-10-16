@@ -26,26 +26,40 @@ body {
 	align-items: center;
 	padding: 20px;
 	overflow-x: hidden;
-	background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, .10),
-		transparent 28%),
-		radial-gradient(circle at 90% 90%, rgba(255, 255, 255, .08),
-		transparent 30%),
-		linear-gradient(135deg, #061a30 0%, #0b2d50 45%, #15558a 100%)
+	background: radial-gradient(circle at 15% 15%, rgba(94, 234, 212, .18),
+		transparent 25%),
+		radial-gradient(circle at 85% 85%, rgba(56, 189, 248, .18),
+		transparent 25%),
+		radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .06),
+		transparent 60%),
+		linear-gradient(135deg, #061a30 0%, #0b2d50 40%, #125a90 100%);
+}
+
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	background-image: radial-gradient(rgba(255, 255, 255, .08) 1px,
+		transparent 1px);
+	background-size: 26px 26px;
+	opacity: .35;
+	pointer-events: none;
 }
 
 .login-container {
 	position: relative;
 	z-index: 10;
 	width: 100%;
-	max-width: 1050px;
-	min-height: 620px;
+	max-width: 1100px;
+	min-height: 680px;
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1.05fr 1fr;
 	background: rgba(255, 255, 255, .98);
 	border-radius: 28px;
 	overflow: hidden;
-	box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
-	animation: loginAppear .8s ease
+	box-shadow: 0 30px 90px rgba(0, 0, 0, .4), 0 0 0 1px
+		rgba(255, 255, 255, .2) inset;
+	animation: loginAppear .8s ease;
 }
 
 @
@@ -60,121 +74,321 @@ to {
 }
 
 }
+
+/* LEFT */
 .login-left {
 	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 50px;
+	padding: 44px 46px;
 	color: #fff;
 	overflow: hidden;
-	background: linear-gradient(145deg, #071d35 0%, #0c355d 50%, #17679e 100%)
+	background: linear-gradient(145deg, #071d35 0%, #0c355d 48%, #17679e 100%);
 }
 
 .login-left::before {
 	content: "";
 	position: absolute;
-	width: 400px;
-	height: 400px;
+	width: 520px;
+	height: 520px;
 	border-radius: 50%;
-	background: radial-gradient(circle, rgba(255, 255, 255, .13),
-		transparent 70%);
-	top: -180px;
-	right: -150px
+	background: radial-gradient(circle, rgba(255, 255, 255, .14),
+		transparent 68%);
+	top: -200px;
+	right: -180px;
+	animation: float 6s ease-in-out infinite;
+}
+
+.login-left::after {
+	content: "";
+	position: absolute;
+	width: 380px;
+	height: 380px;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(56, 189, 248, .18), transparent
+		70%);
+	bottom: -120px;
+	left: -120px;
+}
+
+@
+keyframes float { 0%,100%{
+	transform: translateY(0)
+}
+
+50
+
+
+%
+{
+transform
+
+
+:
+
+
+translateY
+(
+
+
+-14px
+
+
+)
+
+
+}
+}
+.brand-top {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 18px;
+	opacity: .85
+}
+
+.brand-top i {
+	font-size: 14px
+}
+
+.brand-top span {
+	font-size: 10px;
+	letter-spacing: 1.4px;
+	text-transform: uppercase;
+	font-weight: 600
 }
 
 .brand-logo {
-	width: 110px;
-	height: 110px;
-	margin: 0 auto 20px;
+	width: 108px;
+	height: 108px;
 	border-radius: 26px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: linear-gradient(145deg, rgba(255, 255, 255, .22),
-		rgba(255, 255, 255, .07));
-	border: 1px solid rgba(255, 255, 255, .25)
+		rgba(255, 255, 255, .06));
+	border: 1px solid rgba(255, 255, 255, .22);
+	box-shadow: 0 12px 30px rgba(0, 0, 0, .25), inset 0 1px 0
+		rgba(255, 255, 255, .2);
+	margin-bottom: 18px;
+	position: relative;
+}
+
+.brand-logo::after {
+	content: "";
+	position: absolute;
+	inset: -6px;
+	border-radius: 30px;
+	border: 1px dashed rgba(255, 255, 255, .18)
 }
 
 .brand-logo i {
 	font-size: 52px;
-	color: #fff
+	color: #fff;
+	filter: drop-shadow(0 2px 10px rgba(255, 255, 255, .3))
 }
 
 .brand-title {
-	font-size: 48px;
-	font-weight: 700;
-	letter-spacing: 6px;
-	margin-bottom: 5px
+	font-size: 52px;
+	font-weight: 800;
+	letter-spacing: 8px;
+	line-height: 1;
+	margin-bottom: 4px
 }
 
 .brand-subtitle {
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 300;
-	opacity: .85;
-	margin-bottom: 35px
+	opacity: .88;
+	margin-bottom: 28px;
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.brand-subtitle i {
+	font-size: 12px
+}
+
+.features-list {
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	position: relative;
+	z-index: 2
 }
 
 .feature-item {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 12px 14px;
-	margin-bottom: 9px;
+	padding: 11px 13px;
 	border-radius: 12px;
 	background: rgba(255, 255, 255, .07);
-	border: 1px solid rgba(255, 255, 255, .08)
+	border: 1px solid rgba(255, 255, 255, .09);
+	transition: all .22s;
+	cursor: default;
+}
+
+.feature-item:hover {
+	background: rgba(255, 255, 255, .12);
+	transform: translateX(4px);
+	border-color: rgba(255, 255, 255, .18)
 }
 
 .feature-icon {
-	width: 40px;
-	height: 40px;
-	min-width: 40px;
+	width: 38px;
+	height: 38px;
+	min-width: 38px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 10px;
-	background: rgba(255, 255, 255, .13)
+	background: rgba(255, 255, 255, .13);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
+}
+
+.feature-icon i {
+	font-size: 16px
 }
 
 .feature-text strong {
 	font-size: 11px;
 	font-weight: 600;
-	display: block
+	display: block;
+	letter-spacing: .2px
 }
 
 .feature-text span {
 	font-size: 10px;
-	opacity: .7
+	opacity: .72
 }
 
+.feature-badge {
+	margin-left: auto;
+	font-size: 8px;
+	font-weight: 700;
+	background: rgba(34, 197, 94, .18);
+	color: #86efac;
+	border: 1px solid rgba(34, 197, 94, .25);
+	padding: 3px 7px;
+	border-radius: 20px
+}
+
+.left-stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 10px;
+	margin-top: 22px;
+	position: relative;
+	z-index: 2
+}
+
+.stat-box {
+	background: rgba(255, 255, 255, .06);
+	border: 1px solid rgba(255, 255, 255, .08);
+	border-radius: 12px;
+	padding: 10px 12px;
+	text-align: center
+}
+
+.stat-box i {
+	font-size: 14px;
+	display: block;
+	margin-bottom: 4px;
+	opacity: .9
+}
+
+.stat-box strong {
+	font-size: 14px;
+	display: block
+}
+
+.stat-box span {
+	font-size: 8px;
+	opacity: .7;
+	text-transform: uppercase;
+	letter-spacing: .6px
+}
+
+/* RIGHT */
 .login-right {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 30px 45px
+	padding: 28px 42px;
+	position: relative
 }
 
 .login-form-container {
 	width: 100%;
-	max-width: 380px
+	max-width: 400px
+}
+
+.top-actions {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 14px
+}
+
+.top-actions .mini {
+	display: flex;
+	gap: 8px
+}
+
+.mini-icon {
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #64748b;
+	font-size: 12px
 }
 
 .step-indicator {
 	display: flex;
-	gap: 10px;
-	margin-bottom: 12px
+	align-items: center;
+	gap: 0;
+	margin-bottom: 10px;
+	position: relative
 }
 
-.step {
+.step-line {
 	flex: 1;
-	height: 4px;
-	border-radius: 10px;
-	background: #e2e8f0
+	height: 2px;
+	background: #e2e8f0;
+	margin: 0 6px
 }
 
-.step.active {
+.step-line.done {
 	background: #15558a
+}
+
+.step-circle {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	background: #e2e8f0;
+	color: #94a3b8;
+	border: 2px solid #e2e8f0;
+	transition: .2s
+}
+
+.step-circle.active {
+	background: #0a2540;
+	border-color: #0a2540;
+	color: #fff;
+	box-shadow: 0 6px 18px rgba(10, 37, 64, .25)
 }
 
 .step-labels {
@@ -192,16 +406,27 @@ to {
 	color: #0a2540
 }
 
+.step-labels i {
+	margin-right: 4px
+}
+
 .input-group {
 	margin-bottom: 13px
 }
 
 .input-label {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 6px;
 	font-size: 11px;
 	font-weight: 600;
 	color: #334155;
 	margin-bottom: 6px
+}
+
+.input-label i {
+	font-size: 11px;
+	color: #5a7a9a
 }
 
 .input-wrapper {
@@ -212,28 +437,48 @@ to {
 .input-icon {
 	position: absolute;
 	z-index: 5;
-	left: 15px;
+	left: 14px;
 	top: 50%;
 	transform: translateY(-50%);
 	color: #5a7a9a;
-	font-size: 15px;
+	font-size: 14px;
 	pointer-events: none
 }
 
 .custom-input {
 	width: 100%;
 	height: 48px;
-	padding-left: 44px;
+	padding-left: 42px;
 	padding-right: 14px;
 	border-radius: 11px;
 	border: 1px solid #dce4ec;
 	background: #f8fafc;
 	color: #1e293b;
 	font-family: 'Poppins', sans-serif;
-	font-size: 12px;
-	outline: none
+	font-size: 12.5px;
+	outline: none;
+	transition: all .18s;
 }
 
+.custom-input:focus {
+	border-color: #15558a;
+	background: #fff;
+	box-shadow: 0 0 0 4px rgba(21, 85, 138, .12)
+}
+
+.eye-btn {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	color: #94a3b8;
+	cursor: pointer;
+	font-size: 14px
+}
+
+/* PrimeFaces Select */
 .custom-select.ui-selectonemenu {
 	width: 100% !important;
 	height: 48px !important;
@@ -242,31 +487,50 @@ to {
 	background: #f8fafc !important;
 	display: flex !important;
 	align-items: center !important;
-	box-shadow: none !important
+	box-shadow: none !important;
+	transition: .18s !important
+}
+
+.custom-select.ui-selectonemenu.ui-state-focus {
+	border-color: #15558a !important;
+	background: #fff !important;
+	box-shadow: 0 0 0 4px rgba(21, 85, 138, .12) !important
 }
 
 .custom-select .ui-selectonemenu-label {
-	padding-left: 44px !important;
+	padding-left: 42px !important;
 	font-family: 'Poppins', sans-serif !important;
-	font-size: 12px !important;
-	color: #1e293b !important
+	font-size: 12.5px !important;
+	color: #1e293b !important;
+	margin-top: 0 !important
 }
 
 .custom-select .ui-selectonemenu-trigger {
-	width: 40px !important;
+	width: 38px !important;
 	background: transparent !important;
-	border: none !important
+	border: none !important;
+	color: #5a7a9a !important
 }
 
 .profiles-title {
-	text-align: center;
-	margin-top: 12px;
-	margin-bottom: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 14px;
+	margin-bottom: 9px;
 	color: #64748b;
 	font-size: 9px;
 	text-transform: uppercase;
 	letter-spacing: 1px;
 	font-weight: 700
+}
+
+.profiles-title::before, .profiles-title::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: #e2e8f0
 }
 
 .profiles-select {
@@ -278,69 +542,127 @@ to {
 .profile-opt {
 	cursor: pointer;
 	flex: 1;
-	padding: 10px 6px;
-	border-radius: 11px;
+	padding: 11px 6px;
+	border-radius: 12px;
 	border: 1.5px solid #e2e8f0;
 	background: #f8fafc;
 	text-align: center;
-	transition: all .2s
+	transition: all .2s;
+	position: relative;
+	overflow: hidden
 }
 
 .profile-opt:hover {
 	border-color: #15558a;
-	transform: translateY(-1px)
+	transform: translateY(-2px);
+	background: #fff;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, .06)
+}
+
+.profile-opt i {
+	font-size: 18px;
+	display: block;
+	margin-bottom: 4px
 }
 
 .profile-opt.active {
 	background: #0a2540 !important;
 	border-color: #0a2540 !important;
 	color: #fff !important;
-	box-shadow: 0 8px 20px rgba(10, 37, 64, .25)
+	box-shadow: 0 10px 24px rgba(10, 37, 64, .28)
+}
+
+.profile-opt .check {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	font-size: 10px;
+	background: #fff;
+	color: #0a2540;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	display: none;
+	align-items: center;
+	justify-content: center
+}
+
+.profile-opt.active .check {
+	display: flex
 }
 
 .year-card {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 14px;
+	padding: 14px 14px;
 	border-radius: 12px;
 	border: 1.5px solid #e2e8f0;
 	background: #f8fafc;
 	margin-bottom: 10px;
 	cursor: pointer;
-	transition: all .2s
+	transition: all .2s;
+	position: relative
 }
 
 .year-card:hover {
 	border-color: #15558a;
 	transform: translateY(-2px);
-	background: #fff
+	background: #fff;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, .06)
 }
 
 .year-card.selected {
 	background: #0a2540 !important;
 	border-color: #0a2540 !important;
 	color: #fff !important;
-	box-shadow: 0 8px 20px rgba(10, 37, 64, .25)
+	box-shadow: 0 12px 28px rgba(10, 37, 64, .3)
 }
 
 .year-card .year-icon {
-	width: 42px;
-	height: 42px;
-	min-width: 42px;
+	width: 44px;
+	height: 44px;
+	min-width: 44px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 10px;
+	border-radius: 11px;
 	background: #e0f2fe;
-	color: #0284c7
+	color: #0284c7;
+	transition: .2s
 }
 
 .year-card.selected .year-icon {
-	background: rgba(255, 255, 255, .15) !important;
+	background: rgba(255, 255, 255, .14) !important;
 	color: #fff !important
 }
-/* CORRECAO BOTAO FEIO DO PRIMEFACES */
+
+.year-badge {
+	font-size: 8px;
+	font-weight: 700;
+	padding: 3px 7px;
+	border-radius: 20px;
+	background: #dcfce7;
+	color: #15803d;
+	border: 1px solid #bbf7d0
+}
+
+.year-card.selected .year-badge {
+	background: rgba(34, 197, 94, .2);
+	color: #86efac;
+	border-color: rgba(34, 197, 94, .3)
+}
+
+.year-meta {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 2px;
+	font-size: 10px;
+	opacity: .75
+}
+
+/* BOTOES PRIMEFACES */
 .ui-button.login-button {
 	width: 100% !important;
 	height: 50px !important;
@@ -351,12 +673,24 @@ to {
 	font-family: 'Poppins', sans-serif !important;
 	font-size: 13px !important;
 	font-weight: 600 !important;
-	box-shadow: 0 9px 22px rgba(9, 37, 65, .25) !important;
-	margin-top: 14px
+	box-shadow: 0 10px 24px rgba(9, 37, 65, .28) !important;
+	margin-top: 14px;
+	position: relative;
+	overflow: hidden;
+	transition: .2s !important;
+}
+
+.ui-button.login-button:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 14px 30px rgba(9, 37, 65, .32) !important
 }
 
 .ui-button.login-button .ui-button-text {
-	color: #fff !important
+	color: #fff !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px
 }
 
 .ui-button.btn-secondary {
@@ -373,7 +707,11 @@ to {
 }
 
 .ui-button.btn-secondary .ui-button-text {
-	color: #475569 !important
+	color: #475569 !important;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px
 }
 
 .alert-error {
@@ -383,19 +721,36 @@ to {
 	padding: 11px 14px;
 	border-radius: 10px;
 	font-size: 12px;
-	margin-bottom: 14px
+	margin-bottom: 14px;
+	display: flex;
+	gap: 8px;
+	align-items: flex-start
 }
 
-@media ( max-width :850px) {
+.secure-foot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	margin-top: 18px;
+	color: #a1acb9;
+	font-size: 9px
+}
+
+.secure-foot i {
+	font-size: 11px
+}
+
+@media ( max-width :900px) {
 	.login-container {
-		max-width: 500px;
+		max-width: 520px;
 		grid-template-columns: 1fr
 	}
 	.login-left {
 		display: none
 	}
 	.login-right {
-		padding: 28px
+		padding: 28px 24px
 	}
 }
 /*]]>*/
@@ -403,28 +758,47 @@ to {
 </h:head>
 <h:body>
 	<div class="login-container">
+		<!-- ESQUERDA -->
 		<div class="login-left">
-			<div>
+			<div style="position: relative; z-index: 2; width: 100%">
+				<div class="brand-top">
+					<i class="pi pi-shield"></i><span>Sistema Seguro • v3.2</span> <span
+						style="margin-left: auto; display: flex; align-items: center; gap: 6px"><i
+						class="pi pi-circle-fill" style="font-size: 8px; color: #22c55e"></i>
+						Online</span>
+				</div>
 				<div class="brand-logo">
 					<i class="pi pi-graduation-cap"></i>
 				</div>
 				<h1 class="brand-title">SGE</h1>
-				<p class="brand-subtitle">Sistema de Gestão Escolar</p>
+				<p class="brand-subtitle">
+					<i class="pi pi-sparkles"></i> Sistema de Gestão Escolar • Moderno
+					&amp; Seguro
+				</p>
+
 				<div class="features-list">
 					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-users"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Alunos e Turmas</strong><span>Gestão académica</span>
+							<strong>Alunos e Turmas</strong><span>Gestão académica
+								completa</span>
 						</div>
+						<span class="feature-badge"><i class="pi pi-check"></i>
+							Ativo</span>
 					</div>
 					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-book"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Notas e Frequência</strong><span>Desempenho</span>
+							<strong>Notas e Frequência</strong><span>Boletins e
+								desempenho</span>
+						</div>
+						<div class="feature-badge"
+							style="background: rgba(59, 130, 246, .15); color: #93c5fd; border-color: rgba(59, 130, 246, .25)">
+							<i class="pi pi-chart-bar"></i> Novo
 						</div>
 					</div>
 					<div class="feature-item">
@@ -432,42 +806,121 @@ to {
 							<i class="pi pi-calendar"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Ano Académico</strong><span>Seleção após login</span>
+							<strong>Ano Académico</strong><span>Seleção inteligente
+								pós-login</span>
 						</div>
+						<span class="feature-badge"><i class="pi pi-star"></i> Core</span>
+					</div>
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="pi pi-wallet"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Pagamentos &amp; Propinas</strong><span>Controle
+								financeiro</span>
+						</div>
+						<div class="feature-badge"
+							style="background: rgba(168, 85, 247, .15); color: #d8b4fe">
+							<i class="pi pi-lock"></i> Seguro
+						</div>
+					</div>
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="pi pi-chart-bar"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Relatórios &amp; BI</strong><span>Dashboards em
+								tempo real</span>
+						</div>
+						<span class="feature-badge"><i class="pi pi-bolt"></i> Fast</span>
+					</div>
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="pi pi-shield"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Segurança &amp; Auditoria</strong><span>Logs e
+								permissões por perfil</span>
+						</div>
+						<span class="feature-badge"><i class="pi pi-verified"></i>
+							LGPD</span>
+					</div>
+				</div>
+
+				<div class="left-stats">
+					<div class="stat-box">
+						<i class="pi pi-building"></i><strong>1.200+</strong><span>Escolas</span>
+					</div>
+					<div class="stat-box">
+						<i class="pi pi-users"></i><strong>50k+</strong><span>Alunos</span>
+					</div>
+					<div class="stat-box">
+						<i class="pi pi-heart"></i><strong>99.9%</strong><span>Uptime</span>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- DIREITA -->
 		<div class="login-right">
 			<div class="login-form-container">
 				<h:form id="loginForm">
 					<p:messages globalOnly="true" showDetail="true" closable="true"
 						styleClass="alert-error" />
 
+					<div class="top-actions">
+						<div
+							style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #94a3b8">
+							<i class="pi pi-lock" style="color: #22c55e"></i> Conexão
+							criptografada
+						</div>
+						<div class="mini">
+							<div class="mini-icon">
+								<i class="pi pi-question"></i>
+							</div>
+							<div class="mini-icon">
+								<i class="pi pi-globe"></i>
+							</div>
+						</div>
+					</div>
+
 					<div class="step-indicator">
-						<div class="step #{!loginBean.yearStep ? 'active' : ''}"></div>
-						<div class="step #{loginBean.yearStep ? 'active' : ''}"></div>
+						<div class="step-circle #{!loginBean.yearStep ? 'active' : ''}">
+							<i class="pi pi-user"></i>
+						</div>
+						<div class="step-line #{loginBean.yearStep ? 'done' : ''}"></div>
+						<div class="step-circle #{loginBean.yearStep ? 'active' : ''}">
+							<i class="pi pi-calendar"></i>
+						</div>
 					</div>
 					<div class="step-labels">
-						<span class="#{!loginBean.yearStep ? 'active' : ''}">1.
-							Credenciais</span> <span class="#{loginBean.yearStep ? 'active' : ''}">2.
-							Ano Académico</span>
+						<span class="#{!loginBean.yearStep ? 'active' : ''}"><i
+							class="pi pi-id-card"></i> 1. Credenciais</span> <span
+							class="#{loginBean.yearStep ? 'active' : ''}"><i
+							class="pi pi-calendar-clock"></i> 2. Ano Académico</span>
 					</div>
 
 					<h:panelGroup rendered="#{!loginBean.yearStep}">
 						<h2
-							style="font-size: 22px; font-weight: 700; color: #0a2540; margin-bottom: 4px">Bem-vindo(a)!</h2>
-						<p style="font-size: 11px; color: #64748b; margin-bottom: 16px">Preencha
-							e clique em Próximo</p>
+							style="font-size: 22px; font-weight: 700; color: #0a2540; margin-bottom: 4px; display: flex; align-items: center; gap: 10px">
+							Bem-vindo(a)! <i class="pi pi-sparkles"
+								style="color: #15558a; font-size: 18px"></i>
+						</h2>
+						<p
+							style="font-size: 11px; color: #64748b; margin-bottom: 18px; display: flex; gap: 6px">
+							<i class="pi pi-info-circle"></i> Preencha seus dados para
+							continuar
+						</p>
 
 						<div class="input-group">
-							<label class="input-label">Escola *</label>
+							<label class="input-label"><i class="pi pi-building"></i>
+								Escola *</label>
 							<div class="input-wrapper">
 								<i class="pi pi-building input-icon"></i>
 								<p:selectOneMenu value="#{loginBean.schoolId}"
 									styleClass="custom-select" required="true"
 									requiredMessage="Escolha escola">
-									<f:selectItem itemLabel="Selecione..." itemValue=""
+									<f:selectItem itemLabel="Selecione sua escola..." itemValue=""
 										noSelectionOption="true" />
 									<f:selectItems value="#{loginBean.schools}" var="s"
 										itemLabel="#{s.name}" itemValue="#{s.id}" />
@@ -476,63 +929,89 @@ to {
 						</div>
 
 						<div class="input-group">
-							<label class="input-label">Utilizador *</label>
+							<label class="input-label"><i class="pi pi-user"></i>
+								Utilizador *</label>
 							<div class="input-wrapper">
 								<i class="pi pi-user input-icon"></i>
 								<h:inputText value="#{loginBean.username}"
-									styleClass="custom-input" placeholder="Utilizador"
+									styleClass="custom-input" placeholder="ex: admin.escola"
 									required="true" />
 							</div>
 						</div>
 
 						<div class="input-group">
-							<label class="input-label">Senha *</label>
+							<label class="input-label"><i class="pi pi-lock"></i>
+								Senha * <span
+								style="margin-left: auto; font-weight: 400; font-size: 10px; color: #94a3b8"><i
+									class="pi pi-eye-slash"></i> Esqueceu?</span></label>
 							<div class="input-wrapper">
 								<i class="pi pi-lock input-icon"></i>
-								<h:inputSecret value="#{loginBean.password}"
-									styleClass="custom-input" placeholder="Senha" required="true" />
+								<h:inputSecret id="pwd" value="#{loginBean.password}"
+									styleClass="custom-input" placeholder="••••••••"
+									required="true" />
+								<button type="button" class="eye-btn" onclick="togglePwd()">
+									<i id="eyeIcon" class="pi pi-eye"></i>
+								</button>
 							</div>
 						</div>
 
 						<h:inputHidden id="selectedProfile"
 							value="#{loginBean.selectedProfile}" />
-						<div class="profiles-title">Perfil de acesso</div>
+						<div class="profiles-title">
+							<i class="pi pi-users"></i> Perfil de acesso
+						</div>
 						<div class="profiles-select">
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'ADMIN' ? 'active' : ''}"
 								onclick="selectProfile('ADMIN',this)">
-								<i class="pi pi-cog"></i>
-								<div style="font-size: 10px; font-weight: 600; margin-top: 4px">Admin</div>
+								<span class="check"><i class="pi pi-check"></i></span><i
+									class="pi pi-cog"></i>
+								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Admin</div>
+								<div style="font-size: 8px; opacity: .7">Total</div>
 							</div>
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'TEACHER' ? 'active' : ''}"
 								onclick="selectProfile('TEACHER',this)">
-								<i class="pi pi-book"></i>
-								<div style="font-size: 10px; font-weight: 600; margin-top: 4px">Professor</div>
+								<span class="check"><i class="pi pi-check"></i></span><i
+									class="pi pi-book"></i>
+								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Professor</div>
+								<div style="font-size: 8px; opacity: .7">Turmas</div>
 							</div>
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'GUARDIAN' ? 'active' : ''}"
 								onclick="selectProfile('GUARDIAN',this)">
-								<i class="pi pi-users"></i>
-								<div style="font-size: 10px; font-weight: 600; margin-top: 4px">Encarregado</div>
+								<span class="check"><i class="pi pi-check"></i></span><i
+									class="pi pi-heart"></i>
+								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Encarregado</div>
+								<div style="font-size: 8px; opacity: .7">Filhos</div>
 							</div>
 						</div>
 
-						<p:commandButton value="Próximo / Selecionar Ano →"
+						<p:commandButton value="Próximo → Selecionar Ano"
+							icon="pi pi-arrow-right" iconPos="right"
 							action="#{loginBean.goToYearStep}" styleClass="login-button"
 							update="@form" process="@form" />
+						<div class="secure-foot">
+							<span><i class="pi pi-shield"></i> Seguro</span><span><i
+								class="pi pi-bolt"></i> Rápido</span><span><i
+								class="pi pi-verified"></i> Confiável</span>
+						</div>
 					</h:panelGroup>
 
 					<h:panelGroup rendered="#{loginBean.yearStep}">
 						<h2
-							style="font-size: 22px; font-weight: 700; color: #0a2540; margin-bottom: 4px">Selecione
-							o Ano</h2>
-						<p style="font-size: 11px; color: #64748b; margin-bottom: 14px">
-							Olá <b>#{loginBean.username}</b>, escolha o ano
+							style="font-size: 20px; font-weight: 700; color: #0a2540; margin-bottom: 4px; display: flex; align-items: center; gap: 8px">
+							<i class="pi pi-calendar" style="color: #15558a"></i> Selecione o
+							Ano
+						</h2>
+						<p
+							style="font-size: 11px; color: #64748b; margin-bottom: 14px; display: flex; align-items: center; gap: 6px">
+							<i class="pi pi-wave-pulse"></i> Olá <b>#{loginBean.username}</b>,
+							escolha o ano letivo
 						</p>
 
 						<div
-							style="max-height: 300px; overflow-y: auto; padding-right: 4px">
+							style="max-height: 320px; overflow-y: auto; padding-right: 4px">
 							<ui:repeat value="#{loginBean.academicYears}" var="ay">
 								<div
 									class="year-card #{loginBean.academicYearId eq ay.id ? 'selected' : ''}"
@@ -541,10 +1020,18 @@ to {
 										<i class="pi pi-calendar"></i>
 									</div>
 									<div style="flex: 1">
-										<div style="font-weight: 700; font-size: 14px">#{ay.year}</div>
-										<div style="font-size: 11px; opacity: .75">
+										<div style="display: flex; align-items: center; gap: 8px">
+											<div style="font-weight: 700; font-size: 14px">#{ay.year}</div>
+											<span class="year-badge">#{ay.active ? 'ACTIVO' :
+												'Histórico'}</span>
+										</div>
+										<div class="year-meta">
+											<i class="pi #{ay.active ? 'pi-check-circle' : 'pi-clock'}"
+												style="font-size: 11px"></i>
 											<h:outputText
-												value="#{ay.active ? 'Activo • Ano actual' : 'Ano lectivo'}" />
+												value="#{ay.active ? 'Ano actual em curso' : 'Ano lectivo encerrado'}" />
+											<span style="margin-left: auto"><i class="pi pi-users"
+												style="font-size: 10px"></i> 320 alunos</span>
 										</div>
 									</div>
 									<i
@@ -553,31 +1040,31 @@ to {
 								</div>
 							</ui:repeat>
 							<h:panelGroup rendered="#{empty loginBean.academicYears}"
-								style="text-align:center;padding:20px;color:#64748b;font-size:12px">
-                                Nenhum ano académico encontrado. Cadastre em Administração.
+								style="text-align:center; padding:20px; color:#64748b; font-size:12px; display:block">
+								<i class="pi pi-inbox"
+									style="font-size: 24px; display: block; margin-bottom: 8px"></i> Nenhum ano académico encontrado. Cadastre em Administração.
                             </h:panelGroup>
 						</div>
 
 						<h:inputHidden id="yearId" value="#{loginBean.academicYearId}" />
-
 						<p:commandButton value="Entrar no Sistema → Dashboard"
-							action="#{loginBean.login}" styleClass="login-button"
-							update="@form" process="@form" />
-
-
+							icon="pi pi-sign-in" iconPos="right" action="#{loginBean.login}"
+							styleClass="login-button" update="@form" process="@form" />
 						<p:commandButton value="← Voltar para Credenciais"
-							action="#{loginBean.backToCredentials}"
+							icon="pi pi-arrow-left" action="#{loginBean.backToCredentials}"
 							styleClass="btn-secondary" immediate="true" update="@form"
 							process="@this" />
 					</h:panelGroup>
 
 					<div
-						style="text-align: center; margin-top: 16px; color: #a1acb9; font-size: 9px">SGE
-						© 2026 • Acesso seguro</div>
+						style="text-align: center; margin-top: 16px; color: #a1acb9; font-size: 9px; display: flex; align-items: center; justify-content: center; gap: 6px">
+						<i class="pi pi-lock"></i> SGE © 2026 • Acesso seguro • Maputo
+					</div>
 				</h:form>
 			</div>
 		</div>
 	</div>
+
 	<script>
 //<![CDATA[
 function selectProfile(p, el){
@@ -595,6 +1082,12 @@ function selectYear(id, el){
     el.classList.add('selected');
     var icon=el.querySelector('.pi-circle, .pi-check-circle');
     if(icon) icon.className='pi pi-check-circle';
+}
+function togglePwd(){
+    var input=document.getElementById('loginForm:pwd');
+    var icon=document.getElementById('eyeIcon');
+    if(input.type==='password'){ input.type='text'; icon.className='pi pi-eye-slash'; }
+    else { input.type='password'; icon.className='pi pi-eye'; }
 }
 //]]>
 </script>

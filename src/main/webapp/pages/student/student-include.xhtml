@@ -46,7 +46,7 @@
 			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
 				styleClass="ui-button-secondary ui-button-outlined"
 				style="border-radius:10px"
-				action="#{dashboardBean.navigate('students/student-list','estudantes')}"
+				action="#{dashboardBean.navigate('student/student-list','estudantes')}"
 				update=":contentPanel" immediate="true" process="@this" />
 		</div>
 
@@ -165,7 +165,7 @@
 				<p:commandButton value="Cancelar"
 					styleClass="ui-button-secondary ui-button-outlined"
 					style="border-radius:10px"
-					action="#{dashboardBean.navigate('students/student-list','estudantes')}"
+					action="#{dashboardBean.navigate('student/student-list','estudantes')}"
 					update=":contentPanel" immediate="true" process="@this" />
 				<p:commandButton
 					value="#{studentBean.editing ? 'Atualizar' : 'Salvar Estudante'}"

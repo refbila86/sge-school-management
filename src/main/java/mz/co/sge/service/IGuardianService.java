@@ -6,7 +6,6 @@ import java.util.Optional;
 
 public interface IGuardianService
 {
-	// ---- Leituras no mesmo estilo do IAcademicYearService ----
 	List<GuardianEntity> getAllGuardians();
 
 	Optional<GuardianEntity> getGuardianById(Long id);
@@ -18,16 +17,13 @@ public interface IGuardianService
 	Optional<GuardianEntity> getGuardianWithStudents(Long id);
 
 	List<GuardianEntity> getGuardiansByAcademicYear(Long academicYearId);
-	
 
-	// Buscas equivalentes ao findByYear() do AcademicYear
 	List<GuardianEntity> findByRelationship(String relationship);
 
 	List<GuardianEntity> findByName(String name);
 
 	List<GuardianEntity> findByPhone(String phone);
 
-	// ---- Escrita ----
 	GuardianEntity createGuardian(GuardianEntity guardian);
 
 	GuardianEntity updateGuardian(GuardianEntity guardian);
@@ -41,4 +37,11 @@ public interface IGuardianService
 
 	// ---- Contagem ----
 	long countGuardians();
+	
+	long countGuardiansByAcademicYear(Long academicYearId);
+	
+	List<GuardianEntity> findByAcademicYearId(Long academicYearId);
+	
+	long countAllByAcademicYearId(Long academicYearId); // usa este
+
 }

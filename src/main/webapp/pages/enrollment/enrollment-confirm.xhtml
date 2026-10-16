@@ -1,0 +1,271 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 800;
+	color: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.form-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 22px;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04)
+}
+
+.field-label {
+	color: #64748b;
+	font-size: 11px;
+	text-transform: uppercase;
+	font-weight: 700;
+	letter-spacing: .4px;
+	margin-bottom: 4px;
+	display: block
+}
+
+.step-badge {
+	background: #16a34a;
+	color: white;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 20px
+}
+
+.step-badge-2 {
+	background: #0a2540;
+	color: white;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 20px
+}
+
+.summary-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+.summary-item {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 14px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px
+}
+
+.summary-item.full {
+	grid-column: 1/-1
+}
+
+.summary-value {
+	font-size: 14.5px;
+	font-weight: 700;
+	color: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.summary-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px
+}
+
+.highlight-card {
+	background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+	border: 2px solid #16a34a;
+	border-radius: 16px;
+	padding: 18px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
+</style>
+
+	<h:form id="formConfirm">
+		<p:growl id="growl" showDetail="true" />
+
+		<div class="page-header">
+			<div class="page-title">
+				<p:commandButton icon="pi pi-arrow-left"
+					styleClass="ui-button-text ui-button-rounded"
+					style="width:36px;height:36px"
+					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
+					update=":contentPanel" process="@this" />
+				<div
+					style="width: 42px; height: 42px; border-radius: 12px; background: #dcfce7; display: flex; align-items: center; justify-content: center">
+					<i class="pi pi-verified" style="color: #16a34a; font-size: 18px" />
+				</div>
+				<div>
+					<div style="display: flex; align-items: center; gap: 8px">
+						Confirmar Matrícula <span class="step-badge">PASSO 2 DE 2</span>
+					</div>
+					<div style="font-size: 12px; font-weight: 500; color: #64748b">Revê
+						os dados e clica em Matricular Aluno para gravar</div>
+				</div>
+			</div>
+			<div>
+				<p:commandButton value="Voltar e Editar" icon="pi pi-pencil"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:12px;font-size:13px"
+					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
+					update=":contentPanel" process="@this" />
+			</div>
+		</div>
+
+		<div class="form-card">
+			<!-- CARD DESTAQUE ALUNO -->
+			<div class="highlight-card">
+				<div style="display: flex; align-items: center; gap: 14px">
+					<div
+						style="width: 52px; height: 52px; border-radius: 14px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px">
+						<h:outputText
+							value="#{enrollmentBean.selectedStudentEntity != null ? enrollmentBean.selectedStudentEntity.firstName.substring(0,1) : 'A'}" />
+					</div>
+					<div>
+						<div
+							style="font-size: 11px; font-weight: 700; color: #16a34a; letter-spacing: .4px; text-transform: uppercase">Aluno
+							REGISTERED</div>
+						<div style="font-size: 17px; font-weight: 800; color: #0a2540">#{enrollmentBean.selectedStudentName}</div>
+						<div style="font-size: 12px; color: #475569">
+							<i class="pi pi-check-circle"
+								style="color: #16a34a; font-size: 11px" /> Pagamento confirmado
+							• Pronto para matricular
+						</div>
+					</div>
+				</div>
+				<div style="text-align: right">
+					<p:tag value="ENROLLED" severity="success"
+						style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px" />
+					<div style="font-size: 11px; color: #64748b; margin-top: 6px">Estado
+						final após gravar</div>
+				</div>
+			</div>
+
+			<!-- GRID RESUMO -->
+			<div class="summary-grid">
+				<div class="summary-item">
+					<span class="field-label"><i class="pi pi-calendar"
+						style="margin-right: 4px" /> Ano Académico</span>
+					<div class="summary-value">
+						<div class="summary-icon"
+							style="background: #eff6ff; color: #2563eb">
+							<i class="pi pi-calendar" />
+						</div>
+						#{enrollmentBean.selectedYearLabel}
+						<p:tag value="2026" style="margin-left:6px;font-size:10px"
+							severity="info" />
+					</div>
+				</div>
+
+				<div class="summary-item">
+					<span class="field-label"><i class="pi pi-book"
+						style="margin-right: 4px" /> Classe</span>
+					<div class="summary-value">
+						<div class="summary-icon"
+							style="background: #fef3c7; color: #d97706">
+							<i class="pi pi-book" />
+						</div>
+						#{enrollmentBean.selectedClassLevelName}
+					</div>
+				</div>
+
+				<div class="summary-item full">
+					<span class="field-label"><i class="pi pi-home"
+						style="margin-right: 4px" /> Turma Selecionada</span>
+					<div class="summary-value"
+						style="justify-content: space-between; width: 100%">
+						<div style="display: flex; align-items: center; gap: 8px">
+							<div class="summary-icon"
+								style="background: #dbeafe; color: #2563eb">
+								<i class="pi pi-home" />
+							</div>
+							#{enrollmentBean.selectedClassroomName}
+						</div>
+						<div
+							style="font-size: 12px; color: #16a34a; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 4px 10px">
+							+1 aluno após matricular</div>
+					</div>
+				</div>
+
+				<div class="summary-item">
+					<span class="field-label"><i class="pi pi-user"
+						style="margin-right: 4px" /> Criado por</span>
+					<div class="summary-value">
+						<div class="summary-icon"
+							style="background: #f3e8ff; color: #7c3aed">
+							<i class="pi pi-user" />
+						</div>
+						#{loginBean.username}
+					</div>
+				</div>
+
+				<div class="summary-item">
+					<span class="field-label"><i class="pi pi-clock"
+						style="margin-right: 4px" /> Data</span>
+					<div class="summary-value">
+						<div class="summary-icon"
+							style="background: #f1f5f9; color: #475569">
+							<i class="pi pi-clock" />
+						</div>
+						Hoje
+					</div>
+				</div>
+			</div>
+
+			<div
+				style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px">
+				<i class="pi pi-info-circle"
+					style="color: #0a2540; font-size: 18px; margin-top: 1px" />
+				<div style="font-size: 12.5px; color: #334155; line-height: 1.6">
+					Ao confirmar, o sistema irá: <b>1)</b> Criar matrícula como <b>ENROLLED</b>
+					• <b>2)</b> Incrementar contador da turma <b>ex: 18/35 → 19/35</b>
+					• <b>3)</b> Associar aluno REGISTERED à turma.
+				</div>
+			</div>
+
+			<!-- BOTAO SO EM BAIXO COMO PEDISTE -->
+			<div
+				style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 20px; border-top: 1px solid #f1f5f9">
+				<p:commandButton value="Voltar e Editar" icon="pi pi-arrow-left"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:12px;font-size:13px"
+					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
+					update=":contentPanel" process="@this" />
+				<p:commandButton value="Matricular Aluno" icon="pi pi-check"
+					iconPos="left"
+					style="border-radius:12px;background:#16a34a;border:none;font-size:14px;font-weight:800;padding:12px 28px;box-shadow:0 6px 16px rgba(22,163,74,0.3)"
+					action="#{enrollmentBean.saveAndReturn}"
+					update=":contentPanel :formConfirm:growl" />
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

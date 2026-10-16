@@ -34,7 +34,10 @@ public class GuardianServiceImpl implements IGuardianService
 	{
 		if (guardian.getCode() == null || guardian.getCode().isBlank())
 		{
-			guardian.setCode("GUA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+			// guardian.setCode("ENC-" + UUID.randomUUID().toString().substring(0,
+			// 8).toUpperCase());
+
+			guardian.setCode("ENC-" + (System.currentTimeMillis() % 100000));
 		}
 		return guardianRepository.save(guardian);
 	}
@@ -105,7 +108,7 @@ public class GuardianServiceImpl implements IGuardianService
 	@Override
 	public List<GuardianEntity> getAllGuardians()
 	{
-	    return guardianRepository.findAllWithStudents(); // com FETCH - sem LAZY
+		return guardianRepository.findAllWithStudents(); // com FETCH - sem LAZY
 	}
 
 	@Override
@@ -165,6 +168,24 @@ public class GuardianServiceImpl implements IGuardianService
 	{
 		return guardianRepository.countAll();
 	}
-	
-	
+
+	@Override
+	public long countGuardiansByAcademicYear(Long academicYearId)
+	{
+		return guardianRepository.countAllByAcademicYearId(academicYearId);
+	}
+
+	@Override
+	public List<GuardianEntity> findByAcademicYearId(Long academicYearId)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public long countAllByAcademicYearId(Long academicYearId)
+	{
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

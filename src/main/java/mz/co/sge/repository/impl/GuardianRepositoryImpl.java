@@ -52,46 +52,49 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	@Override
 	public Optional<GuardianEntity> findByCode(String code)
 	{
-		List<GuardianEntity> list = em.createNamedQuery("Guardian.findByCode", GuardianEntity.class).setParameter("code", code).getResultList();
+		List<GuardianEntity> list = em.createQuery("SELECT g FROM GuardianEntity g WHERE g.code = :code", GuardianEntity.class).setParameter("code", code)
+				.getResultList();
 		return list.stream().findFirst();
 	}
 
 	@Override
 	public Optional<GuardianEntity> findByUserId(Long userId)
 	{
-		List<GuardianEntity> list = em.createNamedQuery("Guardian.findByUserId", GuardianEntity.class).setParameter("userId", userId).getResultList();
+		List<GuardianEntity> list = em.createQuery("SELECT g FROM GuardianEntity g WHERE g.user.id = :userId", GuardianEntity.class)
+				.setParameter("userId", userId).getResultList();
 		return list.stream().findFirst();
 	}
 
 	@Override
 	public Optional<GuardianEntity> findWithStudents(Long id)
 	{
-		List<GuardianEntity> list = em.createNamedQuery("Guardian.findWithStudents", GuardianEntity.class).setParameter("id", id).getResultList();
+		List<GuardianEntity> list = em.createQuery("SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students WHERE g.id = :id", GuardianEntity.class)
+				.setParameter("id", id).getResultList();
 		return list.stream().findFirst();
 	}
 
 	@Override
 	public List<GuardianEntity> findAll()
 	{
-		return em.createNamedQuery("Guardian.findAll", GuardianEntity.class).getResultList();
+		return em.createQuery("SELECT g FROM GuardianEntity g ORDER BY g.firstName", GuardianEntity.class).getResultList();
 	}
 
 	@Override
 	public List<GuardianEntity> findAllWithStudents()
 	{
-		return em.createNamedQuery("Guardian.findAllWithStudents", GuardianEntity.class).getResultList();
+		return em.createQuery("SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students ORDER BY g.firstName", GuardianEntity.class).getResultList();
 	}
 
 	@Override
 	public List<GuardianEntity> findByAcademicYearId(Long academicYearId)
 	{
-		return em.createNamedQuery("Guardian.findByAcademicYear", GuardianEntity.class).setParameter("academicYearId", academicYearId).getResultList();
+		return em.createQuery("SELECT g FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId ORDER BY g.firstName", GuardianEntity.class)
+				.setParameter("academicYearId", academicYearId).getResultList();
 	}
 
 	@Override
 	public List<GuardianEntity> findBySchoolId(Long schoolId)
 	{
-		// AGORA TRAZ TAMBÉM GUARDIAN SEM ALUNO - LEFT JOIN + FETCH
 		return em.createQuery(
 				"SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students s WHERE s.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName",
 				GuardianEntity.class).setParameter("schoolId", schoolId).getResultList();
@@ -101,7 +104,7 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	public List<GuardianEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
 	{
 		return em.createQuery(
-				"SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students s WHERE (s.school.id = :schoolId AND s.academicYear.id = :academicYearId) OR s.id IS NULL ORDER BY g.firstName",
+				"SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students s WHERE (s.school.id = :schoolId AND g.academicYear.id = :academicYearId) OR s.id IS NULL ORDER BY g.firstName",
 				GuardianEntity.class).setParameter("schoolId", schoolId).setParameter("academicYearId", academicYearId).getResultList();
 	}
 
@@ -109,5 +112,12 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 	public long countAll()
 	{
 		return em.createQuery("SELECT COUNT(g) FROM GuardianEntity g", Long.class).getSingleResult();
+	}
+
+	@Override
+	public long countAllByAcademicYearId(Long academicYearId)
+	{
+		return em.createQuery("SELECT COUNT(g) FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId", Long.class)
+				.setParameter("academicYearId", academicYearId).getSingleResult();
 	}
 }

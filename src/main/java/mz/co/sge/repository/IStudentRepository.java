@@ -27,9 +27,9 @@ public interface IStudentRepository
 	List<StudentEntity> findByAcademicYearId(Long academicYearId);
 
 	List<StudentEntity> findByName(String name);
-	
+
 	List<StudentEntity> findAllWithDetails();
-	
+
 	Optional<StudentEntity> findByIdWithDetails(Long id);
 
 	long countAll();
@@ -45,4 +45,7 @@ public interface IStudentRepository
 	List<StudentEntity> findBySchoolId(Long schoolId);
 
 	long countBySchoolId(Long schoolId);
+	
+	Optional<StudentEntity> findByIdAndSchoolIdAndAcademicYearId(Long id, Long schoolId, Long yearId);
+
 }

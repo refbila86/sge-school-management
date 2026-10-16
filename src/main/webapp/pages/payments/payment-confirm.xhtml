@@ -1,0 +1,212 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 20px;
+	box-shadow: 0 4px 12px rgba(10, 37, 64, 0.04);
+}
+
+.label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .4px;
+	margin-bottom: 6px;
+	display: block
+}
+
+.value-box {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 11px 14px;
+	font-size: 14.5px;
+	font-weight: 600;
+	color: #0f172a;
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+}
+
+.value-box.highlight {
+	background: #0a2540;
+	color: white;
+	font-size: 18px;
+	font-weight: 800;
+	border-color: #0a2540;
+}
+
+.summary-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 0;
+	border-bottom: 1px dashed #e6eaf0;
+	font-size: 14px
+}
+
+.summary-row:last-child {
+	border-bottom: none
+}
+
+.total-box {
+	background: linear-gradient(135deg, #0a2540 0%, #1e3a5f 100%);
+	border-radius: 14px;
+	padding: 16px 18px;
+	color: white;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 14px
+}
+</style>
+
+	<h:form id="formConfirm">
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+			<div>
+				<div
+					style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center">
+					<div
+						style="width: 36px; height: 36px; border-radius: 10px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; margin-right: 10px">
+						<i class="pi pi-check" style="font-size: 18px"></i>
+					</div>
+					Confirmar Pagamento
+				</div>
+				<div
+					style="font-size: 13px; color: #64748b; margin-top: 4px; margin-left: 46px">Revise
+					os dados antes de finalizar • #{loginBean.loggedAcademicYear.year}</div>
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px;height:38px;font-weight:600"
+				action="#{paymentBean.backToInclude}" update=":contentPanel"
+				immediate="true" process="@this" />
+		</div>
+
+		<div
+			style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px">
+
+			<!-- CARD ALUNO E ITENS -->
+			<div class="form-card">
+				<div
+					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
+					<i class="pi pi-user" style="margin-right: 6px; color: #2563eb" />
+					Dados do Aluno
+				</div>
+
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px">
+					<div style="grid-column: span 2">
+						<span class="label">Aluno Selecionado</span>
+						<div class="value-box" style="font-size: 15px">
+							<div
+								style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-right: 10px">#{paymentBean.selectedStudentEntity.firstName
+								!= null ?
+								paymentBean.selectedStudentEntity.firstName.substring(0,1).toUpperCase()
+								: 'A'}</div>
+							<div>
+								#{paymentBean.selectedStudentEntity.fullName} <span
+									style="font-weight: 400; color: #64748b; margin-left: 6px">•
+									#{paymentBean.selectedStudentEntity.code}</span>
+							</div>
+						</div>
+					</div>
+					<div>
+						<span class="label">Método de Pagamento</span>
+						<div class="value-box">
+							<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb"></i>
+							#{paymentBean.method}
+						</div>
+					</div>
+					<div>
+						<span class="label">Referência</span>
+						<div class="value-box">#{empty paymentBean.reference ? '—
+							Nenhuma —' : paymentBean.reference}</div>
+					</div>
+				</div>
+
+				<p:separator style="margin: 10px 0 16px 0" />
+
+				<div
+					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .4px">
+					<i class="pi pi-list" style="margin-right: 6px; color: #2563eb" />
+					Itens do Pagamento
+				</div>
+
+				<div
+					style="border: 1px solid #e6eaf0; border-radius: 12px; overflow: hidden">
+					<p:dataTable value="#{paymentBean.cart}" var="it"
+						styleClass="compact-table" style="font-size:14px"
+						emptyMessage="Nenhum item">
+						<p:column headerText="Descrição"
+							style="font-weight:600;padding:14px 12px">#{it.descricao}</p:column>
+						<p:column headerText="Valor" width="140"
+							style="text-align:right;font-weight:800;padding:14px 12px">MT #{it.valor}</p:column>
+					</p:dataTable>
+				</div>
+			</div>
+
+			<!-- CARD RESUMO -->
+			<div class="form-card" style="background: #fbfdff">
+				<div
+					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
+					<i class="pi pi-file" style="margin-right: 6px; color: #2563eb" />
+					Resumo
+				</div>
+
+				<div
+					style="background: white; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
+					<ui:repeat value="#{paymentBean.cart}" var="it">
+						<div class="summary-row">
+							<span style="color: #334155">#{it.descricao}</span> <b
+								style="color: #0a2540">MT #{it.valor}</b>
+						</div>
+					</ui:repeat>
+
+					<div class="total-box">
+						<div>
+							<div
+								style="font-size: 11px; letter-spacing: .5px; opacity: .8; text-transform: uppercase; font-weight: 700">Total
+								a Pagar</div>
+							<div style="font-size: 24px; font-weight: 900; margin-top: 2px">MT
+								#{paymentBean.cartTotal}</div>
+						</div>
+						<div
+							style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center">
+							<i class="pi pi-money-bill" style="font-size: 22px"></i>
+						</div>
+					</div>
+				</div>
+
+				<div
+					style="margin-top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px; display: flex; gap: 10px">
+					<i class="pi pi-info-circle"
+						style="color: #d97706; margin-top: 2px"></i> <span
+						style="font-size: 12.5px; color: #92400e; line-height: 1.4">Ao
+						confirmar, será gerado o recibo automaticamente e o pagamento
+						ficará registado no ano letivo <b>#{loginBean.loggedAcademicYear.year}</b>.
+					</span>
+				</div>
+
+				<div style="margin-top: 20px; display: flex; gap: 10px">
+					<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px;flex:1;height:44px;font-weight:700"
+						action="#{paymentBean.backToInclude}" update=":contentPanel"
+						immediate="true" process="@this" />
+					<p:commandButton value="Confirmar e Pagar"
+						icon="pi pi-check-circle"
+						style="border-radius:10px;background:#16a34a;border:none;flex:1.3;height:44px;font-weight:800;font-size:14px"
+						action="#{paymentBean.confirmPaymentAndGoToList}"
+						update=":contentPanel" process="@form" />
+				</div>
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

@@ -1,0 +1,134 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<h:form id="form">
+		<p:remoteCommand name="rcInit" action="#{paymentBean.init}"
+			autoRun="true" update="table" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+				<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb" />
+				Pagamentos - #{loginBean.loggedAcademicYear.year}
+			</div>
+			<p:commandButton value="Novo Pagamento" icon="pi pi-plus"
+				style="border-radius:10px;background:#0a2540;border:none"
+				action="#{paymentBean.prepareNew}"
+				actionListener="#{dashboardBean.navigate('payments/payment-include','pagamentos')}"
+				update=":contentPanel" />
+		</div>
+
+		<p:messages id="msgs" showDetail="true" closable="true" />
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 16px">
+			<div
+				style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px">
+				<p:inputText value="#{paymentBean.filterAluno}"
+					placeholder="Aluno..." style="width:200px;font-size:13px">
+					<p:ajax event="keyup" delay="400" listener="#{paymentBean.filter}"
+						update="table" />
+				</p:inputText>
+				<p:inputText value="#{paymentBean.filterCodigoAluno}"
+					placeholder="Código" style="width:130px;font-size:13px">
+					<p:ajax event="keyup" delay="400" listener="#{paymentBean.filter}"
+						update="table" />
+				</p:inputText>
+				<p:datePicker value="#{paymentBean.filterDataInicio}"
+					placeholder="De" pattern="dd/MM/yyyy" showIcon="true"
+					style="font-size:13px" />
+				<p:datePicker value="#{paymentBean.filterDataFim}" placeholder="Até"
+					pattern="dd/MM/yyyy" showIcon="true" style="font-size:13px" />
+				<p:commandButton value="Filtrar" icon="pi pi-search"
+					action="#{paymentBean.filter}" update="table"
+					styleClass="ui-button-secondary"
+					style="border-radius:10px;font-size:13px" />
+				<p:commandButton value="Limpar" icon="pi pi-filter-slash"
+					action="#{paymentBean.clearFilters}" update="@form table"
+					styleClass="ui-button-outlined ui-button-secondary"
+					style="border-radius:10px;font-size:13px" />
+			</div>
+
+			<p:dataTable id="table" value="#{paymentBean.filteredPayments}"
+				var="p" paginator="true" rows="10" emptyMessage="Nenhum pagamento"
+				rowKey="#{p.id}" style="font-size:13px">
+
+				<p:column headerText="COD-PAGAMENTO" width="140">
+					<b>#{p.receiptNumber}</b>
+				</p:column>
+				<p:column headerText="CODE ALUNO" width="110">#{p.student.code}</p:column>
+				<p:column headerText="ALUNO">#{p.student.fullName}</p:column>
+				<p:column headerText="ITEM">
+					<ui:repeat value="#{p.items}" var="it" varStatus="s">#{it.descricao}#{!s.last ? ', ' : ''}</ui:repeat>
+				</p:column>
+				<p:column headerText="VALOR" width="110"
+					style="text-align:right;font-weight:700">MT #{p.totalAmount}</p:column>
+				<p:column headerText="DATA" width="130">
+					<h:outputText value="#{paymentBean.formatDateTime(p.createdAt)}" />
+				</p:column>
+				<p:column headerText="Ações" width="130" style="text-align:center"
+					exportable="false">
+					<div style="display: flex; gap: 6px; justify-content: center">
+
+						<!-- VIEW -->
+						<p:commandButton icon="pi pi-eye" title="Ver Recibo"
+							styleClass="ui-button-rounded ui-button-secondary ui-button-outlined"
+							style="width:32px;height:32px"
+							action="#{paymentBean.prepareView(p)}" update=":contentPanel"
+							process="@this">
+						</p:commandButton>
+
+						<!-- EDIT -->
+						<p:commandButton icon="pi pi-pencil" title="Editar"
+							styleClass="ui-button-rounded ui-button-info ui-button-outlined"
+							style="width:32px;height:32px"
+							action="#{paymentBean.prepareEdit(p)}" update=":contentPanel"
+							process="@this">
+						</p:commandButton>
+
+						<!-- DELETE -->
+						<p:commandButton icon="pi pi-trash" title="Anular / Remover"
+							styleClass="ui-button-rounded ui-button-danger ui-button-outlined"
+							style="width:32px;height:32px"
+							action="#{paymentBean.prepareDelete(p)}"
+							oncomplete="PF('dlgDelete').show()" update=":formDelete"
+							process="@this">
+						</p:commandButton>
+
+					</div>
+				</p:column>
+			</p:dataTable>
+		</div>
+		<!-- DIALOG DELETE -->
+		<p:dialog widgetVar="dlgDelete" modal="true" header="Anular Pagamento"
+			width="380" closable="true">
+			<h:form id="formDelete">
+				<div style="font-size: 14px; margin-bottom: 16px">
+					Tem certeza que deseja anular o pagamento<br /> <b>#{paymentBean.selected.receiptNumber}</b>
+					de <b>MT #{paymentBean.selected.totalAmount}</b>?
+				</div>
+				<div style="display: flex; justify-content: flex-end; gap: 8px">
+					<p:commandButton value="Cancelar"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:8px" onclick="PF('dlgDelete').hide()"
+						type="button" />
+					<p:commandButton value="Anular" styleClass="ui-button-danger"
+						style="border-radius:8px;background:#dc2626;border:none"
+						action="#{paymentBean.delete}" update=":form:table :form:msgs"
+						oncomplete="PF('dlgDelete').hide()" />
+				</div>
+			</h:form>
+		</p:dialog>
+	</h:form>
+
+	<h:form id="formDelete">
+		<p:dialog widgetVar="dlgDelete" header="Remover?" modal="true"
+			width="350">
+			<p>Remover #{paymentBean.selected.receiptNumber}?</p>
+			<p:commandButton value="Sim" action="#{paymentBean.delete}"
+				update=":form:table :form:msgs" oncomplete="PF('dlgDelete').hide()"
+				styleClass="ui-button-danger" style="border-radius:10px" />
+		</p:dialog>
+	</h:form>
+</ui:composition>

@@ -7,14 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.SessionScoped;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-
-import mz.co.sge.entity.StudentEntity;
-import mz.co.sge.service.IStudentService;
-
 import org.primefaces.model.charts.ChartData;
 import org.primefaces.model.charts.bar.BarChartDataSet;
 import org.primefaces.model.charts.bar.BarChartModel;
@@ -22,6 +14,13 @@ import org.primefaces.model.charts.bar.BarChartOptions;
 import org.primefaces.model.charts.optionconfig.title.Title;
 import org.primefaces.model.charts.pie.PieChartDataSet;
 import org.primefaces.model.charts.pie.PieChartModel;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.service.IStudentService;
 
 @Named("welcomeBean")
 @SessionScoped
@@ -115,11 +114,10 @@ public class WelcomeBean implements Serializable
 			alunos = List.of();
 
 		this.totalAlunos = alunos.size();
-		this.totalTurmas = 0; // TODO: contar turmas quando ClassroomService existir
+		this.totalTurmas = 0;
 		this.totalProfessores = 0;
 		this.taxaPresenca = totalAlunos > 0 ? 92.5 : 0;
 
-		// Últimas matrículas - 5 mais recentes por createdAt
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		this.ultimasMatriculas = alunos.stream().sorted((a, b) ->
 		{
@@ -136,11 +134,7 @@ public class WelcomeBean implements Serializable
 						s.getCreatedAt() != null ? s.getCreatedAt().format(fmt) : "", s.getStatus() != null ? s.getStatus().name() : "Ativa"))
 				.collect(Collectors.toList());
 
-		// TurmasResumo - por enquanto agrupa por status ou deixa vazio
 		this.turmasResumo = new ArrayList<>();
-		// Se tiver classroom, substituir aqui
-
-		// Gráficos
 		createBarModel(alunos);
 		createPieStatusModel(alunos);
 		createPieGeneroModel(alunos);

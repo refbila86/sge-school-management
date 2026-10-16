@@ -1,0 +1,60 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:19px;font-weight:700;color:#0a2540}
+.filter-bar{background:white;border:1px solid #e6eaf0;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.compact-table .ui-datatable-data td{padding:12px 8px !important;font-size:13.5px !important}
+.compact-table .ui-datatable-thead th{padding:12px 8px !important;font-size:12px !important;font-weight:700;color:#0a2540;text-transform:uppercase}
+.turma-badge{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700}
+.action-btn{width:34px !important;height:34px !important;border-radius:10px !important}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title"><i class="pi pi-id-card" style="margin-right:8px;color:#2563eb" />Matrículas</div>
+			<div style="display:flex;gap:8px">
+				<p:commandButton value="Nova Matrícula" icon="pi pi-verified" style="border-radius:10px;background:#0a2540;border:none;font-size:13px;font-weight:700"
+					actionListener="#{enrollmentBean.prepareNew}" action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}" update=":contentPanel" process="@this" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{enrollmentBean.searchTerm}" placeholder="Pesquisar aluno..." style="width:280px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar" style="border-radius:10px;font-size:13px" action="#{enrollmentBean.filter}" update=":contentPanel" />
+			<span style="margin-left:auto;font-size:13px;color:#64748b">Total: <b>#{enrollmentBean.enrollments.size()}</b></span>
+		</div>
+
+		<div style="background:white;border:1px solid #e6eaf0;border-radius:16px;padding:6px;overflow:hidden" class="compact-table">
+			<p:dataTable value="#{enrollmentBean.enrollments}" var="e" paginator="true" rows="10" paginatorPosition="bottom" stripedRows="true" emptyMessage="Nenhuma matrícula">
+				<p:column headerText="ID" width="65"><b>##{e.id}</b></p:column>
+				<p:column headerText="ALUNO" width="260">
+					<div style="display:flex;align-items:center;gap:10px">
+						<div style="width:36px;height:36px;border-radius:10px;background:#0a2540;color:white;display:flex;align-items:center;justify-content:center;font-weight:700">#{e.student.firstName.substring(0,1).toUpperCase()}</div>
+						<div><b style="font-size:14px;display:block">#{e.student.fullName}</b><span style="font-size:11px;color:#64748b">#{e.student.code}</span></div>
+					</div>
+				</p:column>
+				<p:column headerText="TURMA" width="180"><span class="turma-badge">#{e.classroom.name} • #{e.classroom.shift}</span><div style="font-size:11px;color:#64748b">#{e.classroom.currentStudents}/#{e.classroom.capacity}</div></p:column>
+				<p:column headerText="ANO" width="80"><p:tag value="#{e.academicYear.year}" style="font-size:11px" /></p:column>
+				<p:column headerText="ESTADO" width="100" style="text-align:center"><p:tag value="#{e.status}" severity="#{e.status.name() == 'ENROLLED' ? 'success' : 'warning'}" style="font-size:11px" /></p:column>
+				<p:column headerText="AÇÕES" width="130" style="text-align:center">
+					<div style="display:flex;gap:6px;justify-content:center">
+						<p:commandButton icon="pi pi-eye" styleClass="ui-button-rounded ui-button-outlined action-btn" title="Ver - Gerar mensalidades"
+							action="#{enrollmentBean.viewEnrollment(e)}" update=":contentPanel" process="@this" />
+						<p:commandButton icon="pi pi-pencil" styleClass="ui-button-rounded ui-button-outlined action-btn" style="color:#2563eb;border-color:#bfdbfe" title="Editar"
+							actionListener="#{enrollmentBean.prepareEdit(e)}" action="#{dashboardBean.navigate('enrollment/enrollment-include','editar')}" update=":contentPanel" process="@this" />
+						<p:commandButton icon="pi pi-trash" styleClass="ui-button-rounded ui-button-outlined action-btn" style="color:#ef4444;border-color:#fecaca" title="Apagar"
+							action="#{enrollmentBean.delete(e)}" update=":contentPanel :formList:growl">
+							<p:confirm header="Apagar" message="Apagar matrícula ##{e.id} de #{e.student.fullName}? Vaga libertada." icon="pi pi-exclamation-triangle" />
+						</p:commandButton>
+					</div>
+				</p:column>
+			</p:dataTable>
+		</div>
+
+		<p:confirmDialog global="true" width="400"><p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no ui-button-flat" /><p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" /></p:confirmDialog>
+	</h:form>
+</ui:composition>

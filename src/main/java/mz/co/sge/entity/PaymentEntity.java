@@ -1,53 +1,69 @@
 package mz.co.sge.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
-import mz.co.sge.enumes.PaymentStatus;
-import mz.co.sge.enumes.PaymentType;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.*;
+import mz.co.sge.enumes.PaymentMethod;
 
 @Entity
 @Table(name = "payments")
 @NamedQueries(
-{ @NamedQuery(name = "Payment.findByStudentAndYear", query = "SELECT p FROM PaymentEntity p WHERE p.student.id = :studentId AND p.academicYear.id = :yearId"),
-		@NamedQuery(name = "Payment.findByReference", query = "SELECT p FROM PaymentEntity p WHERE p.reference = :reference") })
-public class PaymentEntity implements java.io.Serializable
+{
+		@NamedQuery(name = "Payment.findWithItems", query = "SELECT DISTINCT p FROM PaymentEntity p LEFT JOIN FETCH p.items LEFT JOIN FETCH p.student LEFT JOIN FETCH p.createdBy " + "WHERE p.id = :id"),
+		@NamedQuery(name = "Payment.findBySchoolAndYear", query = "SELECT p FROM PaymentEntity p WHERE p.school.id = :schoolId AND p.academicYear.id = :yearId ORDER BY p.createdAt DESC"),
+		@NamedQuery(name = "Payment.findByStudent", query = "SELECT p FROM PaymentEntity p WHERE p.student.id = :studentId AND p.academicYear.id = :yearId ORDER BY p.createdAt DESC"),
+		@NamedQuery(name = "Payment.findByReceipt", query = "SELECT p FROM PaymentEntity p WHERE p.school.id = :schoolId AND (LOWER(p.receiptNumber) LIKE LOWER(CONCAT('%', :term, '%'))) ORDER BY p.createdAt DESC"),
+		@NamedQuery(name = "Payment.countBySchoolAndYear", query = "SELECT COUNT(p) FROM PaymentEntity p WHERE p.school.id = :schoolId AND p.academicYear.id = :yearId"),
+		@NamedQuery(name = "Payment.sumBySchoolAndYear", query = "SELECT SUM(p.totalAmount) FROM PaymentEntity p WHERE p.school.id = :schoolId AND p.academicYear.id = :yearId") })
+public class PaymentEntity implements Serializable
 {
 	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-		private Long id;
-	
-	@Column(unique = true, nullable = false, length = 40)
-	private String reference;
-	
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "academic_year_id")
-	private AcademicYearEntity academicYear;
-	
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "student_id")
-	private StudentEntity student;
-	
-	@Enumerated(EnumType.STRING)
-	private PaymentType type;
-	
-	@Enumerated(EnumType.STRING)
-	private PaymentStatus status;
-	
-	private java.math.BigDecimal amount;
-	
-	private java.time.LocalDateTime paymentDate = java.time.LocalDateTime.now();
+	private Long id;
 
+	@Column(unique = true, length = 30)
+	private String receiptNumber;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "school_id", nullable = false)
+	private SchoolEntity school;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "academic_year_id", nullable = false)
+	private AcademicYearEntity academicYear;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "student_id", nullable = false)
+	private StudentEntity student;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private UserEntity createdBy;
+
+	@Column(precision = 12, scale = 2)
+	private BigDecimal totalAmount = BigDecimal.ZERO;
+	@Enumerated(EnumType.STRING)
+	private PaymentMethod method;
+	private String reference;
+	private LocalDateTime createdAt = LocalDateTime.now();
+
+	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<PaymentItemEntity> items = new ArrayList<>();
+
+	@PrePersist
+	public void prePersist()
+	{
+		if (receiptNumber == null)
+			receiptNumber = "REC-" + (System.currentTimeMillis() % 10000000);
+		createdAt = LocalDateTime.now();
+	}
+
+	// getters/setters
 	public Long getId()
 	{
 		return id;
@@ -58,14 +74,24 @@ public class PaymentEntity implements java.io.Serializable
 		this.id = id;
 	}
 
-	public String getReference()
+	public String getReceiptNumber()
 	{
-		return reference;
+		return receiptNumber;
 	}
 
-	public void setReference(String reference)
+	public void setReceiptNumber(String s)
 	{
-		this.reference = reference;
+		this.receiptNumber = s;
+	}
+
+	public SchoolEntity getSchool()
+	{
+		return school;
+	}
+
+	public void setSchool(SchoolEntity s)
+	{
+		this.school = s;
 	}
 
 	public AcademicYearEntity getAcademicYear()
@@ -73,9 +99,9 @@ public class PaymentEntity implements java.io.Serializable
 		return academicYear;
 	}
 
-	public void setAcademicYear(AcademicYearEntity academicYear)
+	public void setAcademicYear(AcademicYearEntity a)
 	{
-		this.academicYear = academicYear;
+		this.academicYear = a;
 	}
 
 	public StudentEntity getStudent()
@@ -83,48 +109,68 @@ public class PaymentEntity implements java.io.Serializable
 		return student;
 	}
 
-	public void setStudent(StudentEntity student)
+	public void setStudent(StudentEntity s)
 	{
-		this.student = student;
+		this.student = s;
 	}
 
-	public PaymentType getType()
+	public UserEntity getCreatedBy()
 	{
-		return type;
+		return createdBy;
 	}
 
-	public void setType(PaymentType type)
+	public void setCreatedBy(UserEntity u)
 	{
-		this.type = type;
+		this.createdBy = u;
 	}
 
-	public PaymentStatus getStatus()
+	public BigDecimal getTotalAmount()
 	{
-		return status;
+		return totalAmount;
 	}
 
-	public void setStatus(PaymentStatus status)
+	public void setTotalAmount(BigDecimal b)
 	{
-		this.status = status;
+		this.totalAmount = b;
 	}
 
-	public java.math.BigDecimal getAmount()
+	public PaymentMethod getMethod()
 	{
-		return amount;
+		return method;
 	}
 
-	public void setAmount(java.math.BigDecimal amount)
+	public void setMethod(PaymentMethod m)
 	{
-		this.amount = amount;
+		this.method = m;
 	}
 
-	public java.time.LocalDateTime getPaymentDate()
+	public String getReference()
 	{
-		return paymentDate;
+		return reference;
 	}
 
-	public void setPaymentDate(java.time.LocalDateTime paymentDate)
+	public void setReference(String r)
 	{
-		this.paymentDate = paymentDate;
+		this.reference = r;
+	}
+
+	public LocalDateTime getCreatedAt()
+	{
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime l)
+	{
+		this.createdAt = l;
+	}
+
+	public List<PaymentItemEntity> getItems()
+	{
+		return items;
+	}
+
+	public void setItems(List<PaymentItemEntity> items)
+	{
+		this.items = items;
 	}
 }

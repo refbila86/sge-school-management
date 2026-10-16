@@ -21,6 +21,7 @@ import mz.co.sge.enumes.AllocationStatus;
 		@NamedQuery(name = "ClassroomStudent.countByClassroom", query = "SELECT COUNT(cs) FROM ClassroomStudentEntity cs WHERE cs.classroom.id = :classroomId AND cs.status = mz.co.sge.enumes.AllocationStatus.ATIVO") })
 public class ClassroomStudentEntity implements java.io.Serializable
 {
+	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

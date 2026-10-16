@@ -2,11 +2,10 @@ package mz.co.sge.controller;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
@@ -20,15 +19,13 @@ import mz.co.sge.service.ILicenseService;
 public class LicenseBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	private final ILicenseService licenseService;
-	
 	private final DashboardBean dashboardBean;
-	
+
 	private LicenseEntity license;
-	
 	private LicenseEntity selectedLicense;
-	private List<LicenseEntity> licenses;
+	private List<LicenseEntity> licenses = new ArrayList<>();
 	private String searchTerm;
 	private boolean editing;
 
@@ -42,12 +39,22 @@ public class LicenseBean implements Serializable
 	public void init()
 	{
 		cleanForm();
-		loadLicenses();
+		// NÃO carrega lista no PostConstruct, deixa lazy
 	}
 
 	public void loadLicenses()
 	{
-		this.licenses = licenseService.getAll();
+		try
+		{
+			this.licenses = licenseService.getAll();
+		} catch (Exception e)
+		{
+			// Não derruba o dashboard
+			e.printStackTrace();
+			this.licenses = new ArrayList<>();
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", "Não foi possível carregar licenças: " + e.getMessage()));
+		}
 	}
 
 	public void cleanForm()
@@ -75,6 +82,19 @@ public class LicenseBean implements Serializable
 	public void prepareDelete(LicenseEntity lic)
 	{
 		this.selectedLicense = lic;
+	}
+
+	public void prepareNew()
+	{
+		cleanForm();
+		loadLicenses();
+	}
+
+	public void prepareEdit(LicenseEntity lic)
+	{
+		this.license = lic;
+		this.editing = true;
+		calculateExpiration();
 	}
 
 	public void generateKey()
@@ -113,28 +133,42 @@ public class LicenseBean implements Serializable
 
 	public void save()
 	{
-		if (license.getLicenseKey() == null || license.getLicenseKey().isBlank())
+		try
 		{
-			license.setLicenseKey(licenseService.generateLicenseKey());
-			license.setCode(license.getLicenseKey());
+			if (license.getLicenseKey() == null || license.getLicenseKey().isBlank())
+			{
+				license.setLicenseKey(licenseService.generateLicenseKey());
+				license.setCode(license.getLicenseKey());
+			}
+			if (license.getActivationDate() == null)
+				license.setActivationDate(LocalDate.now());
+			calculateExpiration();
+			licenseService.save(license);
+			loadLicenses();
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Licença salva: " + license.getLicenseKey()));
+			cleanForm();
+			dashboardBean.navigate("licenses/license-list", "licencas");
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro ao salvar", e.getMessage()));
 		}
-		if (license.getActivationDate() == null)
-			license.setActivationDate(LocalDate.now());
-		calculateExpiration();
-		licenseService.save(license);
-		loadLicenses();
-		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Licença salva: " + license.getLicenseKey()));
-		cleanForm();
-		dashboardBean.navigate("licenses/license-list", "licencas");
 	}
 
 	public void deleteLicense()
 	{
 		if (selectedLicense != null)
 		{
-			licenseService.delete(selectedLicense.getId());
-			loadLicenses();
-			selectedLicense = null;
+			try
+			{
+				licenseService.delete(selectedLicense.getId());
+				loadLicenses();
+				selectedLicense = null;
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Licença removida"));
+			} catch (Exception e)
+			{
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
+			}
 		}
 	}
 
@@ -170,6 +204,10 @@ public class LicenseBean implements Serializable
 
 	public List<LicenseEntity> getLicenses()
 	{
+		if (licenses == null || licenses.isEmpty())
+		{
+			loadLicenses();
+		}
 		return licenses;
 	}
 

@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "classrooms", uniqueConstraints = @UniqueConstraint(name = "uk_classroom_year_shift", columnNames = {"name", "academic_year_id", "shift"}))
+@Table(name = "classrooms", uniqueConstraints = @UniqueConstraint(name = "uk_classroom_year_shift", columnNames =
+{ "name", "academic_year_id", "shift" }))
 @NamedQueries(
 { @NamedQuery(name = "Classroom.findAll", query = "SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear ORDER BY c.name"),
 		@NamedQuery(name = "Classroom.findByAcademicYear", query = "SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear WHERE c.academicYear.id = :yearId ORDER BY c.name"),
@@ -12,38 +13,31 @@ import java.time.LocalDateTime;
 		@NamedQuery(name = "Classroom.countByAcademicYear", query = "SELECT COUNT(c) FROM ClassroomEntity c WHERE c.academicYear.id = :yearId") })
 public class ClassroomEntity implements java.io.Serializable
 {
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
 	@Column(nullable = false, length = 50)
 	private String name;
-
 	@Column(nullable = false)
 	private int capacity;
-
 	@Column(name = "current_students", nullable = false)
 	private int currentStudents = 0;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private Shift shift;
-
 	@Column(nullable = false)
 	private boolean active = true;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "responsible_teacher_id")
 	private TeacherEntity responsibleTeacher;
-
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "class_level_id", nullable = false)
 	private ClassLevelEntity classLevel;
-
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "academic_year_id", nullable = false)
 	private AcademicYearEntity academicYear;
-
 	@Column(name = "created_at")
 	private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -161,15 +155,46 @@ public class ClassroomEntity implements java.io.Serializable
 		return (int) Math.round((currentStudents * 100.0) / capacity);
 	}
 
+	// CORRIGIDO - NÃO QUEBRA COM LAZY
 	@Transient
 	public String getProfessorNome()
 	{
-		return responsibleTeacher != null ? responsibleTeacher.getFirstName() + " " + responsibleTeacher.getLastName() : null;
+		try
+		{
+			if (responsibleTeacher != null)
+			{
+				String fn = responsibleTeacher.getFirstName();
+				String ln = responsibleTeacher.getLastName();
+				if (fn != null || ln != null)
+					return (fn != null ? fn : "") + " " + (ln != null ? ln : "");
+				return responsibleTeacher.getName() != null ? responsibleTeacher.getName() : null;
+			}
+		} catch (org.hibernate.LazyInitializationException e)
+		{
+			return "Professor (ID: " + (responsibleTeacher != null ? responsibleTeacher.getId() : "") + ")";
+		} catch (Exception e)
+		{
+			return null;
+		}
+		return null;
 	}
 
 	@Transient
 	public String getClasseNome()
 	{
-		return classLevel != null ? classLevel.getName() : null;
+		try
+		{
+			if (classLevel != null)
+			{
+				return classLevel.getName();
+			}
+		} catch (org.hibernate.LazyInitializationException e)
+		{
+			return "Classe ID " + (classLevel != null ? classLevel.getId() : "");
+		} catch (Exception e)
+		{
+			return null;
+		}
+		return null;
 	}
 }

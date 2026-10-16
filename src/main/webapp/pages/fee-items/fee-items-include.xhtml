@@ -1,0 +1,27 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:p="http://primefaces.org/ui">
+	<div
+		style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 16px; margin-top: 16px">
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+			<b style="font-size: 13px; color: #0b1f3a"><i class="pi pi-tags"
+				style="margin-right: 6px" />ITENS DE PAGAMENTO -
+				#{loginBean.loggedAcademicYear.year}</b>
+			<p:commandButton value="Ver todos" styleClass="ui-button-text"
+				style="font-size:11px" onclick="PF('navFeeItems').jq.click()" />
+		</div>
+		<p:dataTable value="#{feeItemsBean.items}" var="f" rows="4"
+			emptyMessage="Nenhum item" styleClass="compact-table"
+			style="font-size:12px">
+			<p:column headerText="DESCRIÇÃO">#{f.descricao}</p:column>
+			<p:column headerText="VALOR" width="100" style="text-align:right">
+				<b>#{f.valor} MT</b>
+			</p:column>
+			<p:column headerText="ACTIVO" width="70" style="text-align:center">
+				<p:tag value="#{f.activo ? 'Sim' : 'Não'}"
+					severity="#{f.activo ? 'success' : 'danger'}"
+					style="font-size:10px" />
+			</p:column>
+		</p:dataTable>
+	</div>
+</ui:composition>

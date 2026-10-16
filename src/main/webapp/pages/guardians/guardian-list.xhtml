@@ -56,18 +56,20 @@
 		<div class="page-header">
 			<div class="page-title">
 				<i class="pi pi-users" style="margin-right: 8px; color: #2563eb" />Gestão
-				de Encarregados (1 Guardian → N Students)
+				de Encarregados
+				<p:badge value="#{menuBean.guardianCount}" severity="info"
+					style="margin-left:8px;font-size:13px" />
 			</div>
 			<div style="display: flex; gap: 8px">
 				<p:commandButton value="Novo Encarregado" icon="pi pi-plus"
 					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
 					actionListener="#{guardianBean.prepareNew}"
 					action="#{dashboardBean.navigate('guardians/guardian-include','encarregados')}"
-					update=":contentPanel" />
+					update=":contentPanel :menuForm" />
 				<p:commandButton icon="pi pi-refresh"
 					styleClass="ui-button-secondary ui-button-outlined"
 					style="border-radius:10px" action="#{guardianBean.loadGuardians}"
-					update=":contentPanel" />
+					update=":contentPanel :menuForm" />
 			</div>
 		</div>
 
@@ -77,17 +79,16 @@
 				style="width:340px;font-size:13px" />
 			<p:commandButton icon="pi pi-search" value="Buscar"
 				style="border-radius:10px;font-size:13px"
-				action="#{guardianBean.search}" update=":contentPanel" />
+				action="#{guardianBean.search}" update=":contentPanel :menuForm" />
 			<p:commandButton value="Limpar"
 				styleClass="ui-button-secondary ui-button-outlined"
 				style="border-radius:10px;font-size:13px"
-				action="#{guardianBean.loadGuardians}" update=":contentPanel"
-				process="@this">
+				update=":contentPanel :menuForm" process="@this">
 				<f:setPropertyActionListener value=""
 					target="#{guardianBean.searchTerm}" />
 			</p:commandButton>
 			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
-				<b>#{guardianBean.guardians.size()}</b>
+				<b>#{menuBean.guardianCount}</b> <!-- usa o MenuBean, não a lista local -->
 			</span>
 		</div>
 
@@ -172,8 +173,7 @@
 					<div
 						style="width: 54px; height: 54px; border-radius: 16px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">
 						#{empty guardianBean.selectedGuardian.firstName ? '?' :
-						guardianBean.selectedGuardian.firstName.substring(0,1).toUpperCase()}
-					</div>
+						guardianBean.selectedGuardian.firstName.substring(0,1).toUpperCase()}</div>
 					<div>
 						<b style="font-size: 16px">#{guardianBean.selectedGuardian.firstName}
 							#{guardianBean.selectedGuardian.lastName}</b><br /> <span
@@ -230,7 +230,7 @@
 			message="Remover #{guardianBean.selectedGuardian.firstName} #{guardianBean.selectedGuardian.lastName}? Ele tem #{guardianBean.selectedGuardian.students.size()} estudante(s)."
 			severity="warn">
 			<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
-				action="#{guardianBean.delete}" update=":contentPanel"
+				action="#{guardianBean.delete}" update=":contentPanel :menuForm"
 				oncomplete="PF('confirmDialog').hide()" />
 			<p:commandButton value="Cancelar"
 				styleClass="ui-button-secondary ui-button-outlined"

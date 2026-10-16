@@ -1,25 +1,27 @@
 package mz.co.sge.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import mz.co.sge.entity.GuardianEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.StudentStatus;
 import mz.co.sge.repository.IGuardianRepository;
 import mz.co.sge.repository.IStudentRepository;
 import mz.co.sge.service.IStudentService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class StudentServiceImpl implements IStudentService
 {
 	@Autowired
 	private IStudentRepository studentRepository;
+
 	@Autowired
 	private IGuardianRepository guardianRepository;
 
@@ -105,7 +107,7 @@ public class StudentServiceImpl implements IStudentService
 	@Override
 	public Optional<StudentEntity> getStudentById(Long id)
 	{
-	    return studentRepository.findByIdWithDetails(id);
+		return studentRepository.findByIdWithDetails(id);
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class StudentServiceImpl implements IStudentService
 	@Override
 	public List<StudentEntity> getAllStudents()
 	{
-	    return studentRepository.findAllWithDetails(); // COM FETCH
+		return studentRepository.findAllWithDetails(); // COM FETCH
 	}
 
 	@Override
@@ -201,4 +203,11 @@ public class StudentServiceImpl implements IStudentService
 	{
 		return studentRepository.countByAcademicYearId(academicYearId);
 	}
+
+	@Override
+	public StudentEntity getByIdAndSchoolAndYear(Long id, Long schoolId, Long yearId)
+	{
+		return studentRepository.findByIdAndSchoolIdAndAcademicYearId(id, schoolId, yearId).orElse(null);
+	}
+
 }

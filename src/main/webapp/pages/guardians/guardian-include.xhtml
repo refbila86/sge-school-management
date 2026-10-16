@@ -1,65 +1,164 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
-    xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
 
-    <style>
-.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-.page-title{font-size:19px;font-weight:700;color:#0a2540}
-.form-card{background:white;border:1px solid #e6eaf0;border-radius:16px;padding:18px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-grid .full{grid-column:span 2}
-.label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;display:block}
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 18px
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px
+}
+
+.form-grid .full {
+	grid-column: span 2
+}
+
+.label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	margin-bottom: 4px;
+	display: block
+}
 </style>
 
-    <h:form id="formInclude">
-        <p:growl id="growl" showDetail="true"/>
-        <div class="page-header">
-            <div class="page-title"><i class="pi pi-users" style="margin-right:8px;color:#2563eb"/>#{guardianBean.editing ? 'Editar Encarregado' : 'Novo Encarregado'}</div>
-            <div style="display:flex;gap:8px">
-                <p:commandButton value="Voltar" icon="pi pi-arrow-left" styleClass="ui-button-secondary ui-button-outlined" style="border-radius:10px;font-size:13px" action="#{dashboardBean.navigate('guardians/guardian-list','encarregados')}" update=":contentPanel" immediate="true"/>
-            </div>
-        </div>
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-users" style="margin-right: 8px; color: #2563eb" />#{guardianBean.editing
+				? 'Editar Encarregado' : 'Novo Encarregado'}
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px;font-size:13px"
+					action="#{dashboardBean.navigate('guardians/guardian-list','encarregados')}"
+					update=":contentPanel" immediate="true" />
+			</div>
+		</div>
 
-        <div class="form-card">
-            <div style="font-size:12px;font-weight:700;color:#0a2540;margin-bottom:14px;text-transform:uppercase;letter-spacing:.4px"><i class="pi pi-id-card" style="margin-right:6px"/>Dados do Encarregado</div>
-            <div class="form-grid">
-                <div><span class="label">Código</span><p:inputText value="#{guardianBean.guardian.code}" disabled="true" placeholder="Gerado automaticamente GUA-..." style="width:100%;font-size:13.5px"/></div>
-                <div>
-                    <span class="label">Parentesco *</span>
-                    <p:selectOneMenu value="#{guardianBean.guardian.relationship}" required="true" requiredMessage="Parentesco obrigatório" style="width:100%;font-size:13.5px">
-                        <f:selectItem itemLabel="Selecione" itemValue="#{null}" noSelectionOption="true"/>
-                        <f:selectItem itemLabel="Pai" itemValue="FATHER"/>
-                        <f:selectItem itemLabel="Mãe" itemValue="MOTHER"/>
-                        <f:selectItem itemLabel="Tio" itemValue="UNCLE"/>
-                        <f:selectItem itemLabel="Tia" itemValue="AUNT"/>
-                        <f:selectItem itemLabel="Avô" itemValue="GRANDFATHER"/>
-                        <f:selectItem itemLabel="Avó" itemValue="GRANDMOTHER"/>
-                        <f:selectItem itemLabel="Tutor Legal" itemValue="LEGAL_GUARDIAN"/>
-                        <f:selectItem itemLabel="Outro" itemValue="OTHER"/>
-                    </p:selectOneMenu>
-                </div>
-                <div><span class="label">Nome *</span><p:inputText value="#{guardianBean.guardian.firstName}" required="true" requiredMessage="Nome obrigatório" style="width:100%;font-size:13.5px"/></div>
-                <div><span class="label">Apelido *</span><p:inputText value="#{guardianBean.guardian.lastName}" required="true" requiredMessage="Apelido obrigatório" style="width:100%;font-size:13.5px"/></div>
-                <div><span class="label">Telefone *</span><p:inputText value="#{guardianBean.guardian.phone}" required="true" requiredMessage="Telefone obrigatório" style="width:100%;font-size:13.5px"/></div>
-                <div><span class="label">Email</span><p:inputText value="#{guardianBean.guardian.email}" style="width:100%;font-size:13.5px"/></div>
-                <div class="full"><span class="label">Endereço</span><p:inputText value="#{guardianBean.guardian.address}" style="width:100%;font-size:13.5px"/></div>
-                <div>
-                    <span class="label">Ano Letivo *</span>
-                    <p:selectOneMenu value="#{guardianBean.selectedAcademicYearId}" required="true" requiredMessage="Ano obrigatório" style="width:100%;font-size:13.5px">
-                        <f:selectItem itemLabel="Selecione" itemValue="#{null}" noSelectionOption="true"/>
-                        <f:selectItems value="#{guardianBean.academicYears}" var="ay" itemLabel="#{ay.year} - #{ay.name}" itemValue="#{ay.id}"/>
-                    </p:selectOneMenu>
-                </div>
-            </div>
+		<div class="form-card">
+			<div
+				style="font-size: 12px; font-weight: 700; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
+				<i class="pi pi-id-card" style="margin-right: 6px" />Dados do
+				Encarregado
+			</div>
+			<div class="form-grid">
+				<div>
+					<span class="label">Código</span>
+					<p:inputText value="#{guardianBean.guardian.code}" disabled="true"
+						placeholder="Gerado automaticamente GUA-..."
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div>
+					<span class="label">Parentesco *</span>
+					<p:selectOneMenu value="#{guardianBean.guardian.relationship}"
+						required="true" requiredMessage="Parentesco obrigatório"
+						style="width:100%;font-size:13.5px">
+						<f:selectItem itemLabel="Selecione" itemValue="#{null}"
+							noSelectionOption="true" />
+						<f:selectItem itemLabel="Pai" itemValue="FATHER" />
+						<f:selectItem itemLabel="Mãe" itemValue="MOTHER" />
+						<f:selectItem itemLabel="Tio" itemValue="UNCLE" />
+						<f:selectItem itemLabel="Tia" itemValue="AUNT" />
+						<f:selectItem itemLabel="Avô" itemValue="GRANDFATHER" />
+						<f:selectItem itemLabel="Avó" itemValue="GRANDMOTHER" />
+						<f:selectItem itemLabel="Tutor Legal" itemValue="LEGAL_GUARDIAN" />
+						<f:selectItem itemLabel="Outro" itemValue="OTHER" />
+					</p:selectOneMenu>
+				</div>
+				<div>
+					<span class="label">Nome *</span>
+					<p:inputText value="#{guardianBean.guardian.firstName}"
+						required="true" requiredMessage="Nome obrigatório"
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div>
+					<span class="label">Apelido *</span>
+					<p:inputText value="#{guardianBean.guardian.lastName}"
+						required="true" requiredMessage="Apelido obrigatório"
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div>
+					<span class="label">Telefone *</span>
+					<p:inputText value="#{guardianBean.guardian.phone}" required="true"
+						requiredMessage="Telefone obrigatório"
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div>
+					<span class="label">Email</span>
+					<p:inputText value="#{guardianBean.guardian.email}"
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div class="full">
+					<span class="label">Endereço</span>
+					<p:inputText value="#{guardianBean.guardian.address}"
+						style="width:100%;font-size:13.5px" />
+				</div>
+				<div>
+					<span class="label">Ano Letivo *</span>
+					<p:selectOneMenu value="#{guardianBean.selectedAcademicYearId}"
+						required="true" requiredMessage="Ano obrigatório"
+						style="width:100%;font-size:13.5px">
+						<f:selectItem itemLabel="Selecione" itemValue="#{null}"
+							noSelectionOption="true" />
+						<f:selectItems value="#{guardianBean.academicYears}" var="ay"
+							itemLabel="#{ay.year}" itemValue="#{ay.id}" />
+					</p:selectOneMenu>
+				</div>
+			</div>
 
-            <p:panel header="Estudantes vinculados (#{guardianBean.studentsOfGuardian.size()})" toggleable="true" collapsed="false" rendered="#{guardianBean.editing and not empty guardianBean.studentsOfGuardian}" style="margin-top:18px">
-                <p:dataList value="#{guardianBean.studentsOfGuardian}" var="s" type="none"><span style="font-size:13px">#{s.code} - #{s.fullName} <p:tag value="#{s.status}" style="margin-left:6px;font-size:10px"/></span></p:dataList>
-            </p:panel>
+			<p:panel
+				header="Estudantes vinculados (#{guardianBean.studentsOfGuardian.size()})"
+				toggleable="true" collapsed="false"
+				rendered="#{guardianBean.editing and not empty guardianBean.studentsOfGuardian}"
+				style="margin-top:18px">
+				<p:dataList value="#{guardianBean.studentsOfGuardian}" var="s"
+					type="none">
+					<span style="font-size: 13px">#{s.code} - #{s.fullName} <p:tag
+							value="#{s.status}" style="margin-left:6px;font-size:10px" /></span>
+				</p:dataList>
+			</p:panel>
 
-            <div style="margin-top:22px;display:flex;justify-content:flex-end;gap:10px">
-                <p:commandButton value="Cancelar" icon="pi pi-times" styleClass="ui-button-secondary ui-button-outlined" style="border-radius:10px;font-size:13px" action="#{dashboardBean.navigate('guardians/guardian-list','encarregados')}" update=":contentPanel" immediate="true"/>
-                <p:commandButton value="#{guardianBean.editing ? 'Atualizar' : 'Cadastrar'}" icon="pi pi-check" style="border-radius:10px;background:#0a2540;border:none;font-size:13px" action="#{guardianBean.saves}" update=":contentPanel :formInclude:growl"/>
-            </div>
-        </div>
-    </h:form>
+			<div
+				style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 10px">
+				<p:commandButton value="Cancelar" icon="pi pi-times"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px;font-size:13px"
+					action="#{dashboardBean.navigate('guardians/guardian-list','encarregados')}"
+					update=":contentPanel" immediate="true" />
+				<p:commandButton
+					value="#{guardianBean.editing ? 'Atualizar' : 'Cadastrar'}"
+					icon="pi pi-check"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					action="#{guardianBean.save}"
+					update=":contentPanel :formInclude:growl" />
+			</div>
+		</div>
+	</h:form>
 </ui:composition>

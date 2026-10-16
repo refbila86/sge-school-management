@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "guardians", uniqueConstraints = @UniqueConstraint(columnNames = "code"))
+@Table(name = "guardians", uniqueConstraints =
+{ @UniqueConstraint(name = "UK_guardian_code_year", columnNames =
+{ "code", "academic_year_id" }) })
 @NamedQueries(
 { @NamedQuery(name = "Guardian.findAll", query = "SELECT g FROM GuardianEntity g ORDER BY g.firstName"),
 		@NamedQuery(name = "Guardian.findAllWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students ORDER BY g.firstName"),
@@ -16,17 +18,19 @@ import java.util.List;
 		@NamedQuery(name = "Guardian.findByAcademicYear", query = "SELECT g FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId"),
 		@NamedQuery(name = "Guardian.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE s.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName"),
 		@NamedQuery(name = "Guardian.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE (s.school.id = :schoolId AND s.academicYear.id = :academicYearId) OR s.id IS NULL"),
-		@NamedQuery(name = "Guardian.countAll", query = "SELECT COUNT(g) FROM GuardianEntity g") })
+		@NamedQuery(name = "Guardian.countAll", query = "SELECT COUNT(g) FROM GuardianEntity g"),
+		@NamedQuery(name = "Guardian.countAllByAcademicYearId", query = "SELECT COUNT(g) FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId ORDER BY g.firstName") })
 
 public class GuardianEntity implements java.io.Serializable
 {
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true, length = 20)
+	@Column(nullable = false, length = 20)
 	private String code;
 
 	@Column(nullable = false)
@@ -40,12 +44,12 @@ public class GuardianEntity implements java.io.Serializable
 	private String address;
 	private String relationship;
 
-	@OneToOne(optional = true)
-	@JoinColumn(name = "user_id", unique = true)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
 	private UserEntity user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "academic_year_id",nullable = false)
+	@JoinColumn(name = "academic_year_id", nullable = false)
 	private AcademicYearEntity academicYear;
 
 	@OneToMany(mappedBy = "guardian", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = false)
@@ -58,6 +62,10 @@ public class GuardianEntity implements java.io.Serializable
 	{
 		if (this.createdAt == null)
 			this.createdAt = LocalDateTime.now();
+		if (this.code == null || this.code.isBlank())
+		{
+			this.code = "G" + System.currentTimeMillis() % 100000;
+		}
 	}
 
 	public void addStudent(StudentEntity student)

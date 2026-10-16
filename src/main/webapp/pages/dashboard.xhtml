@@ -251,22 +251,18 @@
 							<button type="button"
 								class="menu-item #{dashboardBean.activeMenu eq 'alunos' ? 'active' : ''}"
 								onclick="PF('navAlunos').jq.click()">
-								<i class="pi pi-users" /><span class="menu-label">Alunos</span><span
-									class="menu-badge menu-label">#{dashboardBean.totalAlunosFormatted}</span>
+								<i class="pi pi-users" /><span class="menu-label">Alunos</span>
 							</button>
 							<button type="button"
 								class="menu-item #{dashboardBean.activeMenu eq 'encarregados' ? 'active' : ''}"
 								onclick="PF('navEncarregados').jq.click()">
-								<i class="pi pi-user-plus" /><span class="menu-label">Encarregados</span><span
-									class="menu-badge menu-label">#{empty
-									guardianBean.guardians ? '0' : guardianBean.guardians.size()}</span>
+								<i class="pi pi-user-plus" /><span class="menu-label">Encarregados</span>
 							</button>
 							<button type="button"
 								class="menu-item #{dashboardBean.activeMenu eq 'professores' ? 'active' : ''}"
 								onclick="PF('navProf').jq.click()">
 								<i class="pi pi-briefcase" /><span class="menu-label">Professores</span>
 							</button>
-							<!-- TURMAS -> classroom-list -->
 							<button type="button"
 								class="menu-item #{dashboardBean.activeMenu eq 'turmas' ? 'active' : ''}"
 								onclick="PF('navTurmas').jq.click()">
@@ -281,6 +277,11 @@
 								class="menu-item #{dashboardBean.activeMenu eq 'disciplinas' ? 'active' : ''}"
 								onclick="PF('navDisc').jq.click()">
 								<i class="pi pi-book" /><span class="menu-label">Disciplinas</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'matriculas' ? 'active' : ''}"
+								onclick="PF('navMatriculas').jq.click()">
+								<i class="pi pi-id-card" /><span class="menu-label">Matrículas</span>
 							</button>
 						</div>
 						<div class="menu-section">
@@ -312,6 +313,12 @@
 								class="menu-item #{dashboardBean.activeMenu eq 'pagamentos' ? 'active' : ''}"
 								onclick="PF('navPag').jq.click()">
 								<i class="pi pi-credit-card" /><span class="menu-label">Pagamentos</span>
+							</button>
+							<button type="button"
+								class="menu-item #{dashboardBean.activeMenu eq 'feeitems' ? 'active' : ''}"
+								onclick="PF('navFeeItems').jq.click()">
+								<i class="pi pi-tags" /><span class="menu-label">Items
+									de Pagamento</span>
 							</button>
 						</div>
 						<div class="menu-section">
@@ -378,7 +385,7 @@
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cProf" widgetVar="navProf"
 							style="display:none"
-							action="#{dashboardBean.navigate('teachers/teacher-list','professores')}"
+							action="#{dashboardBean.navigate('teacher/teacher-list','professores')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cTurmas" widgetVar="navTurmas"
 							style="display:none"
@@ -405,7 +412,7 @@
 							action="#{dashboardBean.navigate('finance/fees-list','mensalidades')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cPag" widgetVar="navPag" style="display:none"
-							action="#{dashboardBean.navigate('finance/payments-list','pagamentos')}"
+							action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cUsers" widgetVar="navUsers"
 							style="display:none"
@@ -427,6 +434,14 @@
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cSms" widgetVar="navSms" style="display:none"
 							action="#{dashboardBean.navigate('config/sms-email','sms')}"
+							update=":contentPanel :topbarInfo" />
+						<p:commandButton id="cFeeItems" widgetVar="navFeeItems"
+							style="display:none"
+							action="#{dashboardBean.navigate('fee-items/fee-items-list','feeitems')}"
+							update=":contentPanel :topbarInfo" />
+						<p:commandButton id="cMatriculas" widgetVar="navMatriculas"
+							style="display:none"
+							action="#{dashboardBean.navigate('enrollment/enrollment-list','matriculas')}"
 							update=":contentPanel :topbarInfo" />
 					</div>
 				</h:form>

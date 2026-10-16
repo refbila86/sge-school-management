@@ -1,15 +1,18 @@
 package mz.co.sge.repository.impl;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import mz.co.sge.entity.StudentEntity;
-import mz.co.sge.enumes.StudentStatus;
-import mz.co.sge.repository.IStudentRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.StudentStatus;
+import mz.co.sge.repository.IStudentRepository;
 
 @Repository
 public class StudentRepositoryImpl implements IStudentRepository
@@ -155,4 +158,30 @@ public class StudentRepositoryImpl implements IStudentRepository
 				StudentEntity.class).setParameter("id", id).getResultList();
 		return list.stream().findFirst();
 	}
+
+	@Override
+	public Optional<StudentEntity> findByIdAndSchoolIdAndAcademicYearId(Long id, Long schoolId, Long yearId)
+	{
+		try
+		{
+			TypedQuery<StudentEntity> query = em.createQuery(
+					"SELECT s FROM StudentEntity s " + "WHERE s.id = :id " + "AND s.school.id = :schoolId " + "AND s.academicYear.id = :yearId",
+					StudentEntity.class);
+			query.setParameter("id", id);
+			query.setParameter("schoolId", schoolId);
+			query.setParameter("yearId", yearId);
+			query.setMaxResults(1);
+			return Optional.ofNullable(query.getSingleResult());
+		} catch (NoResultException e)
+		{
+			return Optional.empty();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			return Optional.empty();
+		}
+	}
+
+	 
+
 }

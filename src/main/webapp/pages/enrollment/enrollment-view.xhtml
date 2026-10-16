@@ -1,0 +1,276 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 20px;
+	font-weight: 800;
+	color: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.form-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04)
+}
+
+.student-header {
+	background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+	border: 2px solid #3b82f6;
+	border-radius: 16px;
+	padding: 18px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
+
+.ref-badge {
+	background: #0a2540;
+	color: white;
+	font-family: monospace;
+	font-size: 11px;
+	font-weight: 700;
+	padding: 6px 10px;
+	border-radius: 8px
+}
+
+.simple-row {
+	background: white;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 14px 18px;
+	display: grid;
+	grid-template-columns: 100px 180px 120px 160px;
+	gap: 16px;
+	align-items: center
+}
+
+.grid-head {
+	display: grid;
+	grid-template-columns: 100px 180px 120px 160px;
+	gap: 16px;
+	padding: 0 18px;
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: .3px
+}
+
+.total-bar {
+	background: #0a2540;
+	color: white;
+	border-radius: 14px;
+	padding: 16px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
+</style>
+
+	<h:form id="formView">
+		<p:growl id="growl" showDetail="true" />
+
+		<div class="page-header">
+			<div class="page-title">
+				<p:commandButton icon="pi pi-arrow-left"
+					styleClass="ui-button-text ui-button-rounded"
+					style="width:36px;height:36px"
+					action="#{dashboardBean.navigate('enrollment/enrollment-list','matriculas')}"
+					update=":contentPanel" process="@this" />
+				<div
+					style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+					<i class="pi pi-eye" style="color: #2563eb" />
+				</div>
+				<div>
+					<div>Matrícula ##{enrollmentBean.selected.id} -
+						#{enrollmentBean.selected.student.fullName}</div>
+					<div style="font-size: 12px; font-weight: 500; color: #64748b">#{enrollmentBean.selected.student.code}
+						• #{enrollmentBean.selected.classroom.name} •
+						#{enrollmentBean.selected.academicYear.year}</div>
+				</div>
+			</div>
+			<p:tag value="#{enrollmentBean.selected.status}" severity="success" />
+		</div>
+
+		<div class="form-card">
+			<div class="student-header">
+				<div style="display: flex; align-items: center; gap: 14px">
+					<div
+						style="width: 56px; height: 56px; border-radius: 14px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px">#{enrollmentBean.selected.student.firstName.substring(0,1).toUpperCase()}</div>
+					<div>
+						<div style="font-size: 18px; font-weight: 800">#{enrollmentBean.selected.student.fullName}</div>
+						<div style="font-size: 12px; color: #475569">
+							Código Estudante: <b>#{enrollmentBean.selected.student.code}</b>
+							• Matrícula: <b>##{enrollmentBean.selected.id}</b> • Ano: <b>#{enrollmentBean.selected.academicYear.year}</b>
+						</div>
+						<div style="font-size: 11px; color: #2563eb; margin-top: 2px">Referência:
+							CÓDIGO_ESTUDANTE-CÓDIGO_MATRÍCULA-ANO-MÊS → Ex:
+							#{enrollmentBean.selected.student.code}-#{enrollmentBean.selected.id}-2026-02</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- CONFIG SIMPLES -->
+			<div
+				style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+				<div style="display: flex; align-items: center; gap: 10px">
+					<div
+						style="width: 36px; height: 36px; border-radius: 10px; background: #16a34a; color: white; display: flex; align-items: center; justify-content: center">
+						<i class="pi pi-calendar-plus" />
+					</div>
+					<div>
+						<div style="font-size: 14px; font-weight: 800">Gerar
+							Referências</div>
+						<div style="font-size: 11px; color: #64748b">Escolhe mês
+							inicial até Dezembro. Só mês, referência, valor e data limite.</div>
+					</div>
+				</div>
+				<div
+					style="display: grid; grid-template-columns: 180px 120px 140px 140px auto; gap: 12px; align-items: end; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px">
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Mês
+							inicial *</span>
+						<p:selectOneMenu value="#{enrollmentBean.startMonth}"
+							style="width:100%">
+							<f:selectItem itemLabel="Selecione..." itemValue="#{null}" />
+							<f:selectItems value="#{enrollmentBean.months}" var="m"
+								itemLabel="#{m.label}" itemValue="#{m.value}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Ano</span>
+						<p:inputText value="#{enrollmentBean.selectedYear}"
+							disabled="true" style="width:100%" />
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Valor
+							MT</span>
+						<p:inputNumber value="#{enrollmentBean.defaultAmount}"
+							decimalSeparator="," thousandSeparator="." style="width:100%" />
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Dia
+							limite</span>
+						<p:selectOneMenu value="#{enrollmentBean.defaultDueDay}"
+							style="width:100%">
+							<f:selectItem itemLabel="Dia 05" itemValue="5" />
+							<f:selectItem itemLabel="Dia 10" itemValue="10" />
+							<f:selectItem itemLabel="Dia 15" itemValue="15" />
+							<f:selectItem itemLabel="Dia 20" itemValue="20" />
+							<f:selectItem itemLabel="Dia 25" itemValue="25" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<p:commandButton value="Gerar até Dezembro" icon="pi pi-bolt"
+							style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
+							action="#{enrollmentBean.generateMonthlyFromDate}"
+							update=":formView:growl :formView:monthlyPanel :formView:totalBar" />
+					</div>
+				</div>
+			</div>
+
+			<!-- GRELHA SIMPLES NAO EDITAVEL -->
+			<h:panelGroup id="monthlyPanel" layout="block">
+				<h:panelGroup
+					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
+					layout="block">
+					<div class="grid-head">
+						<span>Mês</span><span>Referência</span><span>Valor</span><span>Data
+							Limite</span>
+					</div>
+					<div
+						style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
+						<ui:repeat value="#{enrollmentBean.generatedMonthlyFees}"
+							var="fee">
+							<div class="simple-row">
+								<div style="display: flex; align-items: center; gap: 8px">
+									<div
+										style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px">#{fee.month}</div>
+									<div>
+										<b style="font-size: 13px">#{fee.monthLabel}</b><br />
+										<span style="font-size: 10px; color: #64748b">#{fee.year}</span>
+									</div>
+								</div>
+								<span class="ref-badge">#{fee.reference}</span> <b
+									style="font-size: 13px; color: #0a2540">#{fee.amount} MT</b>
+								<div style="display: flex; align-items: center; gap: 6px">
+									<i class="pi pi-calendar" style="color: #2563eb" /><span
+										style="font-size: 13px; font-weight: 600"><h:outputText
+											value="#{fee.dueDate}">
+											<f:convertDateTime pattern="dd/MM/yyyy" />
+										</h:outputText></span>
+								</div>
+							</div>
+						</ui:repeat>
+					</div>
+				</h:panelGroup>
+				<h:panelGroup
+					rendered="#{empty enrollmentBean.generatedMonthlyFees}"
+					layout="block">
+					<div
+						style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px">
+						<i class="pi pi-calendar"
+							style="font-size: 28px; display: block; margin-bottom: 8px" />Escolhe
+						mês inicial e clica Gerar.
+					</div>
+				</h:panelGroup>
+			</h:panelGroup>
+
+			<h:panelGroup id="totalBar" layout="block">
+				<h:panelGroup
+					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
+					layout="block">
+					<div class="total-bar">
+						<div style="display: flex; gap: 24px">
+							<div>
+								<div
+									style="font-size: 11px; opacity: .7; text-transform: uppercase">Total
+									Meses</div>
+								<div style="font-size: 18px; font-weight: 800">#{enrollmentBean.generatedMonthlyFees.size()}
+									meses</div>
+							</div>
+							<div>
+								<div
+									style="font-size: 11px; opacity: .7; text-transform: uppercase">Total
+									a Pagar</div>
+								<div style="font-size: 22px; font-weight: 800; color: #86efac">#{enrollmentBean.totalAmount}
+									MT</div>
+							</div>
+						</div>
+						<div style="display: flex; gap: 8px">
+							<p:commandButton value="Gravar Referências" icon="pi pi-save"
+								style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
+								action="#{monthlyFeeBean.saveMonthlyReferences}"
+								update=":formView:growl" />
+							<p:commandButton value="Imprimir" icon="pi pi-print"
+								styleClass="ui-button-secondary" style="border-radius:12px" />
+						</div>
+					</div>
+				</h:panelGroup>
+			</h:panelGroup>
+		</div>
+	</h:form>
+</ui:composition>

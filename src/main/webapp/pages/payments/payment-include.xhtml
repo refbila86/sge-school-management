@@ -1,0 +1,169 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 18px
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1.2fr 0.8fr;
+	gap: 14px
+}
+
+@media ( max-width :900px) {
+	.form-grid {
+		grid-template-columns: 1fr
+	}
+}
+
+.label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	margin-bottom: 6px;
+	display: block
+}
+</style>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+				<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb" />
+				Novo Pagamento - #{loginBean.loggedAcademicYear.year}
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px"
+				action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"
+				update=":contentPanel" immediate="true" process="@this" />
+		</div>
+
+		<p:messages id="msgs" showDetail="true" closable="true" />
+
+		<div class="form-grid">
+			<div class="form-card">
+				<span class="label">Aluno * (só do ano logado)</span>
+				<p:autoComplete id="acAluno"
+					value="#{paymentBean.selectedStudentEntity}"
+					completeMethod="#{paymentBean.completeStudent}" var="s"
+					itemLabel="#{s.fullName} - #{s.code}" itemValue="#{s}"
+					converter="#{studentConverter}" forceSelection="true"
+					dropdown="true" minQueryLength="2" queryDelay="300"
+					placeholder="Digite nome ou código do aluno..."
+					style="width:100%;margin-bottom:16px">
+					<p:ajax event="itemSelect"
+						listener="#{paymentBean.onStudentSelect}"
+						update=":formInclude:btnConfirm :formInclude:msgs" />
+				</p:autoComplete>
+
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px">
+					<div>
+						<span class="label">Método *</span>
+						<p:selectOneMenu value="#{paymentBean.method}" style="width:100%">
+							<f:selectItems value="#{paymentBean.methods}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<span class="label">Referência</span>
+						<p:inputText value="#{paymentBean.reference}"
+							placeholder="Mpesa / Banco" style="width:100%" />
+					</div>
+				</div>
+
+				<p:separator />
+
+				<span class="label">Adicionar Item</span>
+				<div
+					style="display: flex; gap: 8px; align-items: end; margin-bottom: 10px">
+					<div style="flex: 1.2">
+						<p:selectOneMenu id="cmbFee"
+							value="#{paymentBean.selectedFeeItemId}" style="width:100%">
+							<f:selectItem itemLabel="Selecione taxa..." itemValue="#{null}" />
+							<f:selectItems value="#{paymentBean.feeItems}" var="fi"
+								itemLabel="#{fi.descricao} - MT #{fi.valor}"
+								itemValue="#{fi.id}" />
+							<p:ajax listener="#{paymentBean.onFeeItemSelect}"
+								update="desc val" />
+						</p:selectOneMenu>
+					</div>
+					<div style="flex: 1">
+						<p:inputText id="desc" value="#{paymentBean.customDescricao}"
+							placeholder="Descrição" style="width:100%" />
+					</div>
+					<div style="width: 140px">
+						<p:inputNumber id="val" value="#{paymentBean.customValor}"
+							symbol="MT " decimalSeparator="," thousandSeparator="."
+							decimalPlaces="2" style="width:100%" />
+					</div>
+					<p:commandButton icon="pi pi-plus" action="#{paymentBean.addItem}"
+						process="cmbFee desc val @this"
+						update="msgs desc val cmbFee tableCart totalBoxInner btnConfirm"
+						styleClass="ui-button-success"
+						style="border-radius:10px;width:42px;height:40px" />
+				</div>
+				<p:commandButton value="Taxa Personalizada" icon="pi pi-pencil"
+					action="#{paymentBean.enableOutro}" process="@this"
+					update="desc val cmbFee" styleClass="ui-button-text"
+					style="font-size:11px" rendered="#{!paymentBean.outroMode}" />
+			</div>
+
+			<div class="form-card">
+				<div style="font-weight: 700; color: #0a2540; margin-bottom: 10px">
+					<i class="pi pi-shopping-cart" style="margin-right: 6px" />
+					Carrinho
+				</div>
+
+				<p:dataTable id="tableCart" value="#{paymentBean.cart}" var="it"
+					emptyMessage="Carrinho vazio" style="font-size:13px">
+					<p:column headerText="Descrição">#{it.descricao}</p:column>
+					<p:column headerText="Valor" width="110"
+						style="text-align:right;font-weight:700">MT #{it.valor}</p:column>
+					<p:column width="40" style="text-align:center">
+						<p:commandButton icon="pi pi-times"
+							action="#{paymentBean.removeItem(it)}" process="@this"
+							update=":formInclude:tableCart :formInclude:totalBoxInner :formInclude:msgs :formInclude:btnConfirm"
+							styleClass="ui-button-rounded ui-button-danger ui-button-text" />
+					</p:column>
+				</p:dataTable>
+
+				<div
+					style="background: #f8fafc; border: 1px dashed #d1d5db; border-radius: 12px; padding: 12px; margin-top: 12px; text-align: right">
+					<div
+						style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 700">Total
+						a pagar</div>
+					<h:panelGroup id="totalBoxInner">
+						<div style="font-size: 22px; font-weight: 800; color: #0a2540">MT
+							#{paymentBean.cartTotal}</div>
+					</h:panelGroup>
+				</div>
+
+				<div
+					style="margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end">
+					<p:commandButton value="Cancelar"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px"
+						action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"
+						update=":contentPanel" immediate="true" process="@this" />
+					<p:commandButton id="btnConfirm" value="Confirmar Pagamento"
+						icon="pi pi-check"
+						style="border-radius:10px;background:#0a2540;border:none"
+						action="#{paymentBean.goToConfirm}" process="@form"
+						update=":contentPanel :formInclude:msgs"
+						disabled="#{empty paymentBean.cart}" />
+				</div>
+			</div>
+		</div>
+	</h:form>
+</ui:composition>
