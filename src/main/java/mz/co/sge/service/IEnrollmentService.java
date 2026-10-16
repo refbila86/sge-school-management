@@ -1,7 +1,9 @@
 package mz.co.sge.service;
 
+import mz.co.sge.entity.ClassLevelEntity;
 import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.PaymentEntity;
+import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.EnrollmentStatus;
 import java.util.List;
 
@@ -24,4 +26,13 @@ public interface IEnrollmentService
 	List<EnrollmentEntity> findByStatus(EnrollmentStatus status);
 
 	boolean canEnroll(Long studentId, Long academicYearId);
+
+	// NOVOS - REGRA fee_item_id MATRÍCULA
+	List<StudentEntity> findStudentsWithMatriculaPaid(Long schoolId, Long yearId);
+
+	List<StudentEntity> findAvailableStudentsForEnrollment(Long schoolId, Long yearId);
+
+	List<ClassLevelEntity> findAllClassLevels();
+
+	Long getMatriculaFeeItemId(Long schoolId);
 }

@@ -132,4 +132,29 @@ public class EnrollmentServiceImpl implements IEnrollmentService
 	{
 		return !enrollmentRepository.existsEnrollment(studentId, academicYearId);
 	}
+
+	// NOVOS MÉTODOS - fee_item_id MATRICULA
+	@Override
+	public List<StudentEntity> findStudentsWithMatriculaPaid(Long schoolId, Long yearId)
+	{
+		return enrollmentRepository.findStudentsWithMatriculaPaidBySchoolAndYear(schoolId, yearId);
+	}
+
+	@Override
+	public List<StudentEntity> findAvailableStudentsForEnrollment(Long schoolId, Long yearId)
+	{
+		return enrollmentRepository.findAvailableStudentsForEnrollment(schoolId, yearId);
+	}
+
+	@Override
+	public List<ClassLevelEntity> findAllClassLevels()
+	{
+		return em.createQuery("SELECT c FROM ClassLevelEntity c ORDER BY c.name", ClassLevelEntity.class).getResultList();
+	}
+
+	@Override
+	public Long getMatriculaFeeItemId(Long schoolId)
+	{
+		return enrollmentRepository.findMatriculaFeeItemId(schoolId);
+	}
 }

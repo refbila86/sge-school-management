@@ -1,6 +1,7 @@
 package mz.co.sge.repository;
 
 import mz.co.sge.entity.EnrollmentEntity;
+import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.EnrollmentStatus;
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +27,13 @@ public interface IEnrollmentRepository
 	void delete(Long id);
 
 	boolean existsEnrollment(Long studentId, Long academicYearId);
+
+	// NOVOS - ALUNOS QUE PAGARAM MATRÍCULA (fee_item_id)
+	List<StudentEntity> findStudentsWithMatriculaPaid(Long schoolId, Long matriculaFeeItemId);
+
+	List<StudentEntity> findStudentsWithMatriculaPaidBySchoolAndYear(Long schoolId, Long yearId);
+
+	Long findMatriculaFeeItemId(Long schoolId);
+
+	List<StudentEntity> findAvailableStudentsForEnrollment(Long schoolId, Long yearId);
 }

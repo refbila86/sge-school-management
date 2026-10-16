@@ -11,8 +11,7 @@ import mz.co.sge.enumes.PaymentMethod;
 @Entity
 @Table(name = "payments")
 @NamedQueries(
-{
-		@NamedQuery(name = "Payment.findWithItems", query = "SELECT DISTINCT p FROM PaymentEntity p LEFT JOIN FETCH p.items LEFT JOIN FETCH p.student LEFT JOIN FETCH p.createdBy " + "WHERE p.id = :id"),
+{ @NamedQuery(name = "Payment.findWithItems", query = "SELECT DISTINCT p FROM PaymentEntity p LEFT JOIN FETCH p.items pi LEFT JOIN FETCH pi.feeItem LEFT JOIN FETCH p.student LEFT JOIN FETCH p.createdBy WHERE p.id = :id"),
 		@NamedQuery(name = "Payment.findBySchoolAndYear", query = "SELECT p FROM PaymentEntity p WHERE p.school.id = :schoolId AND p.academicYear.id = :yearId ORDER BY p.createdAt DESC"),
 		@NamedQuery(name = "Payment.findByStudent", query = "SELECT p FROM PaymentEntity p WHERE p.student.id = :studentId AND p.academicYear.id = :yearId ORDER BY p.createdAt DESC"),
 		@NamedQuery(name = "Payment.findByReceipt", query = "SELECT p FROM PaymentEntity p WHERE p.school.id = :schoolId AND (LOWER(p.receiptNumber) LIKE LOWER(CONCAT('%', :term, '%'))) ORDER BY p.createdAt DESC"),

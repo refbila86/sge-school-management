@@ -1,12 +1,15 @@
 package mz.co.sge.controller;
 
-import mz.co.sge.entity.AcademicYearEntity;
-import mz.co.sge.entity.ClassLevelEntity;
-import mz.co.sge.entity.ClassroomEntity;
-import mz.co.sge.entity.EnrollmentEntity;
-import mz.co.sge.entity.StudentEntity;
-import mz.co.sge.enumes.EnrollmentStatus;
-import mz.co.sge.service.IEnrollmentService;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -17,14 +20,18 @@ import jakarta.faces.context.FacesContext;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import mz.co.sge.controller.MonthlyFeeBean.MonthlyFeeDTO;
+import mz.co.sge.dto.PaymentDTO;
+import mz.co.sge.entity.AcademicYearEntity;
+import mz.co.sge.entity.ClassLevelEntity;
+import mz.co.sge.entity.ClassroomEntity;
+import mz.co.sge.entity.EnrollmentEntity;
+import mz.co.sge.entity.MonthlyFeeEntity;
+import mz.co.sge.entity.PaymentEntity;
+import mz.co.sge.entity.PaymentItemEntity;
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.EnrollmentStatus;
+import mz.co.sge.service.IEnrollmentService;
 
 @Component("enrollmentBean")
 @Scope("session")
@@ -39,12 +46,14 @@ public class EnrollmentBean implements Serializable
 	@PersistenceContext
 	private EntityManager em;
 
+	// LISTA
 	private List<EnrollmentEntity> enrollments;
 	private List<EnrollmentEntity> allEnrollments;
 	private Long filterYearId;
 	private EnrollmentStatus filterStatus;
 	private String searchTerm;
 
+	// INCLUDE + PAGAMENTOS
 	private List<ClassLevelEntity> availableClassLevels;
 	private List<StudentEntity> availableStudents;
 	private List<ClassroomEntity> availableClassrooms;
@@ -57,11 +66,17 @@ public class EnrollmentBean implements Serializable
 	private StudentEntity selectedStudentEntity;
 	private boolean editing = false;
 
+	private List<PaymentDTO> studentPayments = new ArrayList<>();
+	private List<PaymentDTO> selectedPayments = new ArrayList<>();
+	private boolean hasValidPayment = false;
+	private String selectedPaymentReference = "";
+
+	// VIEW MENSALIDADES SIMPLES (mes, referencia, valor, data limite)
 	private Integer startMonth;
 	private List<MonthOption> months;
 	private List<MonthlyFeeDTO> generatedMonthlyFees = new ArrayList<>();
 	private String selectedYear = "2026";
-	private Double defaultAmount = 2500.0;
+	private BigDecimal defaultAmount = new BigDecimal("2500.00");
 	private Integer defaultDueDay = 10;
 
 	@PostConstruct
@@ -101,15 +116,6 @@ public class EnrollmentBean implements Serializable
 				} catch (Exception ignore)
 				{
 				}
-				try
-				{
-					java.lang.reflect.Method m2 = loginBean.getClass().getMethod("getAcademicYearId");
-					Object v2 = m2.invoke(loginBean);
-					if (v2 != null)
-						defaultYearId = (Long) v2;
-				} catch (Exception ignore)
-				{
-				}
 			}
 			if (defaultYearId != null)
 			{
@@ -126,26 +132,61 @@ public class EnrollmentBean implements Serializable
 	{
 		try
 		{
-			availableClassLevels = em.createQuery("SELECT c FROM ClassLevelEntity c ORDER BY c.name", ClassLevelEntity.class).getResultList();
+			availableClassLevels = enrollmentService.findAllClassLevels();
 		} catch (Exception e)
 		{
 			availableClassLevels = List.of();
 		}
+
 		try
 		{
-			availableStudents = em.createQuery("SELECT s FROM StudentEntity s WHERE s.status = 'REGISTERED' ORDER BY s.firstName", StudentEntity.class)
-					.getResultList();
-		} catch (Exception ex)
-		{
-			try
+			Long schoolId = null;
+			Long yearId = selectedAcademicYearId;
+
+			// Pega schoolId correto do usuário logado
+			if (loginBean != null && loginBean.getLoggedUser() != null)
 			{
-				List<StudentEntity> all = em.createQuery("SELECT s FROM StudentEntity s ORDER BY s.firstName", StudentEntity.class).getResultList();
-				availableStudents = all.stream().filter(s -> s.getStatus() != null && s.getStatus().name().equals("REGISTERED")).collect(Collectors.toList());
-			} catch (Exception exc)
-			{
-				availableStudents = List.of();
+				// tenta getSchool().getId()
+				try
+				{
+					if (loginBean.getLoggedUser().getSchoolId() != null)
+					{
+						schoolId = loginBean.getLoggedUser().getSchoolId();
+					}
+				} catch (Exception ex)
+				{
+					// fallback se não tiver getSchool()
+					schoolId = loginBean.getLoggedUser().getId();
+				}
+
+				// Pega yearId do login (o ano escolhido na tela de login)
+				try
+				{
+					java.lang.reflect.Method m = loginBean.getClass().getMethod("getSelectedAcademicYearId");
+					Object v = m.invoke(loginBean);
+					if (v != null)
+						yearId = (Long) v;
+				} catch (Exception ignore)
+				{
+				}
 			}
+
+			if (schoolId == null)
+				schoolId = 1L;
+			if (yearId == null)
+				yearId = 1L;
+
+			// SÓ ALUNOS QUE PAGARAM MATRÍCULA NAQUELE ANO
+			availableStudents = enrollmentService.findStudentsWithMatriculaPaid(schoolId, yearId);
+
+			System.out.println("Filtro matrícula: school=" + schoolId + " year=" + yearId + " -> " + availableStudents.size() + " alunos");
+
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			availableStudents = List.of();
 		}
+
 		loadClassrooms();
 	}
 
@@ -180,7 +221,244 @@ public class EnrollmentBean implements Serializable
 	public void onAcademicYearChange()
 	{
 		selectedClassroomId = null;
+		loadCombos(); // recarrega alunos quando muda ano
 		loadClassrooms();
+	}
+
+	// QUANDO MUDA ALUNO - CARREGA PAGAMENTOS
+	public void onStudentChange()
+	{
+		studentPayments = new ArrayList<>();
+		selectedPayments = new ArrayList<>();
+		hasValidPayment = false;
+		selectedPaymentReference = "";
+		if (selectedStudentId == null)
+		{
+			selectedStudentEntity = null;
+			return;
+		}
+		try
+		{
+			selectedStudentEntity = em.find(StudentEntity.class, selectedStudentId);
+		} catch (Exception e)
+		{
+		}
+		loadStudentPayments();
+	}
+
+	public void onStudentChanges()
+	{
+		studentPayments = new ArrayList<>();
+		selectedPayments = new ArrayList<>();
+		hasValidPayment = false;
+		selectedPaymentReference = "";
+		if (selectedStudentId == null)
+		{
+			selectedStudentEntity = null;
+			return;
+		}
+		try
+		{
+			selectedStudentEntity = em.find(StudentEntity.class, selectedStudentId);
+		} catch (Exception e)
+		{
+		}
+		loadStudentPayments();
+	}
+
+	public void loadStudentPayments()
+	{
+		studentPayments = new ArrayList<>();
+		if (selectedStudentId == null)
+			return;
+		try
+		{
+			Long yearId = selectedAcademicYearId;
+			if (yearId == null && loginBean != null)
+			{
+				try
+				{
+					Object v = loginBean.getClass().getMethod("getSelectedAcademicYearId").invoke(loginBean);
+					if (v != null)
+						yearId = (Long) v;
+				} catch (Exception ignore)
+				{
+				}
+			}
+			// Busca pagamentos do aluno naquele ano COM feeItem
+			List<PaymentEntity> payments = em
+					.createQuery(
+							"SELECT DISTINCT p FROM PaymentEntity p " + "LEFT JOIN FETCH p.items pi " + "LEFT JOIN FETCH pi.feeItem f "
+									+ "WHERE p.student.id = :sid " + (yearId != null ? "AND p.academicYear.id = :yearId " : "") + "ORDER BY p.paymentDate DESC",
+							PaymentEntity.class)
+					.setParameter("sid", selectedStudentId).setParameter("yearId", yearId != null ? yearId : 1L).getResultList();
+			// Se p.academicYear não existe, busca sem ano
+			if (payments.isEmpty() && yearId != null)
+			{
+				payments = em.createQuery(
+						"SELECT DISTINCT p FROM PaymentEntity p LEFT JOIN FETCH p.items pi LEFT JOIN FETCH pi.feeItem WHERE p.student.id = :sid ORDER BY p.paymentDate DESC",
+						PaymentEntity.class).setParameter("sid", selectedStudentId).getResultList();
+			}
+			for (PaymentEntity p : payments)
+			{
+				if (p.getItems() == null)
+					continue;
+				for (PaymentItemEntity pi : p.getItems())
+				{
+					PaymentDTO dto = new PaymentDTO();
+					dto.setReference(p.getReference() != null ? p.getReference() : "PAY-" + p.getId());
+					// PREÇO VEM DO fee_items VIA fee_item_id
+					BigDecimal preco = pi.getFeeItem() != null && pi.getFeeItem().getValor() != null ? pi.getFeeItem().getValor()
+							: (pi.getValor() != null ? pi.getValor() : BigDecimal.ZERO);
+					dto.setAmount(preco.toPlainString());
+					dto.setStatus(p.getMethod() != null ? p.getMethod().name() : "PAGO");
+					dto.setDescription(pi.getFeeItem() != null ? pi.getFeeItem().getDescricao() : pi.getDescricao());
+					dto.setMethod(p.getMethod() != null ? p.getMethod().name() : "M-Pesa");
+					dto.setMonthLabel(pi.getFeeItem() != null ? pi.getFeeItem().getDescricao() : "");
+					dto.setSelected(false);
+					studentPayments.add(dto);
+					// Se for MATRICULA ou INSCRIÇÃO paga, valida para ENROLLED
+					if (pi.getFeeItem() != null && pi.getFeeItem().getDescricao() != null)
+					{
+						String desc = pi.getFeeItem().getDescricao().toUpperCase();
+						if (desc.contains("MATRIC") || desc.contains("INSCRI"))
+						{
+							hasValidPayment = true;
+						}
+					}
+				}
+			}
+			if (!studentPayments.isEmpty() && !hasValidPayment)
+			{
+				hasValidPayment = true; // tem pelo menos um pagamento
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void loadStudentPaymentss()
+	{
+		studentPayments = new ArrayList<>();
+		if (selectedStudentId == null)
+			return;
+		try
+		{
+			// Tenta carregar de PaymentEntity, MonthlyFeeEntity pago, etc - adapta ao teu
+			// modelo
+			// Exemplo 1: Payments table
+			List<?> payments = new ArrayList<>();
+			try
+			{
+				payments = em.createQuery("SELECT p FROM PaymentEntity p WHERE p.student.id = :sid ORDER BY p.paymentDate DESC")
+						.setParameter("sid", selectedStudentId).getResultList();
+				for (Object o : payments)
+				{
+					try
+					{
+						java.lang.reflect.Method getRef = o.getClass().getMethod("getReference");
+						java.lang.reflect.Method getAmount = o.getClass().getMethod("getAmount");
+						java.lang.reflect.Method getDate = o.getClass().getMethod("getPaymentDate");
+						java.lang.reflect.Method getStatus = o.getClass().getMethod("getStatus");
+						String ref = String.valueOf(getRef.invoke(o));
+						Object amt = getAmount.invoke(o);
+						String amount = amt != null ? amt.toString() : "0";
+						Object date = getDate.invoke(o);
+						String status = getStatus != null ? String.valueOf(getStatus.invoke(o)) : "PAGO";
+						PaymentDTO dto = new PaymentDTO();
+						dto.setReference(ref);
+						dto.setAmount(amount);
+						dto.setStatus(status);
+						dto.setDescription("Pagamento Matrícula");
+						dto.setPaymentDate(date != null ? convertToDate(date) : new Date());
+						dto.setMethod("M-Pesa");
+						dto.setSelected(false);
+						studentPayments.add(dto);
+					} catch (Exception ex)
+					{
+					}
+				}
+			} catch (Exception e)
+			{
+				// Fallback: cria pagamentos fake de exemplo se não tiver tabela PaymentEntity
+				// Remove isso quando tiveres PaymentEntity real
+				PaymentDTO dto1 = new PaymentDTO();
+				dto1.setReference("PAY-" + selectedStudentId + "-2026-001");
+				dto1.setAmount("3500");
+				dto1.setStatus("PAGO");
+				dto1.setDescription("Taxa de Matrícula 2026");
+				dto1.setPaymentDate(new Date());
+				dto1.setMethod("M-Pesa");
+				dto1.setMonthLabel("Matrícula");
+				dto1.setSelected(false);
+				PaymentDTO dto2 = new PaymentDTO();
+				dto2.setReference("PAY-" + selectedStudentId + "-2026-002");
+				dto2.setAmount("2500");
+				dto2.setStatus("PENDENTE");
+				dto2.setDescription("Mensalidade Janeiro");
+				dto2.setPaymentDate(new Date());
+				dto2.setMethod("Numerário");
+				dto2.setMonthLabel("Janeiro");
+				dto2.setSelected(false);
+				studentPayments.add(dto1);
+				// studentPayments.add(dto2);
+			}
+
+			// Tenta também monthly_fees pagas
+			try
+			{
+				List<MonthlyFeeEntity> fees = em
+						.createQuery("SELECT m FROM MonthlyFeeEntity m WHERE m.student.id = :sid AND m.status = 'PAGO' ORDER BY m.year, m.month",
+								MonthlyFeeEntity.class)
+						.setParameter("sid", selectedStudentId).getResultList();
+				for (MonthlyFeeEntity f : fees)
+				{
+					PaymentDTO dto = new PaymentDTO();
+					dto.setReference(f.getReference());
+					dto.setAmount(f.getAmount().toString());
+					dto.setStatus("PAGO");
+					dto.setDescription(f.getMonthLabel() + " " + f.getYear());
+					dto.setMonthLabel(f.getMonthLabel());
+					dto.setSelected(false);
+					studentPayments.add(dto);
+				}
+			} catch (Exception ignore)
+			{
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private Date convertToDate(Object o)
+	{
+		if (o instanceof Date)
+			return (Date) o;
+		if (o instanceof LocalDate)
+			return Date.from(((LocalDate) o).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		if (o instanceof java.time.LocalDateTime)
+			return Date.from(((java.time.LocalDateTime) o).atZone(ZoneId.systemDefault()).toInstant());
+		return new Date();
+	}
+
+	public void onPaymentSelect(PaymentDTO pay)
+	{
+		if (pay.isSelected())
+		{
+			selectedPayments.add(pay);
+		} else
+		{
+			selectedPayments.removeIf(p -> p.getReference().equals(pay.getReference()));
+		}
+		hasValidPayment = !selectedPayments.isEmpty();
+		selectedPaymentReference = selectedPayments.stream().map(PaymentDTO::getReference).collect(Collectors.joining(", "));
+		if (hasValidPayment)
+		{
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "Pagamento selecionado", selectedPaymentReference + " - Pode mudar para ENROLLED"));
+		}
 	}
 
 	public void loadAll()
@@ -234,6 +512,10 @@ public class EnrollmentBean implements Serializable
 		selectedStudentId = null;
 		selectedStudentEntity = null;
 		editing = false;
+		studentPayments = new ArrayList<>();
+		selectedPayments = new ArrayList<>();
+		hasValidPayment = false;
+		selectedPaymentReference = "";
 		loadCombos();
 		setDefaultYearFromLogin();
 	}
@@ -267,6 +549,7 @@ public class EnrollmentBean implements Serializable
 		selectedStudentEntity = selected.getStudent();
 		editing = true;
 		loadCombos();
+		onStudentChange();
 	}
 
 	@Transactional
@@ -305,12 +588,19 @@ public class EnrollmentBean implements Serializable
 		}
 	}
 
+	// AO CLICAR CONFIRMAR -> MUDA PARA ENROLLED USANDO PAGAMENTO SELECIONADO
 	public void goToConfirm()
 	{
 		if (selectedAcademicYearId == null || selectedClassLevelId == null || selectedClassroomId == null || selectedStudentId == null)
 		{
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Campos obrigatórios", "Selecione Ano, Classe, Turma e Aluno"));
+			return;
+		}
+		if (!hasValidPayment)
+		{
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Pagamento obrigatório", "Selecione pelo menos um pagamento PAGO para mudar para ENROLLED"));
 			return;
 		}
 		try
@@ -346,6 +636,11 @@ public class EnrollmentBean implements Serializable
 				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Preencha todos"));
 				return null;
 			}
+			if (!hasValidPayment)
+			{
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Selecione pagamento válido"));
+				return null;
+			}
 			Long uid = 1L;
 			try
 			{
@@ -363,13 +658,15 @@ public class EnrollmentBean implements Serializable
 					if (classroom.getCurrentStudents() >= classroom.getCapacity())
 						return null;
 					enrollment.setClassroom(classroom);
+					// AQUI MUDA PARA ENROLLED PORQUE TEM PAGAMENTO VALIDO
 					enrollment.setStatus(EnrollmentStatus.ENROLLED);
 					em.merge(enrollment);
 					classroom.setCurrentStudents(classroom.getCurrentStudents() + 1);
 					em.merge(classroom);
 				}
 			}
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Matriculado ENROLLED"));
+			FacesContext.getCurrentInstance().addMessage(null,
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Matrícula confirmada ENROLLED com pagamento " + selectedPaymentReference));
 			loadAll();
 			loadCombos();
 			setDefaultYearFromLogin();
@@ -383,6 +680,7 @@ public class EnrollmentBean implements Serializable
 		}
 	}
 
+	// GRELHA MENSALIDADES SIMPLES
 	public List<MonthOption> getMonths()
 	{
 		if (months == null)
@@ -394,15 +692,6 @@ public class EnrollmentBean implements Serializable
 				months.add(new MonthOption(i, pt[i - 1] + " (" + String.format("%02d", i) + ")"));
 		}
 		return months;
-	}
-
-	public String getStartMonthLabel()
-	{
-		if (startMonth == null)
-			return "";
-		String[] pt =
-		{ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
-		return pt[startMonth - 1];
 	}
 
 	public String getPreviewReference()
@@ -451,8 +740,6 @@ public class EnrollmentBean implements Serializable
 			dto.setDueDate(dueDate);
 			generatedMonthlyFees.add(dto);
 		}
-		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Gerado",
-				generatedMonthlyFees.size() + " referências: Mês, Referência, Valor e Data Limite (não editáveis)"));
 	}
 
 	@Transactional
@@ -462,11 +749,12 @@ public class EnrollmentBean implements Serializable
 				new FacesMessage(FacesMessage.SEVERITY_INFO, "Gravado", generatedMonthlyFees.size() + " referências gravadas"));
 	}
 
-	public double getTotalAmount()
+	public BigDecimal getTotalAmount()
 	{
-		return generatedMonthlyFees.stream().mapToDouble(f -> f.getAmount() != null ? f.getAmount() : 0).sum();
+		return generatedMonthlyFees.stream().map(f -> f.getAmount() != null ? f.getAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
+	// GETTERS SETTERS
 	public List<EnrollmentEntity> getEnrollments()
 	{
 		if (enrollments == null)
@@ -528,6 +816,11 @@ public class EnrollmentBean implements Serializable
 		if (availableClassrooms == null)
 			loadClassrooms();
 		return availableClassrooms;
+	}
+
+	public List<AcademicYearEntity> getAcademicYearsCache()
+	{
+		return academicYearsCache;
 	}
 
 	public EnrollmentEntity getSelected()
@@ -607,6 +900,31 @@ public class EnrollmentBean implements Serializable
 		return Arrays.asList(EnrollmentStatus.values());
 	}
 
+	public List<PaymentDTO> getStudentPayments()
+	{
+		return studentPayments;
+	}
+
+	public int getValidPaymentsCount()
+	{
+		return (int) studentPayments.stream().filter(p -> "PAGO".equals(p.getStatus())).count();
+	}
+
+	public boolean isHasValidPayment()
+	{
+		return hasValidPayment;
+	}
+
+	public void setHasValidPayment(boolean v)
+	{
+		hasValidPayment = v;
+	}
+
+	public String getSelectedPaymentReference()
+	{
+		return selectedPaymentReference;
+	}
+
 	public Integer getStartMonth()
 	{
 		return startMonth;
@@ -632,12 +950,12 @@ public class EnrollmentBean implements Serializable
 		selectedYear = v;
 	}
 
-	public Double getDefaultAmount()
+	public BigDecimal getDefaultAmount()
 	{
 		return defaultAmount;
 	}
 
-	public void setDefaultAmount(Double v)
+	public void setDefaultAmount(BigDecimal v)
 	{
 		defaultAmount = v;
 	}
@@ -674,73 +992,4 @@ public class EnrollmentBean implements Serializable
 		}
 	}
 
-	public static class MonthlyFeeDTO implements Serializable
-	{
-		private int month;
-		private String monthLabel;
-		private int year;
-		private String reference;
-		private Double amount;
-		private Date dueDate;
-
-		public int getMonth()
-		{
-			return month;
-		}
-
-		public void setMonth(int m)
-		{
-			month = m;
-		}
-
-		public String getMonthLabel()
-		{
-			return monthLabel;
-		}
-
-		public void setMonthLabel(String l)
-		{
-			monthLabel = l;
-		}
-
-		public int getYear()
-		{
-			return year;
-		}
-
-		public void setYear(int y)
-		{
-			year = y;
-		}
-
-		public String getReference()
-		{
-			return reference;
-		}
-
-		public void setReference(String r)
-		{
-			reference = r;
-		}
-
-		public Double getAmount()
-		{
-			return amount;
-		}
-
-		public void setAmount(Double a)
-		{
-			amount = a;
-		}
-
-		public Date getDueDate()
-		{
-			return dueDate;
-		}
-
-		public void setDueDate(Date d)
-		{
-			dueDate = d;
-		}
-	}
 }

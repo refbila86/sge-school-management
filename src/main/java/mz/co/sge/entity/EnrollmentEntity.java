@@ -1,19 +1,23 @@
 package mz.co.sge.entity;
 
 import jakarta.persistence.*;
-import mz.co.sge.enumes.EnrollmentStatus;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "enrollments", uniqueConstraints = @UniqueConstraint(columnNames =
-{ "student_id", "academic_year_id" }))
+@Table(name = "enrollments")
 @NamedQueries(
-{ @NamedQuery(name = "Enrollment.findAll", query = "SELECT e FROM EnrollmentEntity e ORDER BY e.enrollmentDate DESC"),
-		@NamedQuery(name = "Enrollment.findByStudentAndYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
-		@NamedQuery(name = "Enrollment.findByYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
-		@NamedQuery(name = "Enrollment.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status"),
-		@NamedQuery(name = "Enrollment.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId") })
-public class EnrollmentEntity implements java.io.Serializable
+{ @NamedQuery(name = "Enrollment.findAll", query = "SELECT e FROM EnrollmentEntity e LEFT JOIN FETCH e.classLevel LEFT JOIN FETCH e.academicYear LEFT JOIN FETCH e.student LEFT JOIN FETCH e.classroom ORDER BY e.id DESC"),
+		@NamedQuery(name = "Enrollment.findByYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId ORDER BY e.id DESC"),
+		@NamedQuery(name = "Enrollment.findByStudentAndYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId ORDER BY e.id DESC"),
+		@NamedQuery(name = "Enrollment.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
+		@NamedQuery(name = "Enrollment.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
+		@NamedQuery(name = "Enrollment.countByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId"),
+		// NOVAS QUERIES - FILTRAGEM POR fee_item_id MATRICULA
+		@NamedQuery(name = "Enrollment.findStudentsWithMatriculaPaid", query = "SELECT DISTINCT s FROM StudentEntity s WHERE s.school.id = :schoolId AND s.status = 'REGISTERED' "
+				+ "AND EXISTS (SELECT 1 FROM PaymentEntity p JOIN p.items pi WHERE p.student.id = s.id AND pi.feeItem.id = :matId) ORDER BY s.firstName"),
+		@NamedQuery(name = "Enrollment.findMatriculaFeeItemId", query = "SELECT f.id FROM FeeItemEntity f WHERE f.school.id = :schoolId AND LOWER(f.descricao) LIKE '%matric%' ORDER BY f.id ASC") })
+public class EnrollmentEntity implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
@@ -21,60 +25,50 @@ public class EnrollmentEntity implements java.io.Serializable
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "school_id", nullable = false)
+	private SchoolEntity school;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "academic_year_id", nullable = false)
 	private AcademicYearEntity academicYear;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "student_id", nullable = false)
 	private StudentEntity student;
 
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
-	@JoinColumn(name = "class_level_id", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "class_level_id")
 	private ClassLevelEntity classLevel;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "payment_id")
-	private PaymentEntity payment;
-
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private EnrollmentStatus status = EnrollmentStatus.PENDING;
-
-	@Column(name = "enrollment_date", nullable = false)
-	private LocalDateTime enrollmentDate = LocalDateTime.now();
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "created_by_id")
-	private UserEntity createdBy;
-
-	@Column(name = "created_at", updatable = false)
-	private LocalDateTime createdAt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "classroom_id")
 	private ClassroomEntity classroom;
 
-	@Column(name = "updated_at")
-	private LocalDateTime updatedAt;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "payment_id")
+	private PaymentEntity payment;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "created_by")
+	private UserEntity createdBy;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private mz.co.sge.enumes.EnrollmentStatus status;
+
+	@Column(name = "enrollment_date")
+	private LocalDateTime enrollmentDate;
+
+	@Column(name = "created_at")
+	private LocalDateTime createdAt = LocalDateTime.now();
 
 	@PrePersist
-	void prePersist()
+	public void prePersist()
 	{
-		if (createdAt == null)
-			createdAt = LocalDateTime.now();
-		if (updatedAt == null)
-			updatedAt = LocalDateTime.now();
+		createdAt = LocalDateTime.now();
 		if (enrollmentDate == null)
 			enrollmentDate = LocalDateTime.now();
-		if (status == null)
-			status = EnrollmentStatus.PENDING;
-	}
-
-	@PreUpdate
-	void preUpdate()
-	{
-		updatedAt = LocalDateTime.now();
 	}
 
 	// getters/setters
@@ -86,6 +80,16 @@ public class EnrollmentEntity implements java.io.Serializable
 	public void setId(Long id)
 	{
 		this.id = id;
+	}
+
+	public SchoolEntity getSchool()
+	{
+		return school;
+	}
+
+	public void setSchool(SchoolEntity school)
+	{
+		this.school = school;
 	}
 
 	public AcademicYearEntity getAcademicYear()
@@ -118,6 +122,16 @@ public class EnrollmentEntity implements java.io.Serializable
 		this.classLevel = classLevel;
 	}
 
+	public ClassroomEntity getClassroom()
+	{
+		return classroom;
+	}
+
+	public void setClassroom(ClassroomEntity classroom)
+	{
+		this.classroom = classroom;
+	}
+
 	public PaymentEntity getPayment()
 	{
 		return payment;
@@ -128,12 +142,22 @@ public class EnrollmentEntity implements java.io.Serializable
 		this.payment = payment;
 	}
 
-	public EnrollmentStatus getStatus()
+	public UserEntity getCreatedBy()
+	{
+		return createdBy;
+	}
+
+	public void setCreatedBy(UserEntity createdBy)
+	{
+		this.createdBy = createdBy;
+	}
+
+	public mz.co.sge.enumes.EnrollmentStatus getStatus()
 	{
 		return status;
 	}
 
-	public void setStatus(EnrollmentStatus status)
+	public void setStatus(mz.co.sge.enumes.EnrollmentStatus status)
 	{
 		this.status = status;
 	}
@@ -148,16 +172,6 @@ public class EnrollmentEntity implements java.io.Serializable
 		this.enrollmentDate = enrollmentDate;
 	}
 
-	public UserEntity getCreatedBy()
-	{
-		return createdBy;
-	}
-
-	public void setCreatedBy(UserEntity createdBy)
-	{
-		this.createdBy = createdBy;
-	}
-
 	public LocalDateTime getCreatedAt()
 	{
 		return createdAt;
@@ -166,25 +180,5 @@ public class EnrollmentEntity implements java.io.Serializable
 	public void setCreatedAt(LocalDateTime createdAt)
 	{
 		this.createdAt = createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt()
-	{
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(LocalDateTime updatedAt)
-	{
-		this.updatedAt = updatedAt;
-	}
-
-	public ClassroomEntity getClassroom()
-	{
-		return classroom;
-	}
-
-	public void setClassroom(ClassroomEntity classroom)
-	{
-		this.classroom = classroom;
 	}
 }
