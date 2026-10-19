@@ -24,4 +24,6 @@ public interface IUserService
 	boolean existsByUsernameAndSchoolId(String username, Long schoolId);
 
 	boolean existsByUsernameAndSchoolIdAndIdNot(String username, Long schoolId, Long id);
+
+	UserEntity authenticate(String username, String rawPassword);
 }

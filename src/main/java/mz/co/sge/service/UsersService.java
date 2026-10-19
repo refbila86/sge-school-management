@@ -19,14 +19,12 @@ public class UsersService
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	// Injeção de dependência via construtor (prática recomendada pelo Spring)
 	public UsersService(UserRepository userRepository, PasswordEncoder passwordEncoder)
 	{
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 
- 
 	public UserEntity save(UserEntity user)
 	{
 		if (user.getCreatedAt() == null)
@@ -37,51 +35,42 @@ public class UsersService
 		{
 			user.setActive(true);
 		}
-
-		// Verifica se a senha precisa ser encriptada
 		if (user.getPassword() != null && !user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$"))
 		{
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
+			user.setPassword(passwordEncoder.encode(user.getPassword().trim()));
 		}
-
 		return userRepository.save(user);
 	}
 
-	/**
-	 * Autentica o utilizador verificando username, senha e escola. Este é o método
-	 * exato que o LoginBean irá chamar.
-	 */
+	// MÉTODO CORRETO - SEM schoolId
 	public UserEntity authenticate(String username, String rawPassword, Long schoolId)
 	{
-		// LOG 1: Verificar os parâmetros que chegaram
 		System.out.println("=== DEPURANDO LOGIN ===");
-		System.out.println("Username recebido: [" + username + "]");
-		System.out.println("SchoolId recebido: [" + schoolId + "]");
+		System.out.println("Username: [" + username + "] schoolId ignorado: [" + schoolId + "]");
 
-		Optional<UserEntity> found = userRepository.findByUsernameAndSchoolId(username, schoolId);
+		Optional<UserEntity> found = userRepository.findByUsername(username);
 
 		if (found.isEmpty())
 		{
-			System.out.println("--> FALHA: Utilizador não encontrado para este Username e SchoolId no BD.");
+			System.out.println("--> FALHA: Utilizador não encontrado: " + username);
 			return null;
 		}
 
 		UserEntity user = found.get();
-		System.out.println("Utilizador encontrado no BD: ID=" + user.getId() + ", Active=" + user.getActive());
+		System.out.println("Encontrado: ID=" + user.getId() + " Active=" + user.getActive());
 
 		if (!Boolean.TRUE.equals(user.getActive()))
 		{
-			System.out.println("--> FALHA: O campo 'active' está como FALSE ou NULL no BD.");
+			System.out.println("--> FALHA: Inativo");
 			return null;
 		}
 
-		boolean passwordMatches = passwordEncoder.matches(rawPassword, user.getPassword());
-		System.out.println("Validação da Senha BCrypt: " + passwordMatches);
+		boolean matches = passwordEncoder.matches(rawPassword.trim(), user.getPassword());
+		System.out.println("Senha OK: " + matches);
 
-		if (!passwordMatches)
+		if (!matches)
 		{
-			System.out.println("--> FALHA: A senha fornecida não corresponde à Hash BCrypt do BD.");
-			System.out.println("Hash no BD: " + user.getPassword());
+			System.out.println("--> FALHA: Senha incorreta");
 			return null;
 		}
 
@@ -91,33 +80,8 @@ public class UsersService
 
 	public UserEntity authenticates(String username, String rawPassword, Long schoolId)
 	{
-
-		Optional<UserEntity> found = userRepository.findByUsernameAndSchoolId(username, schoolId);
-
-		if (found.isEmpty())
-		{
-			return null;
-		}
-
-		UserEntity user = found.get();
-
-		if (!Boolean.TRUE.equals(user.getActive()))
-		{
-			return null;
-		}
-
-		if (!passwordEncoder.matches(rawPassword, user.getPassword()))
-		{
-			return null;
-		}
-
-		user.setLastLogin(LocalDateTime.now());
-		return userRepository.save(user);
+		return authenticate(username, rawPassword, schoolId);
 	}
-
-	// =========================================================
-	// MÉTODOS AUXILIARES (Utilizados pelo UserBean para Gestão)
-	// =========================================================
 
 	@Transactional(readOnly = true)
 	public Optional<UserEntity> findById(Long id)
@@ -128,13 +92,14 @@ public class UsersService
 	@Transactional(readOnly = true)
 	public List<UserEntity> findAllBySchool(Long schoolId)
 	{
-		return userRepository.findBySchoolIdOrderByNameAsc(schoolId);
+		// retorna todos, escola ignorada
+		return userRepository.findAllByOrderByNameAsc();
 	}
 
 	@Transactional(readOnly = true)
 	public boolean usernameExists(String username, Long schoolId)
 	{
-		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
+		return userRepository.existsByUsername(username);
 	}
 
 	public void delete(Long id)

@@ -53,8 +53,7 @@ public class UserBean implements Serializable
 		user.setActive(true);
 		user.setRole(Role.ADMIN);
 		// AUTOMATICO - já associa
-		user.setSchoolId(getLoggedSchoolId());
-		user.setAcademicYearId(getCurrentAcademicYearId());
+//		user.setAcademicYearId(getCurrentAcademicYearId());
 	}
 
 	public String save()
@@ -65,11 +64,7 @@ public class UserBean implements Serializable
 			Long academicYearId = getCurrentAcademicYearId();
 
 			// FORÇA associação automática - nunca vem do form
-			user.setSchoolId(schoolId);
-			if (user.getAcademicYearId() == null)
-			{
-				user.setAcademicYearId(academicYearId);
-			}
+
 			user.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt() : LocalDateTime.now());
 
 			if (user.getName() == null || user.getName().trim().isEmpty())

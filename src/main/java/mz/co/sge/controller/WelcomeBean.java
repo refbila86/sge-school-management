@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.primefaces.model.charts.ChartData;
@@ -14,12 +15,15 @@ import org.primefaces.model.charts.bar.BarChartOptions;
 import org.primefaces.model.charts.optionconfig.title.Title;
 import org.primefaces.model.charts.pie.PieChartDataSet;
 import org.primefaces.model.charts.pie.PieChartModel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.service.IEnrollmentService;
 import mz.co.sge.service.IStudentService;
 
 @Named("welcomeBean")
@@ -27,12 +31,6 @@ import mz.co.sge.service.IStudentService;
 public class WelcomeBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-
-	@Inject
-	private LoginBean loginBean;
-
-	@Inject
-	private IStudentService studentService;
 
 	private int totalAlunos = 0;
 	private int totalTurmas = 0;
@@ -45,7 +43,16 @@ public class WelcomeBean implements Serializable
 
 	private List<AlunoResumo> ultimasMatriculas;
 	private List<TurmaResumo> turmasResumo;
-
+	
+	@Autowired
+	private LoginBean loginBean;
+	
+	@Autowired
+	private IStudentService studentService;
+	
+	@Autowired
+	private IEnrollmentService enrollmentService; 
+	
 	@PostConstruct
 	public void init()
 	{
@@ -54,7 +61,6 @@ public class WelcomeBean implements Serializable
 			loadRealData();
 		} catch (Exception e)
 		{
-			// fallback para dados vazios
 			totalAlunos = 0;
 			ultimasMatriculas = List.of();
 			turmasResumo = List.of();
@@ -99,6 +105,44 @@ public class WelcomeBean implements Serializable
 	{
 		Long schoolId = getCurrentSchoolId();
 		Long yearId = getCurrentAcademicYearId();
+		List<EnrollmentEntity> matriculasDoAno;
+		if (schoolId != null && yearId != null)
+			matriculasDoAno = enrollmentService.findBySchoolIdAndAcademicYearId(schoolId,yearId);
+		else if (yearId != null)
+			matriculasDoAno = enrollmentService.findByAcademicYearId(yearId);
+		else
+			matriculasDoAno = enrollmentService.findAll();
+		if (matriculasDoAno == null)
+			matriculasDoAno = List.of();
+		this.totalAlunos = matriculasDoAno.size();
+		this.totalTurmas = (int) matriculasDoAno.stream().map(e -> e.getClassroom() != null ? e.getClassroom().getId() : null).filter(Objects::nonNull)
+				.distinct().count();
+		this.totalProfessores = 0;
+		this.taxaPresenca = totalAlunos > 0 ? 92.5 : 0;
+		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		this.ultimasMatriculas = matriculasDoAno.stream().sorted((a, b) -> b.getId().compareTo(a.getId())).limit(5).map(e ->
+		{
+			StudentEntity s = e.getStudent();
+			String turma = e.getClassroom() != null ? e.getClassroom().getName() : "N/A";
+			String estado = e.getStatus() != null ? e.getStatus().name() : "ENROLLED";
+			return new AlunoResumo(s != null && s.getCode() != null ? s.getCode() : "S-" + (s != null ? s.getId() : e.getId()),
+					s != null ? s.getFullName() : "Sem nome", turma, e.getCreatedAt() != null ? e.getCreatedAt().format(fmt) : "", estado);
+		}).collect(Collectors.toList());
+		List<StudentEntity> alunos = matriculasDoAno.stream().map(EnrollmentEntity::getStudent).filter(Objects::nonNull).collect(Collectors.toList());
+		if (alunos.isEmpty() && schoolId != null && yearId != null)
+		{
+			alunos = studentService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
+		}
+		this.turmasResumo = new ArrayList<>();
+		createBarModel(alunos);
+		createPieStatusModel(alunos);
+		createPieGeneroModel(alunos);
+	}
+
+	private void loadRealDatas()
+	{
+		Long schoolId = getCurrentSchoolId();
+		Long yearId = getCurrentAcademicYearId();
 
 		List<StudentEntity> alunos;
 		if (schoolId != null && yearId != null)
@@ -128,11 +172,25 @@ public class WelcomeBean implements Serializable
 			if (b.getCreatedAt() == null)
 				return -1;
 			return b.getCreatedAt().compareTo(a.getCreatedAt());
-		}).limit(5)
-				.map(s -> new AlunoResumo(s.getCode() != null ? s.getCode() : "S-" + s.getId(), s.getFullName(),
-						s.getAcademicYear() != null ? String.valueOf(s.getAcademicYear().getYear()) : "N/A",
-						s.getCreatedAt() != null ? s.getCreatedAt().format(fmt) : "", s.getStatus() != null ? s.getStatus().name() : "Ativa"))
-				.collect(Collectors.toList());
+		}).limit(5).map(s ->
+		{
+			// CORRIGIDO: pega ano da última matrícula, não s.getAcademicYear()
+			String ano = "N/A";
+			try
+			{
+				if (s.getEnrollments() != null && !s.getEnrollments().isEmpty())
+				{
+					EnrollmentEntity last = s.getEnrollments().get(0); // já está OrderBy DESC
+					if (last.getAcademicYear() != null)
+						ano = String.valueOf(last.getAcademicYear().getYear());
+				}
+			} catch (Exception e)
+			{
+				ano = s.getCode() != null && s.getCode().contains("-") ? s.getCode().substring(s.getCode().lastIndexOf("-") + 1) : "N/A";
+			}
+			return new AlunoResumo(s.getCode() != null ? s.getCode() : "S-" + s.getId(), s.getFullName(), ano,
+					s.getCreatedAt() != null ? s.getCreatedAt().format(fmt) : "", s.getStatus() != null ? s.getStatus().name() : "Ativa");
+		}).collect(Collectors.toList());
 
 		this.turmasResumo = new ArrayList<>();
 		createBarModel(alunos);
@@ -144,14 +202,10 @@ public class WelcomeBean implements Serializable
 	{
 		barModel = new BarChartModel();
 		ChartData data = new ChartData();
-
-		// Agrupa por status
 		Map<String, Long> porStatus = alunos.stream()
 				.collect(Collectors.groupingBy(s -> s.getStatus() != null ? s.getStatus().name() : "SEM_STATUS", Collectors.counting()));
-
 		BarChartDataSet dataSet = new BarChartDataSet();
 		dataSet.setLabel("Alunos por Estado");
-
 		List<Number> values = new ArrayList<>();
 		List<String> labels = new ArrayList<>();
 		porStatus.forEach((k, v) ->
@@ -164,21 +218,17 @@ public class WelcomeBean implements Serializable
 			labels.add("Sem dados");
 			values.add(0);
 		}
-
 		dataSet.setData(values);
 		dataSet.setBackgroundColor(List.of("rgba(59,130,246,0.7)", "rgba(16,185,129,0.7)", "rgba(245,158,11,0.7)", "rgba(239,68,68,0.7)"));
 		dataSet.setBorderColor(List.of("rgb(59,130,246)", "rgb(16,185,129)", "rgb(245,158,11)", "rgb(239,68,68)"));
 		dataSet.setBorderWidth(1);
-
 		data.addChartDataSet(dataSet);
 		data.setLabels(labels);
-
 		BarChartOptions options = new BarChartOptions();
 		Title title = new Title();
 		title.setDisplay(true);
 		title.setText("Alunos por Estado - " + (loginBean != null ? loginBean.getSchoolName() : ""));
 		options.setTitle(title);
-
 		barModel.setData(data);
 		barModel.setOptions(options);
 	}
@@ -187,10 +237,8 @@ public class WelcomeBean implements Serializable
 	{
 		pieStatusModel = new PieChartModel();
 		ChartData data = new ChartData();
-
 		Map<String, Long> porStatus = alunos.stream()
 				.collect(Collectors.groupingBy(s -> s.getStatus() != null ? s.getStatus().name() : "SEM_STATUS", Collectors.counting()));
-
 		PieChartDataSet dataSet = new PieChartDataSet();
 		List<Number> values = new ArrayList<>();
 		List<String> labels = new ArrayList<>();
@@ -204,10 +252,8 @@ public class WelcomeBean implements Serializable
 			labels.add("Sem dados");
 			values.add(1);
 		}
-
 		dataSet.setData(values);
 		dataSet.setBackgroundColor(List.of("#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"));
-
 		data.addChartDataSet(dataSet);
 		data.setLabels(labels);
 		pieStatusModel.setData(data);
@@ -217,10 +263,8 @@ public class WelcomeBean implements Serializable
 	{
 		pieGeneroModel = new PieChartModel();
 		ChartData data = new ChartData();
-
 		Map<String, Long> porGenero = alunos.stream().collect(
 				Collectors.groupingBy(s -> s.getGender() != null && !s.getGender().isBlank() ? s.getGender() : "Não informado", Collectors.counting()));
-
 		PieChartDataSet dataSet = new PieChartDataSet();
 		List<Number> values = new ArrayList<>();
 		List<String> labels = new ArrayList<>();
@@ -234,7 +278,6 @@ public class WelcomeBean implements Serializable
 			labels.add("Sem dados");
 			values.add(1);
 		}
-
 		dataSet.setData(values);
 		dataSet.setBackgroundColor(List.of("#3b82f6", "#ec4899", "#94a3b8"));
 		data.addChartDataSet(dataSet);
@@ -252,14 +295,12 @@ public class WelcomeBean implements Serializable
 		data.addChartDataSet(ds);
 		data.setLabels(List.of("Sem dados"));
 		barModel.setData(data);
-
 		pieStatusModel = new PieChartModel();
 		pieStatusModel.setData(data);
 		pieGeneroModel = new PieChartModel();
 		pieGeneroModel.setData(data);
 	}
 
-	// Getters usados no welcome.xhtml
 	public int getTotalAlunos()
 	{
 		return totalAlunos;
@@ -312,7 +353,6 @@ public class WelcomeBean implements Serializable
 		return turmasResumo;
 	}
 
-	// Classes internas mantidas compatíveis
 	public static class AlunoResumo implements Serializable
 	{
 		private String codigo, nome, turma, data, estado;

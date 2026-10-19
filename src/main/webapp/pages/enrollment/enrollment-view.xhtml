@@ -84,11 +84,195 @@
 	justify-content: space-between;
 	align-items: center
 }
+
+/* ===== IMPRESSÃO A4 ===== */
+@page {
+	size: A4 portrait;
+	margin: 15mm;
+}
+
+@media screen {
+	#printSheet {
+		display: none;
+	}
+}
+
+@media print {
+	body * {
+		visibility: hidden;
+	}
+	#printSheet, #printSheet * {
+		visibility: visible;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+	#printSheet {
+		display: block;
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		font-family: 'Segoe UI', Arial, sans-serif;
+		color: #0f172a;
+	}
+	.ps-banner {
+		background: linear-gradient(135deg, #0a2540 0%, #1e40af 100%);
+		color: #fff;
+		border-radius: 14px;
+		padding: 18px 22px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.ps-banner .t1 {
+		font-size: 20px;
+		font-weight: 800;
+		letter-spacing: .3px;
+	}
+	.ps-banner .t2 {
+		font-size: 11px;
+		opacity: .85;
+		margin-top: 3px;
+	}
+	.ps-year {
+		background: #16a34a;
+		color: #fff;
+		font-weight: 800;
+		font-size: 14px;
+		padding: 8px 16px;
+		border-radius: 999px;
+	}
+	.ps-student {
+		margin: 16px 0;
+		border: 1px solid #dbeafe;
+		background: #eff6ff;
+		border-radius: 14px;
+		padding: 14px 18px;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
+	.ps-avatar {
+		width: 52px;
+		height: 52px;
+		border-radius: 14px;
+		background: #0a2540;
+		color: #fff;
+		font-size: 22px;
+		font-weight: 800;
+		text-align: center;
+		line-height: 52px;
+		flex: none;
+	}
+	.ps-student .name {
+		font-size: 16px;
+		font-weight: 800;
+	}
+	.ps-student .meta {
+		font-size: 11.5px;
+		color: #475569;
+		margin-top: 3px;
+		line-height: 1.6;
+	}
+	.ps-table {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
+		font-size: 12px;
+		border: 1px solid #e2e8f0;
+		border-radius: 12px;
+		overflow: hidden;
+	}
+	.ps-table th {
+		background: #0a2540;
+		color: #fff;
+		text-align: left;
+		padding: 10px 12px;
+		font-size: 10.5px;
+		text-transform: uppercase;
+		letter-spacing: .4px;
+	}
+	.ps-table td {
+		padding: 9px 12px;
+		border-top: 1px solid #e2e8f0;
+	}
+	.ps-table tbody tr:nth-child(even) td {
+		background: #f8fafc;
+	}
+	.ps-table tr {
+		page-break-inside: avoid;
+	}
+	.ps-ref {
+		font-family: 'Courier New', monospace;
+		font-weight: 700;
+		font-size: 11px;
+		background: #eff6ff;
+		color: #1e3a8a;
+		padding: 3px 8px;
+		border-radius: 6px;
+	}
+	.ps-box {
+		width: 14px;
+		height: 14px;
+		border: 1.5px solid #64748b;
+		border-radius: 3px;
+		display: inline-block;
+	}
+	.ps-total {
+		margin-top: 14px;
+		background: #f0fdf4;
+		border: 2px solid #16a34a;
+		border-radius: 12px;
+		padding: 12px 18px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.ps-total .lbl {
+		font-size: 11px;
+		text-transform: uppercase;
+		color: #166534;
+		font-weight: 700;
+	}
+	.ps-total .val {
+		font-size: 22px;
+		font-weight: 800;
+		color: #166534;
+	}
+	.ps-note {
+		margin-top: 14px;
+		font-size: 11px;
+		color: #475569;
+		line-height: 1.6;
+		border-left: 4px solid #3b82f6;
+		padding: 6px 12px;
+		background: #f8fafc;
+	}
+	.ps-sign {
+		margin-top: 46px;
+		display: flex;
+		justify-content: space-between;
+		gap: 40px;
+	}
+	.ps-sign div {
+		flex: 1;
+		border-top: 1px solid #0f172a;
+		text-align: center;
+		font-size: 11px;
+		padding-top: 6px;
+		color: #475569;
+	}
+	.ps-foot {
+		margin-top: 22px;
+		text-align: center;
+		font-size: 10px;
+		color: #94a3b8;
+	}
+}
 </style>
 
 	<h:form id="formView">
 		<p:growl id="growl" showDetail="true" />
-
 		<div class="page-header">
 			<div class="page-title">
 				<p:commandButton icon="pi pi-arrow-left"
@@ -129,7 +313,6 @@
 				</div>
 			</div>
 
-			<!-- CONFIG SIMPLES -->
 			<div
 				style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
 				<div style="display: flex; align-items: center; gap: 10px">
@@ -192,7 +375,6 @@
 				</div>
 			</div>
 
-			<!-- GRELHA SIMPLES NAO EDITAVEL -->
 			<h:panelGroup id="monthlyPanel" layout="block">
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
@@ -210,11 +392,11 @@
 									<div
 										style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px">#{fee.month}</div>
 									<div>
-										<b style="font-size: 13px">#{fee.monthLabel}</b><br />
-										<span style="font-size: 10px; color: #64748b">#{fee.year}</span>
+										<b style="font-size: 13px">#{fee.monthLabel}</b><br /> <span
+											style="font-size: 10px; color: #64748b">#{fee.year}</span>
 									</div>
 								</div>
-								<span class="ref-badge">#{fee.reference}</span> <b
+								<span class="ref-badge">#{fee.reference}</span><b
 									style="font-size: 13px; color: #0a2540">#{fee.amount} MT</b>
 								<div style="display: flex; align-items: center; gap: 6px">
 									<i class="pi pi-calendar" style="color: #2563eb" /><span
@@ -240,6 +422,85 @@
 			</h:panelGroup>
 
 			<h:panelGroup id="totalBar" layout="block">
+
+				<!-- Folha de impressão A4 (visível só ao imprimir) -->
+				<h:panelGroup
+					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
+					layout="block">
+					<div id="printSheet">
+						<div class="ps-banner">
+							<div>
+								<div class="t1">Referências de Mensalidade</div>
+								<div class="t2">Plano de pagamentos do ano lectivo</div>
+							</div>
+							<div class="ps-year">Ano lectivo:
+								#{enrollmentBean.selected.academicYear.year}</div>
+						</div>
+
+						<div class="ps-student">
+							<div class="ps-avatar">#{enrollmentBean.selected.student.firstName.substring(0,1).toUpperCase()}</div>
+							<div>
+								<div class="name">#{enrollmentBean.selected.student.fullName}</div>
+								<div class="meta">
+									Código do estudante: <b>#{enrollmentBean.selected.student.code}</b>
+									&#160;•&#160; Matrícula: <b>##{enrollmentBean.selected.id}</b><br />
+									Turma: <b>#{enrollmentBean.selected.classroom.name}</b>
+									&#160;•&#160; Ano lectivo: <b>#{enrollmentBean.selected.academicYear.year}</b>
+								</div>
+							</div>
+						</div>
+
+						<table class="ps-table">
+							<thead>
+								<tr>
+									<th>Mês</th>
+									<th>Referência</th>
+									<th>Valor</th>
+									<th>Data limite</th>
+									<th style="text-align: center">Pago</th>
+								</tr>
+							</thead>
+							<tbody>
+								<ui:repeat value="#{enrollmentBean.generatedMonthlyFees}"
+									var="fee">
+									<tr>
+										<td><b>#{fee.monthLabel}</b></td>
+										<td><span class="ps-ref">#{fee.reference}</span></td>
+										<td><b>#{fee.amount} MT</b></td>
+										<td><h:outputText value="#{fee.dueDate}">
+												<f:convertDateTime pattern="dd/MM/yyyy" />
+											</h:outputText></td>
+										<td style="text-align: center"><span class="ps-box"></span></td>
+									</tr>
+								</ui:repeat>
+							</tbody>
+						</table>
+
+						<div class="ps-total">
+							<div>
+								<div class="lbl">Total a pagar
+									(#{enrollmentBean.generatedMonthlyFees.size()} meses)</div>
+							</div>
+							<div class="val">#{enrollmentBean.totalAmount} MT</div>
+						</div>
+
+						<div class="ps-note">
+							<b>Importante:</b> indique sempre a <b>referência</b> do mês no
+							momento do pagamento e pague até à <b>data limite</b>. Guarde o
+							comprovativo.
+						</div>
+
+						<div class="ps-sign">
+							<div>Encarregado de Educação</div>
+							<div>Secretaria</div>
+						</div>
+
+						<div class="ps-foot">
+							Emitido em <span id="psDate"></span>
+						</div>
+					</div>
+				</h:panelGroup>
+
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
 					layout="block">
@@ -266,6 +527,8 @@
 								action="#{monthlyFeeBean.saveMonthlyReferences}"
 								update=":formView:growl" />
 							<p:commandButton value="Imprimir" icon="pi pi-print"
+								type="button"
+								onclick="document.getElementById('psDate').textContent=new Date().toLocaleDateString('pt-PT'); window.print(); return false;"
 								styleClass="ui-button-secondary" style="border-radius:12px" />
 						</div>
 					</div>

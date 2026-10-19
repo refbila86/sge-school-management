@@ -14,7 +14,6 @@ import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.GuardianEntity;
-import mz.co.sge.entity.SchoolEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.StudentStatus;
 import mz.co.sge.service.IAcademicYearService;
@@ -36,7 +35,7 @@ public class StudentBean implements Serializable
 	@Autowired
 	private transient LoginBean loginBean;
 	@Autowired
-	private transient DashboardBean dashboardBean; // <--- ADICIONA ISSO PRA NÃO PERDER ESTRUTURA
+	private transient DashboardBean dashboardBean;
 
 	private List<StudentEntity> students;
 	private List<StudentEntity> filteredStudents;
@@ -46,28 +45,22 @@ public class StudentBean implements Serializable
 	private StudentEntity student = new StudentEntity();
 	private StudentEntity selectedStudent;
 	private Long selectedGuardianId;
-	private Long selectedAcademicYearId;
-	private GuardianEntity selectedGuardianEntity; // <--- FALTAVA - CAUSA DO TEU ERRO
+	private GuardianEntity selectedGuardianEntity;
 	private List<StudentEntity> studentsOfSelectedGuardian = new ArrayList<>();
 	private boolean editing = false;
 	private String filterTerm;
 	private String searchTerm;
 	private GuardianEntity quickGuardian = new GuardianEntity();
-	Long schoolId = getCurrentSchoolId();
 	private AcademicYearEntity currentAcademicYear;
-
-	public StudentBean()
-	{
-	}
+	private Long selectedAcademicYearId;
 
 	@PostConstruct
 	public void init()
 	{
-		loadCurrentAcademicYear(); // tem que ser primeiro
+		loadCurrentAcademicYear();
 		loadAcademicYears();
 		loadGuardians();
 		loadStudents();
-
 	}
 
 	public void loadCurrentAcademicYear()
@@ -75,29 +68,20 @@ public class StudentBean implements Serializable
 		try
 		{
 			Long yearId = getCurrentAcademicYearId();
-
 			if (yearId == null)
 			{
 				Object objId = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
 				if (objId != null)
-				{
 					yearId = objId instanceof Long ? (Long) objId : Long.valueOf(objId.toString());
-				}
 			}
-
 			if (yearId != null)
 			{
 				currentAcademicYear = academicYearService.findByYearId(yearId);
 				this.selectedAcademicYearId = yearId;
-			} else
-			{
-				currentAcademicYear = null;
-				this.selectedAcademicYearId = null;
 			}
 		} catch (Exception e)
 		{
 			e.printStackTrace();
-			currentAcademicYear = null;
 		}
 	}
 
@@ -119,24 +103,8 @@ public class StudentBean implements Serializable
 	{
 		try
 		{
-			Long currentYearId = getCurrentAcademicYearId();
-			Long currentSchoolId = getCurrentSchoolId();
-
-			if (currentYearId == null)
-			{
-				this.students = new ArrayList<>();
-				return;
-			}
-
-			List<StudentEntity> baseList;
-
-			if (currentSchoolId != null)
-			{
-				baseList = studentService.findBySchoolIdAndAcademicYearId(currentSchoolId, currentYearId);
-			} else
-			{
-				baseList = studentService.findByAcademicYearId(currentYearId);
-			}
+			// AGORA ALUNO É GLOBAL - não filtra mais por escola/ano na tabela students
+			List<StudentEntity> baseList = studentService.getAllStudents();
 
 			if (baseList == null)
 				baseList = new ArrayList<>();
@@ -158,6 +126,7 @@ public class StudentBean implements Serializable
 			{
 				this.students = baseList;
 			}
+			System.out.println("Alunos carregados: " + this.students.size());
 		} catch (Exception e)
 		{
 			e.printStackTrace();
@@ -192,42 +161,22 @@ public class StudentBean implements Serializable
 		{
 			Long yearId = getCurrentAcademicYearId();
 			if (yearId == null)
-			{
 				throw new IllegalArgumentException("Selecione o ano letivo no login");
-			}
 
-			// GARANTE ANO LETIVO - era isso que faltava
 			if (quickGuardian.getAcademicYear() == null)
 			{
 				AcademicYearEntity year = currentAcademicYear;
 				if (year == null || !year.getId().equals(yearId))
-				{
 					year = academicYearService.findByYearId(yearId);
-				}
 				quickGuardian.setAcademicYear(year);
 			}
 
-			// Se tua entidade Guardian tem school também obrigatório
-//			if (quickGuardian.getSchool() == null)
-//			{
-//				Long schoolId = getCurrentSchoolId();
-//				if (schoolId != null)
-//				{
-//					SchoolEntity sch = new SchoolEntity();
-//					sch.setId(schoolId);
-//					quickGuardian.setSchool(sch);
-//				}
-//			}
-
 			guardianService.createGuardian(quickGuardian);
-
 			this.guardians = guardianService.getAllGuardians();
 			this.selectedGuardianId = quickGuardian.getId();
 			this.selectedGuardianEntity = quickGuardian;
 			onGuardianChange();
-
 			this.quickGuardian = new GuardianEntity();
-
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Encarregado criado com sucesso!"));
 		} catch (Exception e)
 		{
@@ -240,7 +189,6 @@ public class StudentBean implements Serializable
 	{
 		if (loginBean != null && loginBean.getAcademicYearId() != null)
 			return loginBean.getAcademicYearId();
-
 		try
 		{
 			Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
@@ -249,7 +197,6 @@ public class StudentBean implements Serializable
 		} catch (Exception ignored)
 		{
 		}
-
 		return selectedAcademicYearId;
 	}
 
@@ -268,18 +215,12 @@ public class StudentBean implements Serializable
 		String term = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm : filterTerm;
 		List<GuardianEntity> all = guardianService.getAllGuardians();
 		if (all == null)
-			all = new java.util.ArrayList<>();
-
+			all = new ArrayList<>();
 		if (term != null && !term.isBlank())
 		{
 			String t = term.toLowerCase().trim();
-			this.guardians = all.stream()
-					.filter(g -> (g.getCode() != null && g.getCode().toLowerCase().contains(t))
-							|| (g.getFirstName() != null && g.getFirstName().toLowerCase().contains(t))
-							|| (g.getLastName() != null && g.getLastName().toLowerCase().contains(t))
-							|| (g.getFullName() != null && g.getFullName().toLowerCase().contains(t)) || (g.getPhone() != null && g.getPhone().contains(t))
-							|| (g.getRelationship() != null && g.getRelationship().toLowerCase().contains(t)))
-					.collect(Collectors.toList());
+			this.guardians = all.stream().filter(g -> (g.getCode() != null && g.getCode().toLowerCase().contains(t))
+					|| (g.getFullName() != null && g.getFullName().toLowerCase().contains(t))).collect(Collectors.toList());
 		} else
 		{
 			this.guardians = all;
@@ -291,7 +232,6 @@ public class StudentBean implements Serializable
 		this.academicYears = academicYearService.getAllAcademicYears();
 	}
 
-	// CHAMADO PELO POPUP QUANDO CRIA ENCARREGADO
 	public void refreshGuardians()
 	{
 		loadGuardians();
@@ -316,7 +256,6 @@ public class StudentBean implements Serializable
 		this.student = new StudentEntity();
 		this.selectedGuardianId = null;
 		this.selectedGuardianEntity = null;
-		this.selectedAcademicYearId = loginBean != null ? loginBean.getAcademicYearId() : null;
 		this.studentsOfSelectedGuardian = new ArrayList<>();
 		this.editing = false;
 	}
@@ -348,9 +287,8 @@ public class StudentBean implements Serializable
 	{
 		this.student = s;
 		this.selectedGuardianId = s.getGuardian() != null ? s.getGuardian().getId() : null;
-		this.selectedAcademicYearId = s.getAcademicYear() != null ? s.getAcademicYear().getId() : getCurrentAcademicYearId();
 		this.editing = true;
-		onGuardianChange(); // carrega entidade e outros alunos
+		onGuardianChange();
 	}
 
 	public void prepareView(StudentEntity s)
@@ -379,15 +317,13 @@ public class StudentBean implements Serializable
 		}
 	}
 
-	// CORRIGIDO - SEM REDIRECT PRA NÃO QUEBRAR O LAYOUT
 	public void save()
 	{
 		try
 		{
 			saveInternal();
 			loadStudents();
-			addMessage("Sucesso", "Estudante " + student.getFullName() + " gravado com sucesso");
-			// VOLTA PRA LISTA MANTENDO ESTRUTURA
+			addMessage("Sucesso", "Estudante " + student.getFullName() + " (" + student.getCode() + ") gravado");
 			dashboardBean.navigate("student/student-list", "alunos");
 		} catch (Exception e)
 		{
@@ -395,15 +331,14 @@ public class StudentBean implements Serializable
 		}
 	}
 
-	// Mantive o saves() mas sem redirect, pra compatibilidade
 	public String saves()
 	{
 		try
 		{
 			saveInternal();
 			loadStudents();
-			addMessage(editing ? "Atualizado" : "Criado", "Estudante " + student.getFullName());
-			return null; // NÃO FAZ REDIRECT
+			addMessage(editing ? "Atualizado" : "Criado", "Estudante " + student.getFullName() + " - " + student.getCode());
+			return null;
 		} catch (Exception e)
 		{
 			addMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage());
@@ -411,72 +346,18 @@ public class StudentBean implements Serializable
 		}
 	}
 
+	// CORRIGIDO: SEM academicYear e SEM school no Student
 	private void saveInternal()
 	{
 		if (selectedGuardianId == null)
-			throw new IllegalArgumentException("Deve indicar o encarregado - campo obrigatório.");
-		if (selectedAcademicYearId == null)
-			selectedAcademicYearId = getCurrentAcademicYearId();
-		if (selectedAcademicYearId == null)
-			throw new IllegalArgumentException("Deve indicar o Ano Letivo.");
-
-		Long currentSchoolId = getCurrentSchoolId();
-		if (currentSchoolId == null)
-		{
-			throw new IllegalArgumentException("Sessão expirada: School não selecionado no login. Faça login novamente.");
-		}
+			throw new IllegalArgumentException("Deve indicar o encarregado");
 
 		GuardianEntity guardian = guardianService.getGuardianById(selectedGuardianId)
 				.orElseThrow(() -> new IllegalArgumentException("Encarregado não encontrado: " + selectedGuardianId));
 
-		AcademicYearEntity academicYear = academicYears.stream().filter(ay -> ay.getId().equals(selectedAcademicYearId)).findFirst()
-				.orElseGet(() -> academicYearService.getAcademicYearById(selectedAcademicYearId)
-						.orElseThrow(() -> new IllegalArgumentException("Ano Letivo não encontrado")));
-
 		student.setGuardian(guardian);
-		student.setAcademicYear(academicYear);
-
-		if (student.getSchool() == null || !currentSchoolId.equals(student.getSchool().getId()))
-		{
-			SchoolEntity sch = new SchoolEntity();
-			sch.setId(currentSchoolId);
-			student.setSchool(sch);
-		}
-
-		if (editing)
-			studentService.updateStudent(student);
-		else
-			studentService.registerStudent(student, selectedGuardianId);
-	}
-
-	private void saveInternalGuardian()
-	{
-		if (selectedGuardianId == null)
-			throw new IllegalArgumentException("Deve indicar o encarregado - campo obrigatório.");
-		if (selectedAcademicYearId == null)
-			selectedAcademicYearId = getCurrentAcademicYearId();
-		if (selectedAcademicYearId == null)
-			throw new IllegalArgumentException("Deve indicar o Ano Letivo.");
-
-		GuardianEntity guardian = guardianService.getGuardianById(selectedGuardianId)
-				.orElseThrow(() -> new IllegalArgumentException("Encarregado não encontrado: " + selectedGuardianId));
-
-		AcademicYearEntity academicYear = academicYears.stream().filter(ay -> ay.getId().equals(selectedAcademicYearId)).findFirst()
-				.orElseGet(() -> academicYearService.getAcademicYearById(selectedAcademicYearId)
-						.orElseThrow(() -> new IllegalArgumentException("Ano Letivo não encontrado")));
-
-		student.setGuardian(guardian);
-		student.setAcademicYear(academicYear);
-
-		if (schoolId != null)
-		{
-			if (student.getSchool() == null || !schoolId.equals(student.getSchool().getId()))
-			{
-				SchoolEntity sch = new SchoolEntity();
-				sch.setId(schoolId);
-				student.setSchool(sch);
-			}
-		}
+		// REMOVIDO: student.setAcademicYear e student.setSchool
+		// Aluno é cadastro único, ano e escola ficam na Enrollment
 
 		if (editing)
 			studentService.updateStudent(student);

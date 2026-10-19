@@ -25,7 +25,6 @@ public class PaymentServiceImpl implements IPaymentService
 
 	@PersistenceContext
 	private EntityManager em;
-
 	@Autowired
 	private IPaymentRepository paymentRepository;
 
@@ -33,8 +32,22 @@ public class PaymentServiceImpl implements IPaymentService
 	@Transactional
 	public PaymentEntity createWithItems(PaymentEntity payment, List<PaymentItemEntity> cart)
 	{
-		BigDecimal total = cart.stream().map(i -> i.getSubtotal() != null ? i.getSubtotal() : (i.getValor() != null ? i.getValor() : BigDecimal.ZERO))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		// BLOQUEIO DE DUPLICIDADE
+		for (PaymentItemEntity it : cart)
+		{
+			String desc = it.getDescricao().toLowerCase();
+			if (desc.contains("inscri") && hasPaid(payment.getStudent().getId(), payment.getAcademicYear().getId(), payment.getSchool().getId(), "inscri"))
+			{
+				throw new IllegalStateException("Aluno já pagou INSCRIÇÃO em " + payment.getAcademicYear().getYear());
+			}
+			if (desc.contains("matric") && hasPaid(payment.getStudent().getId(), payment.getAcademicYear().getId(), payment.getSchool().getId(), "matric"))
+			{
+				throw new IllegalStateException("Aluno já pagou MATRÍCULA em " + payment.getAcademicYear().getYear());
+			}
+		}
+
+		BigDecimal total = cart.stream().map(i -> i.getSubtotal() != null ? i.getSubtotal() : i.getValor()).reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		payment.setTotalAmount(total);
 		payment.setItems(new ArrayList<>());
@@ -44,81 +57,12 @@ public class PaymentServiceImpl implements IPaymentService
 			PaymentItemEntity newItem = new PaymentItemEntity();
 			newItem.setDescricao(it.getDescricao());
 			newItem.setValor(it.getValor());
-			newItem.setSubtotal(it.getSubtotal());
 			newItem.setQuantidade(it.getQuantidade() != null ? it.getQuantidade() : BigDecimal.ONE);
+			newItem.calc();
 			newItem.setPayment(payment);
 
-			FeeItemEntity feeItem = null;
-
-			// 1. Se veio com ID do cart
-			if (it.getFeeItem() != null && it.getFeeItem().getId() != null)
-			{
-				feeItem = em.find(FeeItemEntity.class, it.getFeeItem().getId());
-			}
-
-			// 2. Busca por descricao usando a NamedQuery que já existe
-			if (feeItem == null && it.getDescricao() != null)
-			{
-				try
-				{
-					List<FeeItemEntity> list = em.createNamedQuery("FeeItem.findByDescricao", FeeItemEntity.class)
-							.setParameter("schoolId", payment.getSchool() != null ? payment.getSchool().getId() : 1L)
-							.setParameter("yearId", payment.getAcademicYear() != null ? payment.getAcademicYear().getId() : 1L)
-							.setParameter("term", it.getDescricao().trim()).setMaxResults(1).getResultList();
-					if (!list.isEmpty())
-						feeItem = list.get(0);
-				} catch (Exception e)
-				{
-					// fallback direto por descricao LIKE
-					try
-					{
-						List<FeeItemEntity> list2 = em
-								.createQuery("SELECT f FROM FeeItemEntity f WHERE LOWER(f.descricao) LIKE LOWER(:desc)", FeeItemEntity.class)
-								.setParameter("desc", "%" + it.getDescricao().trim() + "%").setMaxResults(1).getResultList();
-						if (!list2.isEmpty())
-							feeItem = list2.get(0);
-					} catch (Exception ignore)
-					{
-					}
-				}
-			}
-
-			// 3. Último fallback - busca ID 1,2,3,4 que tu mostraste
-			if (feeItem == null && it.getDescricao() != null)
-			{
-				String upper = it.getDescricao().toUpperCase();
-				try
-				{
-					Long idFallback = null;
-					if (upper.contains("INSCRI"))
-						idFallback = 1L;
-					else if (upper.contains("MATRIC"))
-						idFallback = 2L;
-					else if (upper.contains("5") || upper.contains("1ª"))
-						idFallback = 3L;
-					else if (upper.contains("6"))
-						idFallback = 4L;
-					if (idFallback != null)
-						feeItem = em.find(FeeItemEntity.class, idFallback);
-				} catch (Exception ignore)
-				{
-				}
-			}
-
-			if (feeItem == null)
-			{
-				throw new RuntimeException("FeeItem não encontrado para item: " + it.getDescricao() + " - verifica se existe na tabela fee_items");
-			}
-
+			FeeItemEntity feeItem = resolveFeeItem(it, payment.getSchool().getId(), payment.getAcademicYear().getId());
 			newItem.setFeeItem(feeItem);
-			// garante que descricao e valor vêm do FeeItem se estiverem vazios
-			if (newItem.getDescricao() == null)
-				newItem.setDescricao(feeItem.getDescricao());
-			if (newItem.getValor() == null)
-				newItem.setValor(feeItem.getValor());
-			if (newItem.getSubtotal() == null)
-				newItem.calc();
-
 			payment.getItems().add(newItem);
 		}
 
@@ -128,35 +72,96 @@ public class PaymentServiceImpl implements IPaymentService
 		return payment;
 	}
 
-	public PaymentEntity updateWithItemsS(Long paymentId, List<PaymentItemEntity> cart, PaymentMethod method, String ref)
+	private FeeItemEntity resolveFeeItem(PaymentItemEntity it, Long schoolId, Long yearId)
 	{
-		PaymentEntity managed = paymentRepository.findWithItems(paymentId).orElseThrow(() -> new RuntimeException("Pagamento não encontrado"));
-
-		BigDecimal total = cart.stream().map(PaymentItemEntity::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-
-		managed.setTotalAmount(total);
-		managed.setMethod(method);
-		managed.setReference(ref);
-
-		managed.getItems().clear();
-		em.flush();
-
-		for (PaymentItemEntity it : cart)
+		if (it.getFeeItem() != null && it.getFeeItem().getId() != null)
 		{
-			PaymentItemEntity newItem = new PaymentItemEntity();
-			newItem.setDescricao(it.getDescricao());
-			newItem.setValor(it.getValor());
-			newItem.setSubtotal(it.getSubtotal());
-			newItem.setQuantidade(it.getQuantidade());
-			newItem.setPayment(managed);
-			managed.getItems().add(newItem);
+			FeeItemEntity f = em.find(FeeItemEntity.class, it.getFeeItem().getId());
+			if (f != null)
+				return f;
 		}
+		// busca por descrição aproximada
+		List<FeeItemEntity> list = em
+				.createQuery(
+						"SELECT f FROM FeeItemEntity f WHERE f.school.id=:s AND f.academicYear.id=:y AND LOWER(f.descricao) LIKE LOWER(CONCAT('%',:d,'%'))",
+						FeeItemEntity.class)
+				.setParameter("s", schoolId).setParameter("y", yearId).setParameter("d", it.getDescricao().trim()).setMaxResults(1).getResultList();
+		if (!list.isEmpty())
+			return list.get(0);
 
-		return em.merge(managed);
+		// fallback IDs fixos
+		String u = it.getDescricao().toUpperCase();
+		if (u.contains("INSCRI"))
+			return em.find(FeeItemEntity.class, 1L);
+		if (u.contains("MATRIC"))
+			return em.find(FeeItemEntity.class, 2L);
+		throw new RuntimeException("FeeItem não encontrado: " + it.getDescricao());
 	}
 
 	@Override
 	@Transactional(readOnly = true)
+	public boolean hasPaid(Long studentId, Long yearId, Long schoolId, String keyword)
+	{
+		return paymentRepository.existsFeeByKeyword(studentId, yearId, keyword);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean canEnroll(Long studentId, Long yearId, Long schoolId)
+	{
+		return hasPaid(studentId, yearId, schoolId, "inscri") && hasPaid(studentId, yearId, schoolId, "matric");
+	}
+
+	@Override
+	public List<PaymentEntity> getPaidByStudent(Long sid, Long y, Long s)
+	{
+		return paymentRepository.findPaidByStudentAndYear(sid, y, s);
+	}
+
+	// ... mantém teus outros métodos getBySchoolAndYearId, delete etc iguais
+
+	private void handleMatriculaStatus(PaymentEntity payment)
+	{
+		boolean temMatricula = payment.getItems().stream().anyMatch(it -> it.getDescricao().toUpperCase().contains("MATRIC"));
+		if (temMatricula && payment.getStudent() != null)
+		{
+			StudentEntity student = em.find(StudentEntity.class, payment.getStudent().getId());
+			if (student != null && student.getStatus() == StudentStatus.PENDING_ENROLLMENT)
+			{
+				student.setStatus(StudentStatus.REGISTERED);
+				em.merge(student);
+			}
+		}
+	}
+
+	@Override
+	@Transactional
+	public PaymentEntity updateWithItems(Long paymentId, List<PaymentItemEntity> cart, PaymentMethod method, String ref)
+	{
+		PaymentEntity payment = paymentRepository.findWithItems(paymentId).orElse(em.find(PaymentEntity.class, paymentId));
+		if (payment == null)
+			throw new RuntimeException("Pagamento não encontrado");
+		payment.setMethod(method);
+		payment.setReference(ref);
+		BigDecimal total = cart.stream().map(i -> i.getSubtotal() != null ? i.getSubtotal() : i.getValor()).reduce(BigDecimal.ZERO, BigDecimal::add);
+		payment.setTotalAmount(total);
+		payment.getItems().clear();
+		em.flush();
+		for (PaymentItemEntity it : cart)
+		{
+			PaymentItemEntity n = new PaymentItemEntity();
+			n.setDescricao(it.getDescricao());
+			n.setValor(it.getValor());
+			n.setQuantidade(BigDecimal.ONE);
+			n.calc();
+			n.setPayment(payment);
+			n.setFeeItem(resolveFeeItem(it, payment.getSchool().getId(), payment.getAcademicYear().getId()));
+			payment.getItems().add(n);
+		}
+		return em.merge(payment);
+	}
+
+	@Override
 	public PaymentEntity getWithItems(Long id)
 	{
 		return paymentRepository.findWithItems(id).orElse(null);
@@ -191,124 +196,6 @@ public class PaymentServiceImpl implements IPaymentService
 	public void delete(Long id)
 	{
 		paymentRepository.delete(id);
-	}
-
-	private void handleMatriculaStatus(PaymentEntity payment)
-	{
-		boolean temMatricula = payment.getItems().stream().anyMatch(it -> it.getDescricao() != null && it.getDescricao().toUpperCase().contains("MATRICULA"));
-
-		if (temMatricula && payment.getStudent() != null)
-		{
-			StudentEntity student = em.find(StudentEntity.class, payment.getStudent().getId());
-			if (student != null && student.getStatus() == StudentStatus.PENDING_ENROLLMENT)
-			{
-				student.setStatus(StudentStatus.REGISTERED);
-				em.merge(student);
-			}
-		}
-	}
-
-	@Override
-	@Transactional
-	public PaymentEntity updateWithItems(Long paymentId, List<PaymentItemEntity> cart, PaymentMethod paymentMethod, String ref)
-	{
-		PaymentEntity payment = null;
-
-		// 1. Busca pagamento - tenta NamedQuery depois em.find
-		try
-		{
-			List<PaymentEntity> list = em.createNamedQuery("Payment.findWithItems", PaymentEntity.class).setParameter("id", paymentId).getResultList();
-			if (!list.isEmpty())
-				payment = list.get(0);
-		} catch (Exception e)
-		{
-			System.out.println("findWithItems falhou para id " + paymentId + ": " + e.getMessage());
-		}
-
-		if (payment == null)
-		{
-			payment = em.find(PaymentEntity.class, paymentId);
-		}
-
-		if (payment == null)
-		{
-			throw new jakarta.persistence.EntityNotFoundException(
-					"Pagamento não encontrado: " + paymentId + ". Verifique: SELECT * FROM payments WHERE id = " + paymentId);
-		}
-
-		// 2. Atualiza método e referência
-		if (paymentMethod != null)
-			payment.setMethod(paymentMethod);
-		if (ref != null)
-			payment.setReference(ref);
-
-		// 3. Recalcula total
-		BigDecimal total = cart.stream().map(i ->
-		{
-			if (i.getSubtotal() != null)
-				return i.getSubtotal();
-			if (i.getValor() != null && i.getQuantidade() != null)
-				return i.getValor().multiply(i.getQuantidade());
-			if (i.getValor() != null)
-				return i.getValor();
-			return BigDecimal.ZERO;
-		}).reduce(BigDecimal.ZERO, BigDecimal::add);
-		payment.setTotalAmount(total);
-
-		// 4. Limpa items antigos
-		payment.getItems().clear();
-		em.flush(); // importante para orphanRemoval
-
-		// 5. Adiciona novos items com FeeItem buscado por descricao (tua Entity usa
-		// descricao)
-		for (PaymentItemEntity it : cart)
-		{
-			PaymentItemEntity newItem = new PaymentItemEntity();
-			newItem.setDescricao(it.getDescricao());
-			newItem.setValor(it.getValor());
-			newItem.setQuantidade(it.getQuantidade() != null ? it.getQuantidade() : BigDecimal.ONE);
-			newItem.setSubtotal(it.getSubtotal());
-			if (newItem.getSubtotal() == null)
-				newItem.calc();
-			newItem.setPayment(payment);
-
-			FeeItemEntity feeItem = null;
-			if (it.getFeeItem() != null && it.getFeeItem().getId() != null)
-			{
-				feeItem = em.find(FeeItemEntity.class, it.getFeeItem().getId());
-			}
-			if (feeItem == null && it.getDescricao() != null)
-			{
-				List<FeeItemEntity> list = em
-						.createQuery("SELECT f FROM FeeItemEntity f WHERE LOWER(f.descricao) LIKE LOWER(:d) ORDER BY f.id", FeeItemEntity.class)
-						.setParameter("d", "%" + it.getDescricao().trim() + "%").setMaxResults(1).getResultList();
-				if (!list.isEmpty())
-					feeItem = list.get(0);
-			}
-			// fallback final IDs que tu mostraste: 1=INSCRIÇÃO, 2=MATRICULA
-			if (feeItem == null && it.getDescricao() != null)
-			{
-				String u = it.getDescricao().toUpperCase();
-				if (u.contains("INSCRI"))
-					feeItem = em.find(FeeItemEntity.class, 1L);
-				else if (u.contains("MATRIC"))
-					feeItem = em.find(FeeItemEntity.class, 2L);
-			}
-
-			if (feeItem == null)
-			{
-				throw new RuntimeException("FeeItem não encontrado para item: " + it.getDescricao());
-			}
-
-			newItem.setFeeItem(feeItem);
-			payment.getItems().add(newItem);
-		}
-
-		payment = em.merge(payment);
-		em.flush();
-
-		handleMatriculaStatus(payment);
-		return payment;
 	}
 
 }

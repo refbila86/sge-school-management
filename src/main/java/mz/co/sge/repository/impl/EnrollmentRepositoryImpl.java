@@ -3,10 +3,10 @@ package mz.co.sge.repository.impl;
 import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.EnrollmentStatus;
+import mz.co.sge.enumes.EnrollmentType;
 import mz.co.sge.repository.IEnrollmentRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -43,32 +43,52 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 	@Override
 	public List<EnrollmentEntity> findAll()
 	{
-		return em.createNamedQuery("Enrollment.findAll", EnrollmentEntity.class).getResultList();
+		return em.createNamedQuery("EnrollmentEntity.findAll", EnrollmentEntity.class).getResultList();
 	}
 
 	@Override
 	public List<EnrollmentEntity> findByAcademicYear(Long academicYearId)
 	{
-		return em.createNamedQuery("Enrollment.findByYear", EnrollmentEntity.class).setParameter("yearId", academicYearId).getResultList();
+		return em.createNamedQuery("EnrollmentEntity.findByYear", EnrollmentEntity.class).setParameter("yearId", academicYearId).getResultList();
+	}
+
+	@Override
+	public List<EnrollmentEntity> findByStudent(Long studentId)
+	{
+		return em.createQuery("SELECT e FROM EnrollmentEntity e WHERE e.student.id = :sid ORDER BY e.academicYear.year DESC", EnrollmentEntity.class)
+				.setParameter("sid", studentId).getResultList();
 	}
 
 	@Override
 	public List<EnrollmentEntity> findByStudentAndYear(Long studentId, Long yearId)
 	{
-		return em.createNamedQuery("Enrollment.findByStudentAndYear", EnrollmentEntity.class).setParameter("studentId", studentId)
+		return em.createNamedQuery("EnrollmentEntity.findByStudentAndYear", EnrollmentEntity.class).setParameter("studentId", studentId)
 				.setParameter("yearId", yearId).getResultList();
 	}
 
 	@Override
 	public List<EnrollmentEntity> findByStatus(EnrollmentStatus status)
 	{
-		return em.createNamedQuery("Enrollment.findByStatus", EnrollmentEntity.class).setParameter("status", status).getResultList();
+		return em.createNamedQuery("EnrollmentEntity.findByStatus", EnrollmentEntity.class).setParameter("status", status).getResultList();
 	}
 
 	@Override
 	public long countByAcademicYear(Long academicYearId)
 	{
-		return (Long) em.createNamedQuery("Enrollment.countByYear").setParameter("yearId", academicYearId).getSingleResult();
+		return em.createNamedQuery("EnrollmentEntity.countByYear", Long.class).setParameter("yearId", academicYearId).getSingleResult();
+	}
+
+	@Override
+	public long countByStudent(Long studentId)
+	{
+		return em.createNamedQuery("EnrollmentEntity.countByStudent", Long.class).setParameter("studentId", studentId).getSingleResult();
+	}
+
+	@Override
+	public boolean existsEnrollment(Long studentId, Long academicYearId)
+	{
+		return em.createNamedQuery("EnrollmentEntity.existsByStudentAndYear", Boolean.class).setParameter("studentId", studentId)
+				.setParameter("yearId", academicYearId).getSingleResult();
 	}
 
 	@Override
@@ -79,87 +99,34 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 	}
 
 	@Override
-	public boolean existsEnrollment(Long studentId, Long academicYearId)
+	public List<StudentEntity> findStudentsWithPaidFees(Long schoolId, Long yearId, EnrollmentType type)
 	{
-		Long count = em.createQuery("SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :sid AND e.academicYear.id = :yid", Long.class)
-				.setParameter("sid", studentId).setParameter("yid", academicYearId).getSingleResult();
-		return count > 0;
+		// Agora usa FeeType em vez de LIKE '%matric%'
+		String feeCode = (type == EnrollmentType.FIRST_ENROLLMENT) ? "MATRICULA" : "RENOVACAO_MATRICULA";
+		return em.createQuery("""
+				SELECT DISTINCT s FROM StudentEntity s
+				WHERE s.status = 'REGISTERED'
+				AND EXISTS (
+				    SELECT 1 FROM PaymentEntity p JOIN p.items pi
+				    WHERE p.student.id = s.id
+				    AND p.academicYear.id = :yearId
+				    AND pi.feeItem.code = :feeCode
+				    AND p.status = 'PAID'
+				) ORDER BY s.firstName""", StudentEntity.class).setParameter("yearId", yearId).setParameter("feeCode", feeCode).getResultList();
 	}
 
 	@Override
-	public Long findMatriculaFeeItemId(Long schoolId)
+	public List<StudentEntity> findAvailableForEnrollment( Long yearId)
 	{
-		try
-		{
-			return em.createQuery("SELECT f.id FROM FeeItemEntity f WHERE f.school.id = :schoolId AND LOWER(f.descricao) LIKE '%matric%' ORDER BY f.id ASC",
-					Long.class).setParameter("schoolId", schoolId).setMaxResults(1).getSingleResult();
-		} catch (Exception e)
-		{
-			// fallback: busca sem school
-			try
-			{
-				return em.createQuery("SELECT f.id FROM FeeItemEntity f WHERE LOWER(f.descricao) LIKE '%matric%' ORDER BY f.id ASC", Long.class)
-						.setMaxResults(1).getSingleResult();
-			} catch (Exception ex)
-			{
-				return null;
-			}
-		}
+		return em.createQuery("""
+				SELECT DISTINCT s FROM StudentEntity s
+				WHERE s.status = 'REGISTERED'
+				AND NOT EXISTS (
+				    SELECT 1 FROM EnrollmentEntity e WHERE e.student.id = s.id AND e.academicYear.id = :yearId
+				)
+				AND EXISTS (
+				    SELECT 1 FROM PaymentEntity p JOIN p.items pi
+				    WHERE p.student.id = s.id AND p.academicYear.id = :yearId AND p.status = 'PAID'
+				) ORDER BY s.firstName""", StudentEntity.class).setParameter("yearId", yearId).getResultList();
 	}
-
-	@Override
-	public List<StudentEntity> findStudentsWithMatriculaPaid(Long schoolId, Long matriculaFeeItemId)
-	{
-		if (matriculaFeeItemId == null)
-			return List.of();
-		return em
-				.createQuery("SELECT DISTINCT s FROM StudentEntity s WHERE s.school.id = :schoolId AND s.status = 'REGISTERED' "
-						+ "AND EXISTS (SELECT 1 FROM PaymentEntity p JOIN p.items pi WHERE p.student.id = s.id AND pi.feeItem.id = :matId) "
-						+ "ORDER BY s.firstName", StudentEntity.class)
-				.setParameter("schoolId", schoolId).setParameter("matId", matriculaFeeItemId).getResultList();
-	}
-
-	@Override
-	public List<StudentEntity> findStudentsWithMatriculaPaidBySchoolAndYear(Long schoolId, Long yearId)
-	{
-		Long matId = findMatriculaFeeItemId(schoolId);
-		if (matId == null)
-		{
-			// busca sem schoolId se não achar
-			try
-			{
-				matId = em.createQuery("SELECT f.id FROM FeeItemEntity f WHERE LOWER(f.descricao) LIKE '%matric%' ORDER BY f.id", Long.class).setMaxResults(1)
-						.getSingleResult();
-			} catch (Exception e)
-			{
-				return List.of();
-			}
-		}
-
-		// IMPORTANTE: filtra pagamento por academic_year_id do login
-		return em
-				.createQuery(
-						"SELECT DISTINCT s FROM StudentEntity s " + "WHERE s.school.id = :schoolId AND s.status = 'REGISTERED' " + "AND EXISTS ("
-								+ "  SELECT 1 FROM PaymentEntity p JOIN p.items pi " + "  WHERE p.student.id = s.id " + "  AND pi.feeItem.id = :matId "
-								+ "  AND (p.academicYear.id = :yearId OR pi.feeItem.academicYear.id = :yearId) " + ") ORDER BY s.firstName",
-						StudentEntity.class)
-				.setParameter("schoolId", schoolId).setParameter("yearId", yearId).setParameter("matId", matId).getResultList();
-	}
-
-	@Override
-	public List<StudentEntity> findAvailableStudentsForEnrollment(Long schoolId, Long yearId)
-	{
-		Long matId = findMatriculaFeeItemId(schoolId);
-		if (matId == null)
-			return List.of();
-
-		return em
-				.createQuery("SELECT DISTINCT s FROM StudentEntity s " + "WHERE s.school.id = :schoolId AND s.status = 'REGISTERED' " + "AND EXISTS ("
-						+ "  SELECT 1 FROM PaymentEntity p JOIN p.items pi " + "  WHERE p.student.id = s.id " + "  AND pi.feeItem.id = :matId "
-						+ "  AND (p.academicYear.id = :yearId OR pi.feeItem.academicYear.id = :yearId) " + ") "
-						+ "AND NOT EXISTS (SELECT 1 FROM EnrollmentEntity e WHERE e.student.id = s.id AND e.academicYear.id = :yearId) "
-						+ "ORDER BY s.firstName", StudentEntity.class)
-				.setParameter("schoolId", schoolId).setParameter("yearId", yearId).setParameter("matId", matId).getResultList();
-	}
-
 }

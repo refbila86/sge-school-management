@@ -84,4 +84,18 @@ public class PaymentRepositoryImpl implements IPaymentRepository
 				.getSingleResult();
 		return v == null ? BigDecimal.ZERO : v;
 	}
+
+	@Override
+	public List<PaymentEntity> findPaidByStudentAndYear(Long studentId, Long yearId, Long schoolId)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean existsFeeByKeyword(Long studentId, Long yearId, String keyword)
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

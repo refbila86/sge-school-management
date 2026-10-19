@@ -8,8 +8,6 @@
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 20px;
-	flex-wrap: wrap;
-	gap: 12px
 }
 
 .page-title {
@@ -18,7 +16,7 @@
 	color: #0a2540;
 	display: flex;
 	align-items: center;
-	gap: 10px
+	gap: 10px;
 }
 
 .form-card {
@@ -28,8 +26,8 @@
 	padding: 24px;
 	display: flex;
 	flex-direction: column;
-	gap: 22px;
-	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04)
+	gap: 20px;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, .04);
 }
 
 .field-label {
@@ -38,79 +36,107 @@
 	text-transform: uppercase;
 	font-weight: 700;
 	letter-spacing: .4px;
-	margin-bottom: 4px;
-	display: block
-}
-
-.step-badge {
-	background: #16a34a;
-	color: white;
-	font-size: 11px;
-	font-weight: 700;
-	padding: 4px 10px;
-	border-radius: 20px
-}
-
-.step-badge-2 {
-	background: #0a2540;
-	color: white;
-	font-size: 11px;
-	font-weight: 700;
-	padding: 4px 10px;
-	border-radius: 20px
+	margin-bottom: 6px;
+	display: block;
 }
 
 .summary-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px
+	grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+	gap: 14px;
 }
 
 .summary-item {
-	background: #f8fafc;
 	border: 1px solid #e2e8f0;
-	border-radius: 14px;
-	padding: 14px 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 4px
+	background: #f8fafc;
+	border-radius: 12px;
+	padding: 14px;
 }
 
-.summary-item.full {
-	grid-column: 1/-1
+.summary-label {
+	color: #64748b;
+	font-size: 11px;
+	text-transform: uppercase;
+	font-weight: 700;
+	margin-bottom: 6px;
 }
 
 .summary-value {
-	font-size: 14.5px;
-	font-weight: 700;
 	color: #0a2540;
-	display: flex;
-	align-items: center;
-	gap: 8px
+	font-size: 14px;
+	font-weight: 700;
 }
 
-.summary-icon {
-	width: 32px;
-	height: 32px;
-	border-radius: 8px;
+.step-indicator {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
+}
+
+.step {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 14px
+	font-size: 12px;
+	font-weight: 700;
 }
 
-.highlight-card {
-	background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-	border: 2px solid #16a34a;
-	border-radius: 16px;
-	padding: 18px;
+.step-done {
+	background: #16a34a;
+	color: white;
+}
+
+.step-active {
+	background: #0a2540;
+	color: white;
+}
+
+.step-todo {
+	background: #e2e8f0;
+	color: #64748b;
+}
+
+.section-title {
+	color: #0a2540;
+	font-size: 15px;
+	font-weight: 800;
+	margin-bottom: 12px;
+}
+
+.note {
+	color: #64748b;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.actions {
 	display: flex;
 	justify-content: space-between;
-	align-items: center
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	padding-top: 16px;
+	border-top: 1px solid #f1f5f9;
+}
+
+.payment-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: center;
+	padding: 12px 14px;
+	border: 1px solid #bbf7d0;
+	background: #f0fdf4;
+	border-radius: 12px;
 }
 </style>
 
-	<h:form id="formConfirm">
+	<h:form id="confirmForm">
 		<p:growl id="growl" showDetail="true" />
 
 		<div class="page-header">
@@ -118,154 +144,154 @@
 				<p:commandButton icon="pi pi-arrow-left"
 					styleClass="ui-button-text ui-button-rounded"
 					style="width:36px;height:36px"
-					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
+					action="#{dashboardBean.navigate('enrollment/enrollment-form','matriculas')}"
 					update=":contentPanel" process="@this" />
 				<div
-					style="width: 42px; height: 42px; border-radius: 12px; background: #dcfce7; display: flex; align-items: center; justify-content: center">
-					<i class="pi pi-verified" style="color: #16a34a; font-size: 18px" />
+					style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+					<i class="pi pi-check-circle" style="color: #2563eb"></i>
 				</div>
 				<div>
-					<div style="display: flex; align-items: center; gap: 8px">
-						Confirmar Matrícula <span class="step-badge">PASSO 2 DE 2</span>
-					</div>
-					<div style="font-size: 12px; font-weight: 500; color: #64748b">Revê
-						os dados e clica em Matricular Aluno para gravar</div>
+					<div>Confirmar Matrícula</div>
+					<div style="font-size: 12px; font-weight: 500; color: #64748b">Revise
+						os dados antes de concluir a matrícula</div>
 				</div>
-			</div>
-			<div>
-				<p:commandButton value="Voltar e Editar" icon="pi pi-pencil"
-					styleClass="ui-button-secondary ui-button-outlined"
-					style="border-radius:12px;font-size:13px"
-					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
-					update=":contentPanel" process="@this" />
 			</div>
 		</div>
 
 		<div class="form-card">
-			<!-- CARD DESTAQUE ALUNO -->
-			<div class="highlight-card">
-				<div style="display: flex; align-items: center; gap: 14px">
-					<div
-						style="width: 52px; height: 52px; border-radius: 14px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px">
-						<h:outputText
-							value="#{enrollmentBean.selectedStudentEntity != null ? enrollmentBean.selectedStudentEntity.firstName.substring(0,1) : 'A'}" />
+			<div class="step-indicator">
+				<div class="step step-done">1</div>
+				<span style="font-size: 12px">Aluno</span>
+				<div style="width: 30px; height: 2px; background: #16a34a"></div>
+				<div class="step step-done">2</div>
+				<span style="font-size: 12px">Classe/Turma</span>
+				<div style="width: 30px; height: 2px; background: #16a34a"></div>
+				<div class="step step-done">3</div>
+				<span style="font-size: 12px">Pagamentos</span>
+				<div style="width: 30px; height: 2px; background: #16a34a"></div>
+				<div class="step step-active">4</div>
+				<span style="font-size: 12px; font-weight: 700">Confirmar</span>
+			</div>
+
+			<p:messages id="messages" showDetail="true" closable="true" />
+
+			<div>
+				<div class="section-title">
+					<i class="pi pi-user" style="margin-right: 8px"></i>Dados do aluno
+				</div>
+				<div class="summary-grid">
+					<div class="summary-item">
+						<div class="summary-label">Nome completo</div>
+						<div class="summary-value">#{enrollmentBean.selectedStudentEntity
+							!= null ? enrollmentBean.selectedStudentEntity.fullName : 'Não
+							selecionado'}</div>
 					</div>
+					<div class="summary-item">
+						<div class="summary-label">Código do aluno</div>
+						<div class="summary-value">#{enrollmentBean.selectedStudentEntity
+							!= null ? enrollmentBean.selectedStudentEntity.code : '-'}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Ano académico</div>
+						<div class="summary-value">#{enrollmentBean.selectedYear}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Tipo de matrícula</div>
+						<div class="summary-value">#{enrollmentBean.currentEnrollmentType}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Situação</div>
+						<div class="summary-value">#{enrollmentBean.currentEnrollmentType
+							== 'FIRST_ENROLLMENT' ? 'Primeira matrícula' : 'Renovação'}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Estado do pagamento</div>
+						<div class="summary-value">#{enrollmentBean.hasValidPayment
+							? 'Pagamento validado' : 'Pagamento por validar'}</div>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<div class="section-title">
+					<i class="pi pi-building" style="margin-right: 8px"></i>Classe e
+					turma
+				</div>
+				<div class="summary-grid">
+					<div class="summary-item">
+						<div class="summary-label">Classe</div>
+						<div class="summary-value">#{enrollmentBean.selectedClassLevelId}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Turma</div>
+						<div class="summary-value">#{enrollmentBean.selectedClassroomId}</div>
+					</div>
+				</div>
+				<div class="note" style="margin-top: 8px">Os identificadores
+					da classe e da turma são apresentados como referência. Se preferir
+					os nomes, exponha no bean os objetos selecionados correspondentes.</div>
+			</div>
+
+			<div>
+				<div class="section-title">
+					<i class="pi pi-wallet" style="margin-right: 8px"></i>Pagamentos
+					selecionados
+				</div>
+				<ui:repeat value="#{enrollmentBean.selectedPayments}" var="pay">
+					<div class="payment-row" style="margin-bottom: 8px">
+						<div>
+							<div style="font-size: 13px; font-weight: 700">#{pay.reference}
+								— #{pay.description}</div>
+							<div class="note">#{pay.method} · #{pay.monthLabel}</div>
+						</div>
+						<div style="text-align: right">
+							<div style="font-weight: 800">#{pay.amount} MT</div>
+							<p:tag value="#{pay.status}" severity="success" />
+						</div>
+					</div>
+				</ui:repeat>
+				<div class="summary-item"
+					style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px">
 					<div>
-						<div
-							style="font-size: 11px; font-weight: 700; color: #16a34a; letter-spacing: .4px; text-transform: uppercase">Aluno
-							REGISTERED</div>
-						<div style="font-size: 17px; font-weight: 800; color: #0a2540">#{enrollmentBean.selectedStudentName}</div>
-						<div style="font-size: 12px; color: #475569">
-							<i class="pi pi-check-circle"
-								style="color: #16a34a; font-size: 11px" /> Pagamento confirmado
-							• Pronto para matricular
-						</div>
+						<div class="summary-label">Referência de pagamento</div>
+						<div class="summary-value">#{enrollmentBean.selectedPaymentReference}</div>
 					</div>
-				</div>
-				<div style="text-align: right">
-					<p:tag value="ENROLLED" severity="success"
-						style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px" />
-					<div style="font-size: 11px; color: #64748b; margin-top: 6px">Estado
-						final após gravar</div>
-				</div>
-			</div>
-
-			<!-- GRID RESUMO -->
-			<div class="summary-grid">
-				<div class="summary-item">
-					<span class="field-label"><i class="pi pi-calendar"
-						style="margin-right: 4px" /> Ano Académico</span>
-					<div class="summary-value">
-						<div class="summary-icon"
-							style="background: #eff6ff; color: #2563eb">
-							<i class="pi pi-calendar" />
-						</div>
-						#{enrollmentBean.selectedYearLabel}
-						<p:tag value="2026" style="margin-left:6px;font-size:10px"
-							severity="info" />
-					</div>
-				</div>
-
-				<div class="summary-item">
-					<span class="field-label"><i class="pi pi-book"
-						style="margin-right: 4px" /> Classe</span>
-					<div class="summary-value">
-						<div class="summary-icon"
-							style="background: #fef3c7; color: #d97706">
-							<i class="pi pi-book" />
-						</div>
-						#{enrollmentBean.selectedClassLevelName}
-					</div>
-				</div>
-
-				<div class="summary-item full">
-					<span class="field-label"><i class="pi pi-home"
-						style="margin-right: 4px" /> Turma Selecionada</span>
-					<div class="summary-value"
-						style="justify-content: space-between; width: 100%">
-						<div style="display: flex; align-items: center; gap: 8px">
-							<div class="summary-icon"
-								style="background: #dbeafe; color: #2563eb">
-								<i class="pi pi-home" />
-							</div>
-							#{enrollmentBean.selectedClassroomName}
-						</div>
-						<div
-							style="font-size: 12px; color: #16a34a; font-weight: 700; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 4px 10px">
-							+1 aluno após matricular</div>
-					</div>
-				</div>
-
-				<div class="summary-item">
-					<span class="field-label"><i class="pi pi-user"
-						style="margin-right: 4px" /> Criado por</span>
-					<div class="summary-value">
-						<div class="summary-icon"
-							style="background: #f3e8ff; color: #7c3aed">
-							<i class="pi pi-user" />
-						</div>
-						#{loginBean.username}
-					</div>
-				</div>
-
-				<div class="summary-item">
-					<span class="field-label"><i class="pi pi-clock"
-						style="margin-right: 4px" /> Data</span>
-					<div class="summary-value">
-						<div class="summary-icon"
-							style="background: #f1f5f9; color: #475569">
-							<i class="pi pi-clock" />
-						</div>
-						Hoje
+					<div style="text-align: right">
+						<div class="summary-label">Validação</div>
+						<p:tag
+							value="#{enrollmentBean.hasValidPayment ? 'VALIDADO' : 'PENDENTE'}"
+							severity="#{enrollmentBean.hasValidPayment ? 'success' : 'warning'}" />
 					</div>
 				</div>
 			</div>
 
-			<div
-				style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px">
-				<i class="pi pi-info-circle"
-					style="color: #0a2540; font-size: 18px; margin-top: 1px" />
-				<div style="font-size: 12.5px; color: #334155; line-height: 1.6">
-					Ao confirmar, o sistema irá: <b>1)</b> Criar matrícula como <b>ENROLLED</b>
-					• <b>2)</b> Incrementar contador da turma <b>ex: 18/35 → 19/35</b>
-					• <b>3)</b> Associar aluno REGISTERED à turma.
-				</div>
-			</div>
+			<div class="note">Ao confirmar, o sistema deverá gravar a
+				matrícula e atualizar a ocupação da turma. Certifique-se de que os
+				dados acima estão correctos.</div>
 
-			<!-- BOTAO SO EM BAIXO COMO PEDISTE -->
-			<div
-				style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 20px; border-top: 1px solid #f1f5f9">
-				<p:commandButton value="Voltar e Editar" icon="pi pi-arrow-left"
+			<div class="actions">
+				<p:commandButton value="Voltar e corrigir" icon="pi pi-arrow-left"
 					styleClass="ui-button-secondary ui-button-outlined"
-					style="border-radius:12px;font-size:13px"
 					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
 					update=":contentPanel" process="@this" />
-				<p:commandButton value="Matricular Aluno" icon="pi pi-check"
-					iconPos="left"
-					style="border-radius:12px;background:#16a34a;border:none;font-size:14px;font-weight:800;padding:12px 28px;box-shadow:0 6px 16px rgba(22,163,74,0.3)"
+				<p:commandButton value="Confirmar matrícula" icon="pi pi-check"
+					styleClass="ui-button-success"
 					action="#{enrollmentBean.saveAndReturn}"
-					update=":contentPanel :formConfirm:growl" />
+					update="@form :contentPanel" process="@form"
+					disabled="#{!enrollmentBean.hasValidPayment or enrollmentBean.selectedStudentId == null or enrollmentBean.selectedClassroomId == null}">
+					<p:confirm header="Confirmar matrícula"
+						message="Tem a certeza de que pretende concluir esta matrícula?"
+						icon="pi pi-exclamation-triangle" />
+				</p:commandButton>
 			</div>
 		</div>
+
+		<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+			responsive="true" width="420">
+			<p:commandButton value="Não" type="button"
+				styleClass="ui-confirmdialog-no ui-button-flat" />
+			<p:commandButton value="Sim, confirmar" type="button"
+				styleClass="ui-confirmdialog-yes ui-button-success" />
+		</p:confirmDialog>
 	</h:form>
 </ui:composition>

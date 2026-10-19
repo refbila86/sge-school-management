@@ -15,29 +15,31 @@ import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.FeeItemEntity;
 import mz.co.sge.entity.PaymentEntity;
 import mz.co.sge.entity.PaymentItemEntity;
+import mz.co.sge.entity.SchoolEntity;
 import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.EnrollmentType;
 import mz.co.sge.enumes.PaymentMethod;
-import mz.co.sge.enumes.StudentStatus;
+import mz.co.sge.service.IEnrollmentService;
 import mz.co.sge.service.IFeeItemsService;
 import mz.co.sge.service.IPaymentService;
 import mz.co.sge.service.IStudentService;
 
 @Component
 @ViewScoped
-@Getter
-@Setter
 public class PaymentBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
+
 	// LISTAGEM
 	private List<PaymentEntity> payments = new ArrayList<>();
 	private List<PaymentEntity> filteredPayments = new ArrayList<>();
 	private PaymentEntity selected = new PaymentEntity();
+	private PaymentEntity viewItem;
 
 	// FILTROS
 	private String filterAluno = "";
@@ -45,10 +47,10 @@ public class PaymentBean implements Serializable
 	private LocalDate filterDataInicio;
 	private LocalDate filterDataFim;
 
-	// INCLUSÃO
+	// FORM PAGAMENTO
 	private Long selectedStudentId;
 	private StudentEntity selectedStudentEntity;
-	private PaymentMethod method = PaymentMethod.NUMERARIO;
+	private PaymentMethod paymentMethod = PaymentMethod.NUMERARIO;
 	private String reference = "";
 	private List<FeeItemEntity> feeItems = new ArrayList<>();
 	private Long selectedFeeItemId;
@@ -58,26 +60,30 @@ public class PaymentBean implements Serializable
 	private List<PaymentItemEntity> cart = new ArrayList<>();
 	private BigDecimal cartTotal = BigDecimal.ZERO;
 
-	private PaymentEntity viewItem;
+	// STATUS PAGAMENTO - REGRA DE NEGOCIO
+	private boolean hasPaidEnrollment = false;
+	private boolean hasPaidRegistration = false;
+	private boolean hasPaidRenewal = false;
+	private boolean readyForEnrollment = false;
+	private EnrollmentType currentEnrollmentType = EnrollmentType.FIRST_ENROLLMENT;
 
+	// SERVICES
 	@Autowired
 	private IPaymentService paymentService;
-
 	@Autowired
 	private IStudentService studentService;
-
 	@Autowired
 	private IFeeItemsService feeItemsService;
-
+	@Autowired
+	private IEnrollmentService enrollmentService;
 	@Autowired
 	private LoginBean loginBean;
-
 	@Autowired
 	private DashboardBean dashboardBean;
-	
-	@Autowired
-	private WelcomeBean welcomeBean;
+	@PersistenceContext
+	private EntityManager em;
 
+	// ================= INIT =================
 	@PostConstruct
 	public void init()
 	{
@@ -102,11 +108,21 @@ public class PaymentBean implements Serializable
 			customValor = BigDecimal.ZERO;
 	}
 
+	public boolean isFirstEnrollment()
+	{
+		return currentEnrollmentType != null && currentEnrollmentType.name().equals("FIRST_ENROLLMENT");
+	}
+
+	public boolean isRenewalEnrollment()
+	{
+		return currentEnrollmentType != null && !currentEnrollmentType.name().equals("FIRST_ENROLLMENT");
+	}
+
 	public void prepareNew()
 	{
 		selectedStudentId = null;
 		selectedStudentEntity = null;
-		setMethod(PaymentMethod.NUMERARIO);
+		paymentMethod = PaymentMethod.TRANSFERENCIA_BANCARIA;
 		reference = "";
 		cart = new ArrayList<>();
 		cartTotal = BigDecimal.ZERO;
@@ -114,17 +130,20 @@ public class PaymentBean implements Serializable
 		customDescricao = "";
 		customValor = BigDecimal.ZERO;
 		outroMode = false;
+		hasPaidEnrollment = false;
+		hasPaidRegistration = false;
+		hasPaidRenewal = false;
+		readyForEnrollment = false;
+		currentEnrollmentType = EnrollmentType.FIRST_ENROLLMENT;
 		Long schoolId = loginBean.getSchoolId();
 		Long yearId = loginBean.getAcademicYearId();
 		if (schoolId != null && yearId != null)
-		{
 			feeItems = feeItemsService.getActiveBySchoolAndYearId(schoolId, yearId);
-		} else
-		{
+		else
 			feeItems = new ArrayList<>();
-		}
 	}
 
+	// ================= NAVEGACAO =================
 	public String prepareView(PaymentEntity p)
 	{
 		this.viewItem = p;
@@ -133,25 +152,12 @@ public class PaymentBean implements Serializable
 		return null;
 	}
 
-	public String getCreatedByName()
-	{
-		if (selected == null || selected.getCreatedBy() == null)
-			return "Sistema";
-		try
-		{
-			return selected.getCreatedBy().getUsername();
-		} catch (org.hibernate.LazyInitializationException e)
-		{
-			return "Sistema";
-		}
-	}
-
 	public String prepareEdit(PaymentEntity p)
 	{
 		this.selected = p;
 		this.selectedStudentId = p.getStudent().getId();
 		this.selectedStudentEntity = p.getStudent();
-		this.setMethod(p.getMethod());
+		this.paymentMethod = p.getMethod();
 		this.reference = p.getReference();
 		this.cart = new ArrayList<>(p.getItems());
 		recalcTotal();
@@ -159,7 +165,25 @@ public class PaymentBean implements Serializable
 		return null;
 	}
 
-	// AUTOCOMPLETE - permite digitar nome
+	public void prepareDelete(PaymentEntity p)
+	{
+		this.selected = p;
+	}
+
+	public void delete()
+	{
+		try
+		{
+			paymentService.delete(selected.getId());
+			init();
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Removido"));
+		} catch (Exception e)
+		{
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
+		}
+	}
+
+	// ================= AUTOCOMPLETE ALUNO =================
 	public List<StudentEntity> completeStudent(String q)
 	{
 		try
@@ -168,57 +192,23 @@ public class PaymentBean implements Serializable
 			Long yearId = loginBean.getAcademicYearId();
 			if (schoolId == null || yearId == null)
 				return List.of();
-
-			// Só alunos com matrícula pendente
-			List<StudentEntity> pending = studentService.getStudentsBySchoolIdAndAcademicYearId(schoolId, yearId).stream()
-					.filter(s -> s.getStatus() == StudentStatus.PENDING_ENROLLMENT).collect(Collectors.toList());
-
+			List<StudentEntity> all = studentService.getStudentsBySchoolIdAndAcademicYearId(schoolId, yearId);
+			if (all.isEmpty())
+				all = studentService.getAllStudents();
 			if (q == null || q.isBlank())
-			{
-				return pending.stream().limit(20).collect(Collectors.toList());
-			}
-
+				return all.stream().limit(20).collect(Collectors.toList());
 			String term = q.toLowerCase().trim();
-			return pending.stream()
-					.filter(s -> (s.getFullName() != null && s.getFullName().toLowerCase().contains(term))
-							|| (s.getCode() != null && s.getCode().toLowerCase().contains(term))
-							|| (s.getFirstName() != null && s.getFirstName().toLowerCase().contains(term)))
-					.limit(15).collect(Collectors.toList());
+			return all.stream().filter(s -> (s.getFullName() != null && s.getFullName().toLowerCase().contains(term))
+					|| (s.getCode() != null && s.getCode().toLowerCase().contains(term))).limit(15).collect(Collectors.toList());
 		} catch (Exception e)
 		{
-			e.printStackTrace();
 			return List.of();
 		}
 	}
 
 	public List<StudentEntity> completeStudents(String q)
 	{
-		try
-		{
-			Long schoolId = loginBean.getSchoolId();
-			Long yearId = loginBean.getAcademicYearId();
-			if (schoolId == null || yearId == null)
-				return List.of();
-
-			List<StudentEntity> all = studentService.getStudentsBySchoolIdAndAcademicYearId(schoolId, yearId);
-
-			List<StudentEntity> pending = all.stream().filter(s -> s.getStatus() == StudentStatus.PENDING_ENROLLMENT).collect(Collectors.toList());
-
-			if (q == null || q.isBlank())
-			{
-				return all.stream().limit(20).collect(Collectors.toList());
-			}
-			String term = q.toLowerCase().trim();
-			return all.stream()
-					.filter(s -> (s.getFullName() != null && s.getFullName().toLowerCase().contains(term))
-							|| (s.getCode() != null && s.getCode().toLowerCase().contains(term))
-							|| (s.getFirstName() != null && s.getFirstName().toLowerCase().contains(term)))
-					.limit(15).collect(Collectors.toList());
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			return List.of();
-		}
+		return completeStudent(q);
 	}
 
 	public void setSelectedStudentId(Long id)
@@ -229,23 +219,123 @@ public class PaymentBean implements Serializable
 			try
 			{
 				this.selectedStudentEntity = studentService.getByIdAndSchoolAndYear(id, loginBean.getSchoolId(), loginBean.getAcademicYearId());
+				if (this.selectedStudentEntity == null)
+					this.selectedStudentEntity = studentService.getStudentById(id).orElse(null);
 			} catch (Exception e)
 			{
 				this.selectedStudentEntity = null;
 			}
 		} else
-		{
 			this.selectedStudentEntity = null;
-		}
 	}
 
 	public void onStudentSelect(SelectEvent<StudentEntity> event)
 	{
-		StudentEntity s = event.getObject();
-		this.selectedStudentId = s.getId();
-		this.selectedStudentEntity = s;
+		try
+		{
+			StudentEntity s = null;
+			if (event != null && event.getObject() != null)
+				s = event.getObject();
+			else if (selectedStudentEntity != null)
+				s = selectedStudentEntity;
+			if (s == null || s.getId() == null)
+				return;
+			this.selectedStudentId = s.getId();
+			this.selectedStudentEntity = s;
+			checkPaymentStatus();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível selecionar aluno"));
+		}
 	}
 
+	// ================= REGRA PRINCIPAL: PRIMEIRO ANO vs RENOVACAO
+	// =================
+	public void checkPaymentStatus()
+	{
+		try
+		{
+			if (selectedStudentEntity == null || selectedStudentEntity.getId() == null)
+				return;
+			Long yearId = loginBean.getAcademicYearId();
+			Long schoolId = loginBean.getSchoolId();
+			if (yearId == null || schoolId == null)
+				return;
+			if (selectedStudentId == null)
+				selectedStudentId = selectedStudentEntity.getId();
+
+			// 1. Tipo: primeiro ano ou renovação?
+			try
+			{
+				currentEnrollmentType = enrollmentService.getEnrollmentTypeForStudent(selectedStudentId);
+			} catch (Exception e)
+			{
+				Long count = em.createQuery("SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :sid AND e.academicYear.id != :yearId", Long.class)
+						.setParameter("sid", selectedStudentId).setParameter("yearId", yearId).getSingleResult();
+				currentEnrollmentType = (count != null && count > 0) ? EnrollmentType.RENEWAL : EnrollmentType.FIRST_ENROLLMENT;
+			}
+			if (currentEnrollmentType == null)
+				currentEnrollmentType = EnrollmentType.FIRST_ENROLLMENT;
+
+			// 2. O que já pagou no ano
+			hasPaidEnrollment = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "inscri");
+			hasPaidRegistration = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "matric");
+			hasPaidRenewal = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "renov");
+
+			// 3. Regra que pediste
+			if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
+			{
+				readyForEnrollment = hasPaidEnrollment && hasPaidRegistration;
+			} else
+			{
+				readyForEnrollment = hasPaidRenewal;
+			}
+
+			// 4. Filtra taxas
+			feeItems = feeItemsService.getActiveBySchoolAndYearId(schoolId, yearId);
+			if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
+			{
+				if (hasPaidEnrollment)
+					feeItems.removeIf(f -> f.getDescricao().toLowerCase().contains("inscri"));
+				if (hasPaidRegistration)
+					feeItems.removeIf(f -> f.getDescricao().toLowerCase().contains("matric"));
+			} else
+			{
+				if (hasPaidRenewal)
+					feeItems.removeIf(f -> f.getDescricao().toLowerCase().contains("renov"));
+				feeItems.removeIf(f ->
+				{
+					String d = f.getDescricao().toLowerCase();
+					return d.contains("inscri") && !d.contains("renov");
+				});
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void checkPaymentStatusWithCart()
+	{
+		boolean cartHasInsc = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("inscri"));
+		boolean cartHasMatric = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("matric"));
+		boolean cartHasRenov = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("renov"));
+
+		boolean finalInsc = hasPaidEnrollment || cartHasInsc;
+		boolean finalMatric = hasPaidRegistration || cartHasMatric;
+		boolean finalRenov = hasPaidRenewal || cartHasRenov;
+
+		if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
+		{
+			readyForEnrollment = finalInsc && finalMatric;
+		} else
+		{
+			readyForEnrollment = finalRenov;
+		}
+	}
+
+	// ================= CARRINHO =================
 	public void onFeeItemSelect()
 	{
 		if (selectedFeeItemId != null)
@@ -275,29 +365,48 @@ public class PaymentBean implements Serializable
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", "Informe descrição e valor"));
 			return;
 		}
+		String lower = customDescricao.toLowerCase();
+		if (lower.contains("inscri") && hasPaidEnrollment)
+		{
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Bloqueado", "Inscrição já paga este ano!"));
+			return;
+		}
+		if (lower.contains("matric") && hasPaidRegistration)
+		{
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Bloqueado", "Matrícula já paga este ano!"));
+			return;
+		}
+		if (lower.contains("renov") && hasPaidRenewal)
+		{
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Bloqueado", "Renovação já paga este ano!"));
+			return;
+		}
 		String descCheck = customDescricao.trim().toLowerCase();
 		boolean exists = cart.stream().anyMatch(i -> i.getDescricao().trim().toLowerCase().equals(descCheck));
 		if (exists)
 		{
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_ERROR, "Item duplicado", "O item '" + customDescricao + "' já foi adicionado"));
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Duplicado", "Item já no carrinho"));
 			return;
 		}
 		PaymentItemEntity item = new PaymentItemEntity();
 		item.setDescricao(customDescricao);
 		item.setValor(customValor);
+		item.setQuantidade(BigDecimal.ONE);
+		item.calc();
 		cart.add(item);
 		recalcTotal();
 		customDescricao = "";
 		customValor = BigDecimal.ZERO;
 		selectedFeeItemId = null;
 		outroMode = false;
+		checkPaymentStatusWithCart();
 	}
 
 	public void removeItem(PaymentItemEntity item)
 	{
 		cart.remove(item);
 		recalcTotal();
+		checkPaymentStatusWithCart();
 	}
 
 	private void recalcTotal()
@@ -305,27 +414,18 @@ public class PaymentBean implements Serializable
 		cartTotal = cart.stream().map(PaymentItemEntity::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	// NAVEGACAO - payment-include -> payment-confirm
+	// ================= CONFIRMACAO =================
 	public String goToConfirm()
 	{
 		if (selectedStudentId == null)
 		{
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Selecione o aluno digitando o nome"));
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Selecione aluno"));
 			return null;
 		}
 		if (cart.isEmpty())
 		{
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Carrinho vazio"));
 			return null;
-		}
-		if (selectedStudentEntity == null)
-		{
-			try
-			{
-				selectedStudentEntity = studentService.getByIdAndSchoolAndYear(selectedStudentId, loginBean.getSchoolId(), loginBean.getAcademicYearId());
-			} catch (Exception e)
-			{
-			}
 		}
 		dashboardBean.navigate("payments/payment-confirm", "pagamentos");
 		return null;
@@ -337,84 +437,47 @@ public class PaymentBean implements Serializable
 		return null;
 	}
 
-	public String formatDateTime(java.time.LocalDateTime dt)
-	{
-		if (dt == null)
-			return "—";
-		return dt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-	}
-
-	public String formatDate(java.time.LocalDate d)
-	{
-		if (d == null)
-			return "—";
-		return d.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-	}
-
 	public String confirmPaymentAndGoToList()
 	{
 		try
 		{
-			
 			Long schoolId = loginBean.getSchoolId();
 			Long yearId = loginBean.getAcademicYearId();
-
-			if (cart == null || cart.isEmpty())
+			if (cart.isEmpty())
 			{
 				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Carrinho vazio"));
 				return null;
 			}
-
 			PaymentEntity saved;
-
 			if (selected == null || selected.getId() == null)
 			{
-				// ===== NOVO PAGAMENTO =====
-				if (selectedStudentId == null)
-				{
-					FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Selecione um aluno"));
-					return null;
-				}
-
 				StudentEntity aluno = studentService.getByIdAndSchoolAndYear(selectedStudentId, schoolId, yearId);
+				if (aluno == null)
+					aluno = studentService.getStudentById(selectedStudentId).orElse(null);
 				if (aluno == null)
 				{
 					FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Aluno não encontrado"));
 					return null;
 				}
-
-				if (aluno.getStatus() != StudentStatus.PENDING_ENROLLMENT)
-				{
-					FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso",
-							"Só alunos PENDING_ENROLLMENT podem pagar aqui. Este está " + aluno.getStatus()));
-					return null;
-				}
-
 				PaymentEntity p = new PaymentEntity();
 				p.setStudent(aluno);
-				p.setSchool(aluno.getSchool());
+				SchoolEntity sch = new SchoolEntity();
+				sch.setId(schoolId);
+				p.setSchool(sch);
 				p.setAcademicYear(loginBean.getLoggedAcademicYear());
 				p.setTotalAmount(cartTotal);
-				p.setMethod(getMethod());
+				p.setMethod(paymentMethod);
 				p.setReference(reference);
 				p.setCreatedBy(loginBean.getLoggedUser());
-
 				saved = paymentService.createWithItems(p, cart);
-
 			} else
-			{
-				// ===== ATUALIZAÇÃO - é aqui que dava detached =====
-				saved = paymentService.updateWithItems(selected.getId(), cart, getMethod(), reference);
-				
-			}
+				saved = paymentService.updateWithItems(selected.getId(), cart, paymentMethod, reference);
 
 			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Pagamento " + saved.getReceiptNumber() + " registado"));
-
+					new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Pagamento " + saved.getReceiptNumber()));
 			init();
 			prepareNew();
 			dashboardBean.navigate("payments/payment-list", "pagamentos");
-
 		} catch (Exception e)
 		{
 			e.printStackTrace();
@@ -425,38 +488,10 @@ public class PaymentBean implements Serializable
 
 	public String confirmPaymentAndGoToLists()
 	{
-		try
-		{
-			Long schoolId = loginBean.getSchoolId();
-			Long yearId = loginBean.getAcademicYearId();
-			StudentEntity aluno = studentService.getByIdAndSchoolAndYear(selectedStudentId, schoolId, yearId);
-			if (aluno == null)
-			{
-				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Aluno não encontrado"));
-				return null;
-			}
-			PaymentEntity p = new PaymentEntity();
-			p.setStudent(aluno);
-			p.setSchool(aluno.getSchool());
-			p.setAcademicYear(loginBean.getLoggedAcademicYear());
-			p.setTotalAmount(cartTotal);
-			p.setMethod(getMethod());
-			p.setReference(reference);
-			p.setCreatedBy(loginBean.getLoggedUser());
-			PaymentEntity saved = paymentService.createWithItems(p, cart);
-			FacesContext.getCurrentInstance().addMessage(null,
-					new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Pagamento " + saved.getReceiptNumber() + " registado"));
-			init();
-			prepareNew();
-			dashboardBean.navigate("payments/payment-list", "pagamentos");
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
-		}
-		return null;
+		return confirmPaymentAndGoToList();
 	}
 
+	// ================= FILTROS & UTILS =================
 	public void filter()
 	{
 		try
@@ -482,34 +517,30 @@ public class PaymentBean implements Serializable
 		filteredPayments = new ArrayList<>(payments);
 	}
 
-	public void prepareDelete(PaymentEntity p)
+	public String formatDateTime(java.time.LocalDateTime dt)
 	{
-		this.selected = p;
+		return dt == null ? "—" : dt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
 	}
 
-	public void delete()
+	public String formatDate(LocalDate d)
 	{
+		return d == null ? "—" : d.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+	}
+
+	public String getCreatedByName()
+	{
+		if (selected == null || selected.getCreatedBy() == null)
+			return "Sistema";
 		try
 		{
-			paymentService.delete(selected.getId());
-			init();
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Removido"));
+			return selected.getCreatedBy().getUsername();
 		} catch (Exception e)
 		{
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
+			return "Sistema";
 		}
 	}
 
-	public PaymentEntity getViewItem()
-	{
-		return viewItem;
-	}
-
-	public PaymentMethod[] getMethods()
-	{
-		return PaymentMethod.values();
-	}
-
+	// ================= GETTERS / SETTERS =================
 	public List<PaymentEntity> getPayments()
 	{
 		return payments;
@@ -525,9 +556,9 @@ public class PaymentBean implements Serializable
 		return filteredPayments;
 	}
 
-	public void setFilteredPayments(List<PaymentEntity> filteredPayments)
+	public void setFilteredPayments(List<PaymentEntity> l)
 	{
-		this.filteredPayments = filteredPayments;
+		this.filteredPayments = l;
 	}
 
 	public PaymentEntity getSelected()
@@ -535,32 +566,194 @@ public class PaymentBean implements Serializable
 		return selected;
 	}
 
-	public void setSelected(PaymentEntity selected)
+	public void setSelected(PaymentEntity s)
 	{
-		this.selected = selected;
+		this.selected = s;
 	}
 
-	// COMPATIBILIDADE
-	@Deprecated
-	public StudentEntity getSelectedStudent()
+	public String getFilterAluno()
+	{
+		return filterAluno;
+	}
+
+	public void setFilterAluno(String s)
+	{
+		this.filterAluno = s;
+	}
+
+	public String getFilterCodigoAluno()
+	{
+		return filterCodigoAluno;
+	}
+
+	public void setFilterCodigoAluno(String s)
+	{
+		this.filterCodigoAluno = s;
+	}
+
+	public LocalDate getFilterDataInicio()
+	{
+		return filterDataInicio;
+	}
+
+	public void setFilterDataInicio(LocalDate d)
+	{
+		this.filterDataInicio = d;
+	}
+
+	public LocalDate getFilterDataFim()
+	{
+		return filterDataFim;
+	}
+
+	public void setFilterDataFim(LocalDate d)
+	{
+		this.filterDataFim = d;
+	}
+
+	public Long getSelectedStudentId()
+	{
+		return selectedStudentId;
+	}
+
+	public StudentEntity getSelectedStudentEntity()
 	{
 		return selectedStudentEntity;
 	}
 
-	@Deprecated
-	public void setSelectedStudent(StudentEntity s)
+	public void setSelectedStudentEntity(StudentEntity s)
 	{
 		this.selectedStudentEntity = s;
 		this.selectedStudentId = s != null ? s.getId() : null;
 	}
 
-	public PaymentMethod getMethod()
+	public PaymentMethod getPaymentMethod()
 	{
-		return method;
+		return paymentMethod;
 	}
 
-	public void setMethod(PaymentMethod method)
+	public void setPaymentMethod(PaymentMethod m)
 	{
-		this.method = method;
+		this.paymentMethod = m;
+	}
+
+	public String getReference()
+	{
+		return reference;
+	}
+
+	public void setReference(String r)
+	{
+		this.reference = r;
+	}
+
+	public List<FeeItemEntity> getFeeItems()
+	{
+		return feeItems;
+	}
+
+	public void setFeeItems(List<FeeItemEntity> l)
+	{
+		this.feeItems = l;
+	}
+
+	public Long getSelectedFeeItemId()
+	{
+		return selectedFeeItemId;
+	}
+
+	public void setSelectedFeeItemId(Long id)
+	{
+		this.selectedFeeItemId = id;
+	}
+
+	public String getCustomDescricao()
+	{
+		return customDescricao;
+	}
+
+	public void setCustomDescricao(String s)
+	{
+		this.customDescricao = s;
+	}
+
+	public BigDecimal getCustomValor()
+	{
+		return customValor;
+	}
+
+	public void setCustomValor(BigDecimal v)
+	{
+		this.customValor = v;
+	}
+
+	public boolean isOutroMode()
+	{
+		return outroMode;
+	}
+
+	public void setOutroMode(boolean b)
+	{
+		this.outroMode = b;
+	}
+
+	public List<PaymentItemEntity> getCart()
+	{
+		return cart;
+	}
+
+	public void setCart(List<PaymentItemEntity> c)
+	{
+		this.cart = c;
+	}
+
+	public BigDecimal getCartTotal()
+	{
+		return cartTotal;
+	}
+
+	public void setCartTotal(BigDecimal v)
+	{
+		this.cartTotal = v;
+	}
+
+	public PaymentEntity getViewItem()
+	{
+		return viewItem;
+	}
+
+	public void setViewItem(PaymentEntity v)
+	{
+		this.viewItem = v;
+	}
+
+	public boolean isHasPaidEnrollment()
+	{
+		return hasPaidEnrollment;
+	}
+
+	public boolean isHasPaidRegistration()
+	{
+		return hasPaidRegistration;
+	}
+
+	public boolean isHasPaidRenewal()
+	{
+		return hasPaidRenewal;
+	}
+
+	public boolean isReadyForEnrollment()
+	{
+		return readyForEnrollment;
+	}
+
+	public EnrollmentType getCurrentEnrollmentType()
+	{
+		return currentEnrollmentType;
+	}
+
+	public PaymentMethod[] getMethods()
+	{
+		return PaymentMethod.values();
 	}
 }

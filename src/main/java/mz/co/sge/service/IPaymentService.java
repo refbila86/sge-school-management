@@ -23,5 +23,11 @@ public interface IPaymentService
 
 	void delete(Long id);
 	
+	boolean hasPaid(Long studentId, Long yearId, Long schoolId, String keyword);
+	
+	List<PaymentEntity> getPaidByStudent(Long studentId, Long yearId, Long schoolId);
+	
+	boolean canEnroll(Long studentId, Long yearId, Long schoolId);
+	
 	public PaymentEntity updateWithItems(Long paymentId, List<PaymentItemEntity> cart, PaymentMethod paymentMethod, String ref);
 }

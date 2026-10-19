@@ -6,7 +6,6 @@ import jakarta.faces.convert.Converter;
 import jakarta.faces.convert.FacesConverter;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.repository.IStudentRepository;
-import mz.co.sge.controller.LoginBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,21 +13,29 @@ import org.springframework.stereotype.Component;
 @FacesConverter(value = "studentConverter", managed = true)
 public class StudentConverter implements Converter<StudentEntity>
 {
-
 	@Autowired
 	private IStudentRepository studentRepository;
-	@Autowired
-	private LoginBean loginBean;
 
 	@Override
 	public StudentEntity getAsObject(FacesContext ctx, UIComponent comp, String value)
 	{
-		if (value == null || value.isBlank())
+		if (value == null || value.isBlank() || value.equals("null"))
 			return null;
 		try
 		{
-			Long id = Long.parseLong(value);
-			return studentRepository.findByIdAndSchoolIdAndAcademicYearId(id, loginBean.getSchoolId(), loginBean.getAcademicYearId()).orElse(null);
+			Long id = Long.parseLong(value.trim());
+			// 1. tenta achar no ano logado
+			// 2. fallback geral por ID - ESSENCIAL pro autocomplete não apagar
+			return studentRepository.findById(id).orElseGet(() ->
+			{
+				try
+				{
+					return studentRepository.findByIdAndSchoolIdAndAcademicYearId(id, null, null).orElse(null);
+				} catch (Exception e2)
+				{
+					return null;
+				}
+			});
 		} catch (Exception e)
 		{
 			return null;

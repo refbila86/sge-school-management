@@ -1,8 +1,5 @@
 package mz.co.sge.entity;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,53 +15,40 @@ import mz.co.sge.enumes.Role;
 @Entity
 @Table(name = "user")
 @NamedQueries(
-{ @NamedQuery(name = "UserEntity.findByUsernameAndSchoolId", query = "SELECT u FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId"),
-		@NamedQuery(name = "UserEntity.findBySchoolIdOrderByNameAsc", query = "SELECT u FROM UserEntity u WHERE u.schoolId = :schoolId ORDER BY u.name ASC"),
-		@NamedQuery(name = "UserEntity.findBySchoolIdAndAcademicYearId", query = "SELECT u FROM UserEntity u WHERE u.schoolId = :schoolId AND u.academicYearId = :academicYearId ORDER BY u.name ASC"),
-		@NamedQuery(name = "UserEntity.existsByUsernameAndSchoolId", query = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId") })
-public class UserEntity implements Serializable
+{ @NamedQuery(name = "UserEntity.findByUsername", query = "SELECT u FROM UserEntity u WHERE u.username = :username"),
+		@NamedQuery(name = "UserEntity.existsByUsername", query = "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserEntity u WHERE u.username = :username"),
+		@NamedQuery(name = "UserEntity.findAllOrderByName", query = "SELECT u FROM UserEntity u ORDER BY u.name ASC"),
+		@NamedQuery(name = "UserEntity.findByRole", query = "SELECT u FROM UserEntity u WHERE u.role = :role ORDER BY u.name ASC") })
+public class UserEntity
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "school_id", nullable = false)
-	private Long schoolId;
-
-	@Column(name = "academic_year_id")
-	private Long academicYearId;
-
-	@Column(name = "name", nullable = false, length = 150)
+	@Column(nullable = false, length = 150)
 	private String name;
 
-	@Column(name = "username", nullable = false, length = 80)
+	@Column(nullable = false, length = 80, unique = true)
 	private String username;
 
-	@Column(name = "password", nullable = false, length = 255)
+	@Column(nullable = false)
 	private String password;
 
-	@Column(name = "email", length = 100)
 	private String email;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "role", nullable = false)
+	@Column(nullable = false)
 	private Role role;
 
-	@Column(name = "active", nullable = false)
+	@Column(nullable = false)
 	private Boolean active = true;
 
-	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	@Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+	private java.time.LocalDateTime createdAt;
 
 	@Column(name = "last_login")
-	private LocalDateTime lastLogin;
-
-	public UserEntity()
-	{
-	}
+	private java.time.LocalDateTime lastLogin;
 
 	public Long getId()
 	{
@@ -74,26 +58,6 @@ public class UserEntity implements Serializable
 	public void setId(Long id)
 	{
 		this.id = id;
-	}
-
-	public Long getSchoolId()
-	{
-		return schoolId;
-	}
-
-	public void setSchoolId(Long schoolId)
-	{
-		this.schoolId = schoolId;
-	}
-
-	public Long getAcademicYearId()
-	{
-		return academicYearId;
-	}
-
-	public void setAcademicYearId(Long academicYearId)
-	{
-		this.academicYearId = academicYearId;
 	}
 
 	public String getName()
@@ -156,23 +120,25 @@ public class UserEntity implements Serializable
 		this.active = active;
 	}
 
-	public LocalDateTime getCreatedAt()
+	public java.time.LocalDateTime getCreatedAt()
 	{
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt)
+	public void setCreatedAt(java.time.LocalDateTime createdAt)
 	{
 		this.createdAt = createdAt;
 	}
 
-	public LocalDateTime getLastLogin()
+	public java.time.LocalDateTime getLastLogin()
 	{
 		return lastLogin;
 	}
 
-	public void setLastLogin(LocalDateTime lastLogin)
+	public void setLastLogin(java.time.LocalDateTime lastLogin)
 	{
 		this.lastLogin = lastLogin;
 	}
+
+ 
 }

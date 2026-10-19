@@ -26,4 +26,9 @@ public interface IPaymentRepository
 	long countBySchoolAndYear(Long schoolId, Long yearId);
 
 	BigDecimal sumTotalBySchoolAndYear(Long schoolId, Long yearId);
+	
+	// IPaymentRepository
+	List<PaymentEntity> findPaidByStudentAndYear(Long studentId, Long yearId, Long schoolId);
+	
+	boolean existsFeeByKeyword(Long studentId, Long yearId, String keyword);
 }

@@ -1,24 +1,48 @@
 package mz.co.sge.entity;
 
-import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import mz.co.sge.enumes.EnrollmentStatus;
+import mz.co.sge.enumes.EnrollmentType;
+
 @Entity
-@Table(name = "enrollments")
+@Table(name = "enrollments", uniqueConstraints =
+{
+		// REGRA DE OURO: impede matricular mesmo aluno 2x no mesmo ano
+		@UniqueConstraint(name = "uk_student_academic_year", columnNames =
+		{ "student_id", "academic_year_id" }) }, indexes =
+{ @Index(name = "idx_enroll_year_status", columnList = "academic_year_id, status"), @Index(name = "idx_enroll_student", columnList = "student_id") })
 @NamedQueries(
 { @NamedQuery(name = "Enrollment.findAll", query = "SELECT e FROM EnrollmentEntity e LEFT JOIN FETCH e.classLevel LEFT JOIN FETCH e.academicYear LEFT JOIN FETCH e.student LEFT JOIN FETCH e.classroom ORDER BY e.id DESC"),
-		@NamedQuery(name = "Enrollment.findByYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId ORDER BY e.id DESC"),
-		@NamedQuery(name = "Enrollment.findByStudentAndYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId ORDER BY e.id DESC"),
-		@NamedQuery(name = "Enrollment.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
-		@NamedQuery(name = "Enrollment.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
-		@NamedQuery(name = "Enrollment.countByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId"),
-		// NOVAS QUERIES - FILTRAGEM POR fee_item_id MATRICULA
-		@NamedQuery(name = "Enrollment.findStudentsWithMatriculaPaid", query = "SELECT DISTINCT s FROM StudentEntity s WHERE s.school.id = :schoolId AND s.status = 'REGISTERED' "
-				+ "AND EXISTS (SELECT 1 FROM PaymentEntity p JOIN p.items pi WHERE p.student.id = s.id AND pi.feeItem.id = :matId) ORDER BY s.firstName"),
-		@NamedQuery(name = "Enrollment.findMatriculaFeeItemId", query = "SELECT f.id FROM FeeItemEntity f WHERE f.school.id = :schoolId AND LOWER(f.descricao) LIKE '%matric%' ORDER BY f.id ASC") })
+		@NamedQuery(name = "EnrollmentEntity.findByYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId ORDER BY e.id DESC"),
+		@NamedQuery(name = "EnrollmentEntity.findByStudentAndYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
+		@NamedQuery(name = "EnrollmentEntity.existsByStudentAndYear", query = "SELECT COUNT(e) > 0 FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
+		@NamedQuery(name = "EnrollmentEntity.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
+		@NamedQuery(name = "EnrollmentEntity.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
+		@NamedQuery(name = "EnrollmentEntity.countByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId"),
+		@NamedQuery(name = "EnrollmentEntity.countPreviousByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id <> :yearId") })
 public class EnrollmentEntity implements Serializable
 {
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -45,7 +69,7 @@ public class EnrollmentEntity implements Serializable
 	@JoinColumn(name = "classroom_id")
 	private ClassroomEntity classroom;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "payment_id")
 	private PaymentEntity payment;
 
@@ -54,24 +78,46 @@ public class EnrollmentEntity implements Serializable
 	private UserEntity createdBy;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private mz.co.sge.enumes.EnrollmentStatus status;
+	@Column(nullable = false, length = 20)
+	private EnrollmentType type;
 
-	@Column(name = "enrollment_date")
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private EnrollmentStatus status;
+
+	@Column(nullable = false, unique = true, length = 25)
+	private String code;  
+
+	@Column(name = "enrollment_date", nullable = false)
 	private LocalDateTime enrollmentDate;
 
-	@Column(name = "created_at")
-	private LocalDateTime createdAt = LocalDateTime.now();
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
 	@PrePersist
 	public void prePersist()
 	{
-		createdAt = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.now();
+		if (createdAt == null)
+			createdAt = now;
 		if (enrollmentDate == null)
-			enrollmentDate = LocalDateTime.now();
+			enrollmentDate = now;
+		if (status == null)
+			status = EnrollmentStatus.PENDING;
+		// Se não definiram o tipo, detecta automaticamente
+		// Será definido no Service, mas deixamos seguro aqui
 	}
 
-	// getters/setters
+	public boolean isRenovation()
+	{
+		return this.type == EnrollmentType.FIRST_ENROLLMENT;
+	}
+
+	public boolean isFirstTime()
+	{
+		return this.type == EnrollmentType.FIRST_ENROLLMENT;
+	}
+
 	public Long getId()
 	{
 		return id;
@@ -152,12 +198,22 @@ public class EnrollmentEntity implements Serializable
 		this.createdBy = createdBy;
 	}
 
-	public mz.co.sge.enumes.EnrollmentStatus getStatus()
+	public EnrollmentType getType()
+	{
+		return type;
+	}
+
+	public void setType(EnrollmentType type)
+	{
+		this.type = type;
+	}
+
+	public EnrollmentStatus getStatus()
 	{
 		return status;
 	}
 
-	public void setStatus(mz.co.sge.enumes.EnrollmentStatus status)
+	public void setStatus(EnrollmentStatus status)
 	{
 		this.status = status;
 	}
@@ -170,6 +226,16 @@ public class EnrollmentEntity implements Serializable
 	public void setEnrollmentDate(LocalDateTime enrollmentDate)
 	{
 		this.enrollmentDate = enrollmentDate;
+	}
+
+	public String getCode()
+	{
+		return code;
+	}
+
+	public void setCode(String code)
+	{
+		this.code = code;
 	}
 
 	public LocalDateTime getCreatedAt()

@@ -1,10 +1,12 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,9 +19,11 @@ import jakarta.faces.context.ExternalContext;
 import jakarta.faces.context.FacesContext;
 import jakarta.servlet.http.HttpSession;
 import mz.co.sge.entity.AcademicYearEntity;
+import mz.co.sge.entity.LicenseEntity;
 import mz.co.sge.entity.SchoolEntity;
 import mz.co.sge.entity.UserEntity;
 import mz.co.sge.service.IAcademicYearService;
+import mz.co.sge.service.ILicenseService;
 import mz.co.sge.service.SchoolsService;
 import mz.co.sge.service.UsersService;
 
@@ -50,6 +54,11 @@ public class LoginBean implements Serializable
 	private String role;
 	private boolean yearStep = false;
 
+	@Autowired
+	private ILicenseService licenseService;
+
+	private LicenseEntity loggedLicense;
+
 	public LoginBean(UsersService userService, SchoolsService schoolService, IAcademicYearService academicYearService)
 	{
 		this.userService = userService;
@@ -71,11 +80,10 @@ public class LoginBean implements Serializable
 			this.schools = schoolService.findAllActive();
 		} catch (Exception e)
 		{
-			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Não foi possível carregar a lista de escolas.");
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Não foi possível carregar escolas.");
 		}
 	}
 
-	// ETAPA 1 -> ETAPA 2 : valida credenciais e carrega anos
 	public String goToYearStep()
 	{
 		try
@@ -93,11 +101,6 @@ public class LoginBean implements Serializable
 			if (password == null || password.trim().isEmpty())
 			{
 				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Senha obrigatória.");
-				return null;
-			}
-			if (selectedProfile == null)
-			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Selecione o perfil.");
 				return null;
 			}
 
@@ -118,7 +121,7 @@ public class LoginBean implements Serializable
 			this.academicYears = academicYearService.getAllAcademicYears();
 			if (academicYears == null || academicYears.isEmpty())
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Nenhum ano académico cadastrado.");
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Nenhum ano académico.");
 				return null;
 			}
 
@@ -128,7 +131,6 @@ public class LoginBean implements Serializable
 
 			this.yearStep = true;
 			return null;
-
 		} catch (Exception e)
 		{
 			e.printStackTrace();
@@ -147,14 +149,9 @@ public class LoginBean implements Serializable
 	{
 		try
 		{
-			if (schoolId == null)
+			if (schoolId == null || academicYearId == null)
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Selecione a escola.");
-				return null;
-			}
-			if (academicYearId == null)
-			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Selecione o ano académico.");
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Selecione escola e ano.");
 				return null;
 			}
 
@@ -169,7 +166,7 @@ public class LoginBean implements Serializable
 			Optional<AcademicYearEntity> ayOpt = academicYearService.getAcademicYearById(academicYearId);
 			if (ayOpt.isEmpty())
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Ano académico não encontrado.");
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Ano não encontrado.");
 				return null;
 			}
 			AcademicYearEntity academicYear = ayOpt.get();
@@ -177,7 +174,7 @@ public class LoginBean implements Serializable
 			UserEntity user = userService.authenticate(username.trim(), password.trim(), schoolId);
 			if (user == null)
 			{
-				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Utilizador, senha inválidos ou conta inativa.");
+				addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Utilizador/senha inválidos.");
 				return null;
 			}
 
@@ -186,31 +183,27 @@ public class LoginBean implements Serializable
 			var authToken = new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
 			SecurityContextHolder.getContext().setAuthentication(authToken);
 
-			ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
-			HttpSession session = (HttpSession) externalContext.getSession(true);
+			ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
+			HttpSession session = (HttpSession) ec.getSession(true);
 			session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 			session.setAttribute("usuarioLogado", user);
 			session.setAttribute("escolaLogada", school);
 			session.setAttribute("schoolId", schoolId);
-			session.setAttribute("schoolName", school.getName());
 			session.setAttribute("academicYearId", academicYearId);
-			session.setAttribute("academicYear", academicYear);
-			session.setAttribute("academicYearLabel", academicYear.getYear());
-			session.setAttribute("selectedProfile", selectedProfile);
 
 			this.loggedUser = user;
 			this.loggedSchool = school;
 			this.loggedAcademicYear = academicYear;
 			this.fullname = user.getName();
 			this.role = userRole;
+			this.loggedLicense = null; // força recarregar
 			this.password = null;
 
 			return "/pages/dashboard.xhtml?faces-redirect=true";
-
 		} catch (Exception e)
 		{
 			e.printStackTrace();
-			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Erro ao autenticar: " + e.getMessage());
+			addMessage(FacesMessage.SEVERITY_ERROR, "Erro!", e.getMessage());
 			return null;
 		}
 	}
@@ -231,6 +224,7 @@ public class LoginBean implements Serializable
 			loggedUser = null;
 			loggedSchool = null;
 			loggedAcademicYear = null;
+			loggedLicense = null;
 			username = null;
 			password = null;
 			fullname = null;
@@ -243,9 +237,9 @@ public class LoginBean implements Serializable
 		return "/login.xhtml?faces-redirect=true";
 	}
 
-	private void addMessage(FacesMessage.Severity severity, String summary, String detail)
+	private void addMessage(FacesMessage.Severity s, String sum, String det)
 	{
-		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(s, sum, det));
 	}
 
 	public String getProfileLabel(String profile)
@@ -263,6 +257,59 @@ public class LoginBean implements Serializable
 		default:
 			return profile;
 		}
+	}
+
+	// ===== LICENÇA - AGORA TRAZ OBJETO E NÃO ID =====
+	public LicenseEntity getLoggedLicense()
+	{
+		if (loggedLicense == null && loggedSchool != null && loggedSchool.getLicenseId() != null)
+		{
+			try
+			{
+				loggedLicense = licenseService.getById(loggedSchool.getLicenseId()).orElse(null);
+			} catch (Exception e)
+			{
+				loggedLicense = null;
+			}
+		}
+		return loggedLicense;
+	}
+
+	public String getLicenseCode()
+	{
+		LicenseEntity lic = getLoggedLicense();
+		return lic != null ? lic.getCode() : "LIC-" + (loggedSchool != null ? loggedSchool.getLicenseId() : "N/A");
+	}
+
+	public String getLicenseStatus()
+	{
+		LicenseEntity lic = getLoggedLicense();
+		return lic != null && lic.getStatus() != null ? lic.getStatus().name() : "ATIVA";
+	}
+
+	public String getLicenseType()
+	{
+		LicenseEntity lic = getLoggedLicense();
+		return lic != null && lic.getType() != null ? lic.getType().name() : "";
+	}
+
+	public String getLicenseExpiry()
+	{
+		LicenseEntity lic = getLoggedLicense();
+		if (lic == null)
+			return "";
+		LocalDate exp = lic.getExpirationDate() != null ? lic.getExpirationDate() : lic.getEndDate();
+		if (exp == null)
+			return "";
+		return exp.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+	}
+	
+ 
+
+	public long getLicenseDaysRemaining()
+	{
+		LicenseEntity lic = getLoggedLicense();
+		return lic != null ? lic.getDaysRemaining() : 0;
 	}
 
 	public boolean isAdmin()

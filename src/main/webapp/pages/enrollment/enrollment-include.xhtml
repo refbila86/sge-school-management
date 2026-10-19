@@ -96,7 +96,6 @@
 
 	<h:form id="formInclude">
 		<p:growl id="growl" showDetail="true" />
-
 		<div class="page-header">
 			<div class="page-title">
 				<p:commandButton icon="pi pi-arrow-left"
@@ -112,7 +111,7 @@
 					<div>#{enrollmentBean.editing ? 'Editar Matrícula' : 'Nova
 						Matrícula'}</div>
 					<div style="font-size: 12px; font-weight: 500; color: #64748b">Selecione
-						aluno → valida pagamentos → muda para ENROLLED</div>
+						aluno que já pagou matrícula → valida → ENROLLED</div>
 				</div>
 			</div>
 		</div>
@@ -132,10 +131,9 @@
 				<span style="font-size: 12px">Pagamentos</span>
 				<div style="width: 30px; height: 2px; background: #e2e8f0" />
 				<div class="step step-todo">4</div>
-				<span style="font-size: 12px">Confirmar ENROLLED</span>
+				<span style="font-size: 12px">Confirmar</span>
 			</div>
 
-			<!-- FORM SELECTS -->
 			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
 				<div>
 					<span class="field-label">Ano Académico *</span>
@@ -145,18 +143,20 @@
 						<f:selectItems value="#{enrollmentBean.academicYearsCache}"
 							var="y" itemLabel="#{y.year}" itemValue="#{y.id}" />
 						<p:ajax listener="#{enrollmentBean.onAcademicYearChange}"
-							update=":formInclude:turmaSelect :formInclude:growl" />
+							update="@form" />
 					</p:selectOneMenu>
 				</div>
 				<div>
-					<span class="field-label">Aluno *</span>
+					<span class="field-label">Aluno * (com matrícula paga) -
+						#{enrollmentBean.availableStudentsCount} encontrados</span>
 					<p:selectOneMenu value="#{enrollmentBean.selectedStudentId}"
 						filter="true" filterMatchMode="contains" style="width:100%">
-						<f:selectItem itemLabel="Selecione aluno..." itemValue="#{null}" />
+						<f:selectItem itemLabel="Selecione aluno que pagou matrícula..."
+							itemValue="#{null}" />
 						<f:selectItems value="#{enrollmentBean.availableStudents}" var="s"
 							itemLabel="#{s.fullName} - #{s.code}" itemValue="#{s.id}" />
 						<p:ajax listener="#{enrollmentBean.onStudentChange}"
-							update=":formInclude:paymentsPanel :formInclude:growl :formInclude:confirmBtn" />
+							update="@form" />
 					</p:selectOneMenu>
 				</div>
 				<div>
@@ -167,7 +167,7 @@
 						<f:selectItems value="#{enrollmentBean.availableClassLevels}"
 							var="cl" itemLabel="#{cl.name}" itemValue="#{cl.id}" />
 						<p:ajax listener="#{enrollmentBean.onClassLevelChange}"
-							update=":formInclude:turmaSelect :formInclude:growl" />
+							update="turmaSelect growl" />
 					</p:selectOneMenu>
 				</div>
 				<div>
@@ -179,12 +179,37 @@
 							var="c"
 							itemLabel="#{c.name} - #{c.shift} (#{c.currentStudents}/#{c.capacity})"
 							itemValue="#{c.id}" />
-						<p:ajax update=":formInclude:confirmBtn" />
+						<p:ajax update="confirmBtn" />
 					</p:selectOneMenu>
 				</div>
 			</div>
 
-			<!-- LISTA DE PAGAMENTOS DO ALUNO -->
+			<h:panelGroup id="statusType"
+				rendered="#{enrollmentBean.selectedStudentId != null}">
+				<div style="display: flex; gap: 8px; flex-wrap: wrap">
+					<p:tag value="#{enrollmentBean.currentEnrollmentType}"
+						severity="info" style="font-weight:800" />
+					<p:tag
+						value="#{enrollmentBean.firstEnrollment ? 'NOVO - Primeiro ano' : 'RENOVAÇÃO - Já inscrito'}"
+						severity="#{enrollmentBean.firstEnrollment ? 'warning' : 'success'}" />
+					<h:panelGroup rendered="#{enrollmentBean.firstEnrollment}"
+						style="display:flex;gap:6px">
+						<p:tag
+							value="Inscrição #{enrollmentBean.hasPaidEnrollment ? 'PAGA' : 'PENDENTE'}"
+							severity="#{enrollmentBean.hasPaidEnrollment ? 'success' : 'danger'}" />
+						<p:tag
+							value="Matrícula #{enrollmentBean.hasPaidRegistration ? 'PAGA' : 'PENDENTE'}"
+							severity="#{enrollmentBean.hasPaidRegistration ? 'success' : 'danger'}" />
+					</h:panelGroup>
+					<h:panelGroup rendered="#{enrollmentBean.renewalEnrollment}"
+						style="display:flex;gap:6px">
+						<p:tag
+							value="Renovação #{enrollmentBean.hasPaidRenewal ? 'PAGA' : 'PENDENTE'}"
+							severity="#{enrollmentBean.hasPaidRenewal ? 'success' : 'danger'}" />
+					</h:panelGroup>
+				</div>
+			</h:panelGroup>
+
 			<h:panelGroup id="paymentsPanel" layout="block">
 				<div
 					style="background:#f8fafc;border:2px dashed #{enrollmentBean.hasValidPayment ? '#86efac' : '#cbd5e1'};border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px">
@@ -198,20 +223,18 @@
 							</div>
 							<div>
 								<div style="font-size: 14px; font-weight: 800; color: #0a2540">Pagamentos
-									do Aluno #{enrollmentBean.selectedStudentId != null ?
+									do Aluno #{enrollmentBean.selectedStudentEntity != null ?
 									enrollmentBean.selectedStudentEntity.fullName : ''}</div>
 								<div style="font-size: 11px; color: #64748b">#{enrollmentBean.studentPayments.size()}
-									pagamentos encontrados • #{enrollmentBean.validPaymentsCount}
-									válidos para matrícula • Selecione para mudar para ENROLLED</div>
+									pagamentos • #{enrollmentBean.validPaymentsCount} válidos</div>
 							</div>
 						</div>
 						<h:panelGroup rendered="#{enrollmentBean.hasValidPayment}">
-							<p:tag value="PAGAMENTO VALIDADO" severity="success"
+							<p:tag value="VALIDADO" severity="success"
 								style="font-size:11px;padding:6px 12px" />
 						</h:panelGroup>
 					</div>
 
-					<!-- TABELA PAGAMENTOS -->
 					<h:panelGroup
 						rendered="#{not empty enrollmentBean.studentPayments}"
 						layout="block">
@@ -223,7 +246,7 @@
 										<p:selectBooleanCheckbox value="#{pay.selected}"
 											disabled="#{pay.status != 'PAGO'}">
 											<p:ajax listener="#{enrollmentBean.onPaymentSelect(pay)}"
-												update=":formInclude:paymentsPanel :formInclude:confirmBtn :formInclude:growl" />
+												update="@form" />
 										</p:selectBooleanCheckbox>
 										<div
 											style="width: 36px; height: 36px; border-radius: 8px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px">
@@ -232,22 +255,16 @@
 										<div>
 											<div style="font-weight: 700; font-size: 13px">#{pay.reference}
 												- #{pay.description}</div>
-											<div style="font-size: 11px; color: #64748b">
-												<h:outputText value="#{pay.paymentDate}">
-													<f:convertDateTime pattern="dd/MM/yyyy" />
-												</h:outputText>
-												• #{pay.method} • #{pay.monthLabel != null ? pay.monthLabel
-												: ''}
-											</div>
+											<div style="font-size: 11px; color: #64748b">#{pay.method}
+												• #{pay.monthLabel}</div>
 										</div>
 									</div>
 									<div style="display: flex; align-items: center; gap: 12px">
 										<div style="text-align: right">
-											<b style="font-size: 14px">#{pay.amount} MT</b><br />
-											<span style="font-size: 10px; color: #64748b">#{pay.reference}</span>
+											<b style="font-size: 14px">#{pay.amount} MT</b>
 										</div>
 										<p:tag value="#{pay.status}"
-											severity="#{pay.status == 'PAGO' ? 'success' : pay.status == 'PENDENTE' ? 'warning' : 'danger'}"
+											severity="#{pay.status == 'PAGO' ? 'success' : 'warning'}"
 											style="font-size:10px" />
 									</div>
 								</div>
@@ -262,26 +279,12 @@
 							style="text-align: center; padding: 20px; color: #ef4444; font-size: 13px">
 							<i class="pi pi-exclamation-triangle"
 								style="font-size: 24px; display: block; margin-bottom: 8px" />Nenhum
-							pagamento encontrado para
-							#{enrollmentBean.selectedStudentEntity.fullName}. Faça primeiro o
-							pagamento da matrícula.
-						</div>
-					</h:panelGroup>
-
-					<h:panelGroup
-						rendered="#{enrollmentBean.selectedStudentId == null}"
-						layout="block">
-						<div
-							style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px">
-							<i class="pi pi-user"
-								style="font-size: 24px; display: block; margin-bottom: 8px" />Selecione
-							um aluno para ver os pagamentos.
+							pagamento encontrado. Faça primeiro o pagamento.
 						</div>
 					</h:panelGroup>
 				</div>
 			</h:panelGroup>
 
-			<!-- CONFIRMAR -->
 			<div
 				style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9">
 				<p:commandButton value="Voltar" icon="pi pi-arrow-left"
@@ -290,16 +293,24 @@
 					action="#{dashboardBean.navigate('enrollment/enrollment-list','matriculas')}"
 					update=":contentPanel" process="@this" />
 				<h:panelGroup id="confirmBtn">
-					<p:commandButton value="Confirmar Matrícula → ENROLLED"
+
+					<p:commandButton value="Confirmar → MATRÍCULA"
 						icon="pi pi-check-circle"
-						style="border-radius:12px;background:#0a2540;border:none;font-weight:700;padding:10px 20px"
-						disabled="#{!enrollmentBean.hasValidPayment or enrollmentBean.selectedClassroomId == null}"
-						action="#{enrollmentBean.goToConfirm}" update=":formInclude:growl" />
+						style="border-radius:12px;background:#0a2540;border:none;
+           font-weight:700;padding:10px 20px"
+						disabled="#{!enrollmentBean.hasValidPayment
+                or enrollmentBean.selectedClassroomId == null}"
+						action="#{enrollmentBean.goToConfirm}" process="@form"
+						update=":contentPanel" />
+
 					<div
-						style="font-size: 10px; color: #64748b; margin-top: 4px; text-align: right">#{enrollmentBean.hasValidPayment
-						? 'Pagamento selecionado:
-						'+=enrollmentBean.selectedPaymentReference : 'Selecione pagamento
-						PAGO'}</div>
+						style="font-size: 10px; color: #64748b; margin-top: 4px; text-align: right">
+						<h:outputText
+							value="Pronto: #{enrollmentBean.selectedPaymentReference}"
+							rendered="#{enrollmentBean.hasValidPayment}" />
+						<h:outputText value="Selecione pagamento PAGO"
+							rendered="#{!enrollmentBean.hasValidPayment}" />
+					</div>
 				</h:panelGroup>
 			</div>
 		</div>

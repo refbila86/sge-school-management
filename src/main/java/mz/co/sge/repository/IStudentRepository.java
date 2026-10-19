@@ -18,34 +18,37 @@ public interface IStudentRepository
 
 	Optional<StudentEntity> findByCode(String code);
 
+	Optional<StudentEntity> findByDocument(String documentNumber);
+
+	Optional<StudentEntity> findByIdWithDetails(Long id);
+
 	List<StudentEntity> findAll();
+
+	List<StudentEntity> findAllWithDetails();
 
 	List<StudentEntity> findByStatus(StudentStatus status);
 
 	List<StudentEntity> findByGuardianId(Long guardianId);
 
-	List<StudentEntity> findByAcademicYearId(Long academicYearId);
-
 	List<StudentEntity> findByName(String name);
 
-	List<StudentEntity> findAllWithDetails();
+	// NOVO: Tudo via Enrollment (anos independentes por escola)
+	List<StudentEntity> findBySchoolId(Long schoolId);
 
-	Optional<StudentEntity> findByIdWithDetails(Long id);
+	List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+
+	List<StudentEntity> findByAcademicYearId(Long academicYearId);
 
 	long countAll();
 
 	long countByGuardianId(Long guardianId);
 
-	long countByAcademicYearId(Long academicYearId);
+	long countBySchoolId(Long schoolId);
 
 	long countBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
 
-	List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+	long countByAcademicYearId(Long academicYearId);
 
-	List<StudentEntity> findBySchoolId(Long schoolId);
-
-	long countBySchoolId(Long schoolId);
-	
+	// Para validação de segurança multi-tenant
 	Optional<StudentEntity> findByIdAndSchoolIdAndAcademicYearId(Long id, Long schoolId, Long yearId);
-
 }

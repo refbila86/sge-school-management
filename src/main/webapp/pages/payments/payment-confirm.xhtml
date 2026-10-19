@@ -34,14 +34,6 @@
 	align-items: center;
 }
 
-.value-box.highlight {
-	background: #0a2540;
-	color: white;
-	font-size: 18px;
-	font-weight: 800;
-	border-color: #0a2540;
-}
-
 .summary-row {
 	display: flex;
 	justify-content: space-between;
@@ -91,15 +83,12 @@
 
 		<div
 			style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px">
-
-			<!-- CARD ALUNO E ITENS -->
 			<div class="form-card">
 				<div
 					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
 					<i class="pi pi-user" style="margin-right: 6px; color: #2563eb" />
 					Dados do Aluno
 				</div>
-
 				<div
 					style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px">
 					<div style="grid-column: span 2">
@@ -121,7 +110,7 @@
 						<span class="label">Método de Pagamento</span>
 						<div class="value-box">
 							<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb"></i>
-							#{paymentBean.method}
+							#{paymentBean.paymentMethod}
 						</div>
 					</div>
 					<div>
@@ -131,35 +120,23 @@
 					</div>
 				</div>
 
-				<p:separator style="margin: 10px 0 16px 0" />
-
 				<div
-					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .4px">
-					<i class="pi pi-list" style="margin-right: 6px; color: #2563eb" />
-					Itens do Pagamento
-				</div>
-
-				<div
-					style="border: 1px solid #e6eaf0; border-radius: 12px; overflow: hidden">
-					<p:dataTable value="#{paymentBean.cart}" var="it"
-						styleClass="compact-table" style="font-size:14px"
-						emptyMessage="Nenhum item">
-						<p:column headerText="Descrição"
-							style="font-weight:600;padding:14px 12px">#{it.descricao}</p:column>
-						<p:column headerText="Valor" width="140"
-							style="text-align:right;font-weight:800;padding:14px 12px">MT #{it.valor}</p:column>
-					</p:dataTable>
+					style="margin-top: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; display: flex; gap: 10px">
+					<i class="pi pi-verified" style="color: #16a34a"></i> <span
+						style="font-size: 13px; color: #166534">Pagamento será
+						registado para <b>#{paymentBean.selectedStudentEntity.fullName}</b>
+						no ano <b>#{loginBean.loggedAcademicYear.year}</b>
+					</span>
 				</div>
 			</div>
 
-			<!-- CARD RESUMO -->
 			<div class="form-card" style="background: #fbfdff">
 				<div
 					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
-					<i class="pi pi-file" style="margin-right: 6px; color: #2563eb" />
-					Resumo
+					<i class="pi pi-shopping-cart"
+						style="margin-right: 6px; color: #2563eb" /> Carrinho -
+					#{paymentBean.cart.size()} itens
 				</div>
-
 				<div
 					style="background: white; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
 					<ui:repeat value="#{paymentBean.cart}" var="it">
@@ -168,7 +145,6 @@
 								style="color: #0a2540">MT #{it.valor}</b>
 						</div>
 					</ui:repeat>
-
 					<div class="total-box">
 						<div>
 							<div
@@ -183,17 +159,14 @@
 						</div>
 					</div>
 				</div>
-
 				<div
 					style="margin-top: 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px; display: flex; gap: 10px">
 					<i class="pi pi-info-circle"
 						style="color: #d97706; margin-top: 2px"></i> <span
 						style="font-size: 12.5px; color: #92400e; line-height: 1.4">Ao
-						confirmar, será gerado o recibo automaticamente e o pagamento
-						ficará registado no ano letivo <b>#{loginBean.loggedAcademicYear.year}</b>.
+						confirmar, será gerado o recibo automaticamente no ano letivo <b>#{loginBean.loggedAcademicYear.year}</b>.
 					</span>
 				</div>
-
 				<div style="margin-top: 20px; display: flex; gap: 10px">
 					<p:commandButton value="Voltar" icon="pi pi-arrow-left"
 						styleClass="ui-button-secondary ui-button-outlined"

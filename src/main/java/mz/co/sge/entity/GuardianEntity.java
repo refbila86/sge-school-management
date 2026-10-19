@@ -16,8 +16,8 @@ import java.util.List;
 		@NamedQuery(name = "Guardian.findByUserId", query = "SELECT g FROM GuardianEntity g WHERE g.user.id = :userId"),
 		@NamedQuery(name = "Guardian.findWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students WHERE g.id = :id"),
 		@NamedQuery(name = "Guardian.findByAcademicYear", query = "SELECT g FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId"),
-		@NamedQuery(name = "Guardian.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE s.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName"),
-		@NamedQuery(name = "Guardian.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s WHERE (s.school.id = :schoolId AND s.academicYear.id = :academicYearId) OR s.id IS NULL"),
+		@NamedQuery(name = "Guardian.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s LEFT JOIN s.enrollments e WHERE e.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName"),
+		@NamedQuery(name = "Guardian.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s LEFT JOIN s.enrollments e WHERE (e.school.id = :schoolId AND e.academicYear.id = :academicYearId) OR s.id IS NULL"),
 		@NamedQuery(name = "Guardian.countAll", query = "SELECT COUNT(g) FROM GuardianEntity g"),
 		@NamedQuery(name = "Guardian.countAllByAcademicYearId", query = "SELECT COUNT(g) FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId ORDER BY g.firstName") })
 

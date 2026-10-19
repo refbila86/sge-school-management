@@ -2,14 +2,11 @@ package mz.co.sge.repository.impl;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.StudentStatus;
 import mz.co.sge.repository.IStudentRepository;
@@ -58,32 +55,40 @@ public class StudentRepositoryImpl implements IStudentRepository
 	@Override
 	public Optional<StudentEntity> findByCode(String code)
 	{
-		List<StudentEntity> list = em.createNamedQuery("Student.findByCode", StudentEntity.class).setParameter("code", code).getResultList();
+		List<StudentEntity> list = em.createNamedQuery("StudentEntity.findByCode", StudentEntity.class).setParameter("code", code).getResultList();
+		return list.stream().findFirst();
+	}
+
+	@Override
+	public Optional<StudentEntity> findByDocument(String doc)
+	{
+		List<StudentEntity> list = em.createNamedQuery("StudentEntity.findByDocument", StudentEntity.class).setParameter("doc", doc).getResultList();
 		return list.stream().findFirst();
 	}
 
 	@Override
 	public List<StudentEntity> findAll()
 	{
-		return em.createNamedQuery("Student.findAll", StudentEntity.class).getResultList();
+		return em.createNamedQuery("StudentEntity.findAll", StudentEntity.class).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findByStatus(StudentStatus status)
 	{
-		return em.createNamedQuery("Student.findByStatus", StudentEntity.class).setParameter("status", status).getResultList();
+		return em.createNamedQuery("StudentEntity.findByStatus", StudentEntity.class).setParameter("status", status).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findByGuardianId(Long guardianId)
 	{
-		return em.createNamedQuery("Student.findByGuardian", StudentEntity.class).setParameter("guardianId", guardianId).getResultList();
+		return em.createNamedQuery("StudentEntity.findByGuardian", StudentEntity.class).setParameter("guardianId", guardianId).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findByAcademicYearId(Long academicYearId)
 	{
-		return em.createNamedQuery("Student.findByAcademicYear", StudentEntity.class).setParameter("academicYearId", academicYearId).getResultList();
+		return em.createQuery("SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE e.academicYear.id = :yId ORDER BY s.firstName",
+				StudentEntity.class).setParameter("yId", academicYearId).getResultList();
 	}
 
 	@Override
@@ -98,64 +103,63 @@ public class StudentRepositoryImpl implements IStudentRepository
 	@Override
 	public long countAll()
 	{
-		return em.createNamedQuery("Student.countAll", Long.class).getSingleResult();
+		return em.createNamedQuery("StudentEntity.countAll", Long.class).getSingleResult();
 	}
 
 	@Override
 	public long countByGuardianId(Long guardianId)
 	{
-		return em.createNamedQuery("Student.countByGuardian", Long.class).setParameter("guardianId", guardianId).getSingleResult();
+		return em.createNamedQuery("StudentEntity.countByGuardian", Long.class).setParameter("guardianId", guardianId).getSingleResult();
 	}
 
 	@Override
 	public long countByAcademicYearId(Long academicYearId)
 	{
-		return em.createQuery("SELECT COUNT(s) FROM StudentEntity s WHERE s.academicYear.id = :academicYearId", Long.class)
-				.setParameter("academicYearId", academicYearId).getSingleResult();
+		return em.createQuery("SELECT COUNT(DISTINCT s) FROM StudentEntity s JOIN s.enrollments e WHERE e.academicYear.id = :yId", Long.class)
+				.setParameter("yId", academicYearId).getSingleResult();
 	}
 
 	@Override
 	public long countBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
 	{
-		return em.createNamedQuery("Student.countBySchoolAndYear", Long.class).setParameter("schoolId", schoolId).setParameter("academicYearId", academicYearId)
-				.getSingleResult();
+		return em.createNamedQuery("StudentEntity.countBySchoolAndYear", Long.class).setParameter("schoolId", schoolId)
+				.setParameter("academicYearId", academicYearId).getSingleResult();
 	}
 
 	@Override
 	public List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
 	{
-		return em.createNamedQuery("Student.findBySchoolAndYear", StudentEntity.class).setParameter("schoolId", schoolId)
+		return em.createNamedQuery("StudentEntity.findBySchoolAndYear", StudentEntity.class).setParameter("schoolId", schoolId)
 				.setParameter("academicYearId", academicYearId).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findBySchoolId(Long schoolId)
 	{
-		return em.createQuery("SELECT s FROM StudentEntity s WHERE s.school.id = :schoolId ORDER BY s.firstName", StudentEntity.class)
-				.setParameter("schoolId", schoolId).getResultList();
+		return em.createNamedQuery("StudentEntity.findBySchool", StudentEntity.class).setParameter("schoolId", schoolId).getResultList();
 	}
 
 	@Override
 	public long countBySchoolId(Long schoolId)
 	{
-		return em.createQuery("SELECT COUNT(s) FROM StudentEntity s WHERE s.school.id = :schoolId", Long.class).setParameter("schoolId", schoolId)
-				.getSingleResult();
+		return em.createQuery("SELECT COUNT(DISTINCT s) FROM StudentEntity s JOIN s.enrollments e WHERE e.school.id = :schoolId", Long.class)
+				.setParameter("schoolId", schoolId).getSingleResult();
 	}
 
 	@Override
 	public List<StudentEntity> findAllWithDetails()
 	{
-		return em.createQuery(
-				"SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian g LEFT JOIN FETCH s.academicYear LEFT JOIN FETCH s.school ORDER BY s.firstName",
+		return em.createQuery("SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian LEFT JOIN FETCH s.enrollments ORDER BY s.firstName",
 				StudentEntity.class).getResultList();
 	}
 
 	@Override
 	public Optional<StudentEntity> findByIdWithDetails(Long id)
 	{
-		List<StudentEntity> list = em.createQuery(
-				"SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian g LEFT JOIN FETCH g.students LEFT JOIN FETCH s.academicYear LEFT JOIN FETCH s.school WHERE s.id = :id",
-				StudentEntity.class).setParameter("id", id).getResultList();
+		List<StudentEntity> list = em
+				.createQuery("SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian LEFT JOIN FETCH s.enrollments WHERE s.id = :id",
+						StudentEntity.class)
+				.setParameter("id", id).getResultList();
 		return list.stream().findFirst();
 	}
 
@@ -164,24 +168,12 @@ public class StudentRepositoryImpl implements IStudentRepository
 	{
 		try
 		{
-			TypedQuery<StudentEntity> query = em.createQuery(
-					"SELECT s FROM StudentEntity s " + "WHERE s.id = :id " + "AND s.school.id = :schoolId " + "AND s.academicYear.id = :yearId",
-					StudentEntity.class);
-			query.setParameter("id", id);
-			query.setParameter("schoolId", schoolId);
-			query.setParameter("yearId", yearId);
-			query.setMaxResults(1);
-			return Optional.ofNullable(query.getSingleResult());
+			return Optional.of(em.createQuery(
+					"SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE s.id = :id AND e.school.id = :schoolId AND e.academicYear.id = :yearId",
+					StudentEntity.class).setParameter("id", id).setParameter("schoolId", schoolId).setParameter("yearId", yearId).getSingleResult());
 		} catch (NoResultException e)
 		{
 			return Optional.empty();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			return Optional.empty();
 		}
 	}
-
-	 
-
 }
