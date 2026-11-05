@@ -1,23 +1,29 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.ClassLevelEntity;
 import mz.co.sge.entity.ClassroomEntity;
+import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.TeacherEntity;
+import mz.co.sge.enumes.Shift;
 import mz.co.sge.service.IAcademicYearService;
 import mz.co.sge.service.IClassLevelService;
 import mz.co.sge.service.IClassroomService;
 import mz.co.sge.service.ITeacherService;
-import mz.co.sge.entity.ClassroomEntity.Shift;
 
 @Named
 @ViewScoped
@@ -50,9 +56,44 @@ public class ClassroomBean implements Serializable
 	private Long selectedTeacherId;
 	private Long selectedClassLevelId;
 	private Long selectedAcademicYearId;
+	private ClassroomEntity viewedClassroom;
+	private List<EnrollmentEntity> classroomStudents = new ArrayList<>();
+
+	@PersistenceContext
+	private EntityManager em;
 
 	@PostConstruct
 	public void init()
+	{
+		classrooms = new ArrayList<>();
+		classLevels = new ArrayList<>();
+		teachers = new ArrayList<>();
+		academicYears = new ArrayList<>();
+		classroomStudents = new ArrayList<>();
+		classroom = new ClassroomEntity();
+		classroom.setActive(true);
+		try
+		{
+			loadAcademicYears();
+		} catch (Exception e)
+		{
+		}
+		try
+		{
+			loadClassLevels();
+		} catch (Exception e)
+		{
+		}
+		try
+		{
+			loadTeachers();
+		} catch (Exception e)
+		{
+		}
+		loadClassrooms();
+	}
+
+	public void inits()
 	{
 		loadAcademicYears();
 		loadClassLevels();
@@ -61,6 +102,61 @@ public class ClassroomBean implements Serializable
 	}
 
 	public void loadClassrooms()
+	{
+		try
+		{
+			classrooms = classroomService.findAll();
+			if (classrooms == null)
+				classrooms = new ArrayList<>();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			classrooms = new ArrayList<>();
+		}
+	}
+
+	public void loadClassrsoomss()
+	{
+		try
+		{
+			Long yearId = null;
+			try
+			{
+				if (loginBean != null)
+				{
+					yearId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
+				}
+			} catch (Exception ex)
+			{
+				yearId = selectedAcademicYearId;
+			}
+			System.out.println(">>> loadClassrooms yearId: " + yearId);
+			if (yearId != null)
+			{
+				classrooms = classroomService.findByAcademicYear(yearId);
+			} else
+			{
+				classrooms = classroomService.findAll();
+			}
+			System.out.println(">>> classrooms found: " + (classrooms != null ? classrooms.size() : 0));
+			if (classrooms == null)
+				classrooms = new ArrayList<>();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			try
+			{
+				classrooms = classroomService.findAll();
+			} catch (Exception ex)
+			{
+				classrooms = new ArrayList<>();
+			}
+			if (classrooms == null)
+				classrooms = new ArrayList<>();
+		}
+	}
+
+	public void loadClassroomss()
 	{
 		try
 		{
@@ -89,9 +185,11 @@ public class ClassroomBean implements Serializable
 		try
 		{
 			academicYears = academicYearService.getAllAcademicYears();
+			if (academicYears == null)
+				academicYears = new ArrayList<>();
 		} catch (Exception e)
 		{
-			academicYears = List.of();
+			academicYears = new ArrayList<>();
 		}
 	}
 
@@ -136,7 +234,13 @@ public class ClassroomBean implements Serializable
 		editing = false;
 		selectedTeacherId = null;
 		selectedClassLevelId = null;
-		selectedAcademicYearId = loginBean.getAcademicYearId();
+		try
+		{
+			selectedAcademicYearId = loginBean != null ? loginBean.getAcademicYearId() : null;
+		} catch (Exception e)
+		{
+			selectedAcademicYearId = null;
+		}
 	}
 
 	public void save()
@@ -183,6 +287,21 @@ public class ClassroomBean implements Serializable
 	private void addMsg(FacesMessage.Severity s, String sum, String det)
 	{
 		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(s, sum, det));
+	}
+
+	public void viewStudents(ClassroomEntity t)
+	{
+		viewedClassroom = t;
+		try
+		{
+			classroomStudents = em
+					.createQuery("SELECT e FROM EnrollmentEntity e JOIN FETCH e.student " + "WHERE e.classroom.id = :cid ORDER BY e.student.firstName",
+							EnrollmentEntity.class)
+					.setParameter("cid", t.getId()).getResultList();
+		} catch (Exception ex)
+		{
+			classroomStudents = new ArrayList<>();
+		}
 	}
 
 	// getters setters
@@ -269,5 +388,15 @@ public class ClassroomBean implements Serializable
 	public List<AcademicYearEntity> getAcademicYears()
 	{
 		return academicYears;
+	}
+
+	public ClassroomEntity getViewedClassroom()
+	{
+		return viewedClassroom;
+	}
+
+	public List<EnrollmentEntity> getClassroomStudents()
+	{
+		return classroomStudents;
 	}
 }

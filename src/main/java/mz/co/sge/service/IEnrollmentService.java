@@ -11,9 +11,9 @@ import java.util.List;
 public interface IEnrollmentService
 {
 
-	EnrollmentEntity createFirstEnrollment(Long academicYearId, Long studentId, Long classLevelId, Long createdByUserId);
+	EnrollmentEntity createFirstEnrollment(Long academicYearId, Long studentId, Long classLevelId, Long classroomId, Long createdByUserId);
 
-	EnrollmentEntity createRenewal(Long academicYearId, Long studentId, Long classLevelId, Long createdByUserId);
+	EnrollmentEntity createRenewal(Long academicYearId, Long studentId, Long classLevelId, Long classroomId, Long createdByUserId);
 
 	// Mantido por compatibilidade - agora detecta automaticamente o tipo
 	EnrollmentEntity createPreEnrollment(Long academicYearId, Long studentId, Long classLevelId, Long createdByUserId);
@@ -48,10 +48,13 @@ public interface IEnrollmentService
 	List<ClassLevelEntity> findAllClassLevels();
 
 	Long getMatriculaFeeItemId(Long schoolId);
-	
+
 	List<EnrollmentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long yearId);
-	
+
 	List<EnrollmentEntity> findByAcademicYearId(Long yearId);
-	
+
 	boolean existsByStudentIdAndYearId(Long studentId, Long yearId);
+
+	List<Long> getEligibleStudentIdsForYear(Long academicYearId);
+
 }

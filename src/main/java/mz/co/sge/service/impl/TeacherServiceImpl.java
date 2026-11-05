@@ -12,7 +12,6 @@ import mz.co.sge.service.ITeacherService;
 @Transactional
 public class TeacherServiceImpl implements ITeacherService
 {
-
 	@Autowired
 	private ITeacherRepository repository;
 

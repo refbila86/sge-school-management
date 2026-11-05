@@ -85,26 +85,25 @@
 	align-items: center
 }
 
-/* ===== IMPRESSÃO A4 ===== */
 @page {
 	size: A4 portrait;
-	margin: 15mm;
+	margin: 12mm
 }
 
 @media screen {
 	#printSheet {
-		display: none;
+		display: none
 	}
 }
 
 @media print {
 	body * {
-		visibility: hidden;
+		visibility: hidden
 	}
 	#printSheet, #printSheet * {
 		visibility: visible;
 		-webkit-print-color-adjust: exact;
-		print-color-adjust: exact;
+		print-color-adjust: exact
 	}
 	#printSheet {
 		display: block;
@@ -113,34 +112,37 @@
 		top: 0;
 		width: 100%;
 		font-family: 'Segoe UI', Arial, sans-serif;
-		color: #0f172a;
+		color: #0f172a
 	}
 	.ps-banner {
 		background: linear-gradient(135deg, #0a2540 0%, #1e40af 100%);
 		color: #fff;
 		border-radius: 14px;
-		padding: 18px 22px;
+		padding: 18px 22px
+	}
+	.ps-school {
+		font-size: 18px;
+		font-weight: 800;
+		letter-spacing: .3px
+	}
+	.ps-school-sub {
+		font-size: 11px;
+		opacity: .9;
+		margin-top: 4px;
+		line-height: 1.5
+	}
+	.ps-row {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
-	}
-	.ps-banner .t1 {
-		font-size: 20px;
-		font-weight: 800;
-		letter-spacing: .3px;
-	}
-	.ps-banner .t2 {
-		font-size: 11px;
-		opacity: .85;
-		margin-top: 3px;
+		align-items: flex-start
 	}
 	.ps-year {
 		background: #16a34a;
 		color: #fff;
 		font-weight: 800;
-		font-size: 14px;
+		font-size: 13px;
 		padding: 8px 16px;
-		border-radius: 999px;
+		border-radius: 999px
 	}
 	.ps-student {
 		margin: 16px 0;
@@ -150,7 +152,7 @@
 		padding: 14px 18px;
 		display: flex;
 		align-items: center;
-		gap: 16px;
+		gap: 16px
 	}
 	.ps-avatar {
 		width: 52px;
@@ -162,17 +164,17 @@
 		font-weight: 800;
 		text-align: center;
 		line-height: 52px;
-		flex: none;
+		flex: none
 	}
 	.ps-student .name {
 		font-size: 16px;
-		font-weight: 800;
+		font-weight: 800
 	}
 	.ps-student .meta {
 		font-size: 11.5px;
 		color: #475569;
 		margin-top: 3px;
-		line-height: 1.6;
+		line-height: 1.6
 	}
 	.ps-table {
 		width: 100%;
@@ -181,7 +183,7 @@
 		font-size: 12px;
 		border: 1px solid #e2e8f0;
 		border-radius: 12px;
-		overflow: hidden;
+		overflow: hidden
 	}
 	.ps-table th {
 		background: #0a2540;
@@ -190,17 +192,17 @@
 		padding: 10px 12px;
 		font-size: 10.5px;
 		text-transform: uppercase;
-		letter-spacing: .4px;
+		letter-spacing: .4px
 	}
 	.ps-table td {
 		padding: 9px 12px;
-		border-top: 1px solid #e2e8f0;
+		border-top: 1px solid #e2e8f0
 	}
 	.ps-table tbody tr:nth-child(even) td {
-		background: #f8fafc;
+		background: #f8fafc
 	}
 	.ps-table tr {
-		page-break-inside: avoid;
+		page-break-inside: avoid
 	}
 	.ps-ref {
 		font-family: 'Courier New', monospace;
@@ -209,14 +211,14 @@
 		background: #eff6ff;
 		color: #1e3a8a;
 		padding: 3px 8px;
-		border-radius: 6px;
+		border-radius: 6px
 	}
 	.ps-box {
 		width: 14px;
 		height: 14px;
 		border: 1.5px solid #64748b;
 		border-radius: 3px;
-		display: inline-block;
+		display: inline-block
 	}
 	.ps-total {
 		margin-top: 14px;
@@ -226,18 +228,18 @@
 		padding: 12px 18px;
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: center
 	}
 	.ps-total .lbl {
 		font-size: 11px;
 		text-transform: uppercase;
 		color: #166534;
-		font-weight: 700;
+		font-weight: 700
 	}
 	.ps-total .val {
 		font-size: 22px;
 		font-weight: 800;
-		color: #166534;
+		color: #166534
 	}
 	.ps-note {
 		margin-top: 14px;
@@ -246,13 +248,13 @@
 		line-height: 1.6;
 		border-left: 4px solid #3b82f6;
 		padding: 6px 12px;
-		background: #f8fafc;
+		background: #f8fafc
 	}
 	.ps-sign {
 		margin-top: 46px;
 		display: flex;
 		justify-content: space-between;
-		gap: 40px;
+		gap: 40px
 	}
 	.ps-sign div {
 		flex: 1;
@@ -260,13 +262,13 @@
 		text-align: center;
 		font-size: 11px;
 		padding-top: 6px;
-		color: #475569;
+		color: #475569
 	}
 	.ps-foot {
 		margin-top: 22px;
 		text-align: center;
 		font-size: 10px;
-		color: #94a3b8;
+		color: #94a3b8
 	}
 }
 </style>
@@ -324,11 +326,11 @@
 						<div style="font-size: 14px; font-weight: 800">Gerar
 							Referências</div>
 						<div style="font-size: 11px; color: #64748b">Escolhe mês
-							inicial até Dezembro. Só mês, referência, valor e data limite.</div>
+							inicial até mês final. Valor e data limite.</div>
 					</div>
 				</div>
 				<div
-					style="display: grid; grid-template-columns: 180px 120px 140px 140px auto; gap: 12px; align-items: end; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px">
+					style="display: grid; grid-template-columns: 150px 150px 90px 110px 120px auto; gap: 12px; align-items: end; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px">
 					<div>
 						<span
 							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Mês
@@ -336,6 +338,17 @@
 						<p:selectOneMenu value="#{enrollmentBean.startMonth}"
 							style="width:100%">
 							<f:selectItem itemLabel="Selecione..." itemValue="#{null}" />
+							<f:selectItems value="#{enrollmentBean.months}" var="m"
+								itemLabel="#{m.label}" itemValue="#{m.value}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Mês
+							final *</span>
+						<p:selectOneMenu value="#{enrollmentBean.endMonth}"
+							style="width:100%">
+							<f:selectItem itemLabel="Dezembro" itemValue="#{null}" />
 							<f:selectItems value="#{enrollmentBean.months}" var="m"
 								itemLabel="#{m.label}" itemValue="#{m.value}" />
 						</p:selectOneMenu>
@@ -367,7 +380,7 @@
 						</p:selectOneMenu>
 					</div>
 					<div>
-						<p:commandButton value="Gerar até Dezembro" icon="pi pi-bolt"
+						<p:commandButton value="Gerar" icon="pi pi-bolt"
 							style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
 							action="#{enrollmentBean.generateMonthlyFromDate}"
 							update=":formView:growl :formView:monthlyPanel :formView:totalBar" />
@@ -416,25 +429,36 @@
 						style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px">
 						<i class="pi pi-calendar"
 							style="font-size: 28px; display: block; margin-bottom: 8px" />Escolhe
-						mês inicial e clica Gerar.
+						mês inicial e final e clica Gerar.
 					</div>
 				</h:panelGroup>
 			</h:panelGroup>
 
 			<h:panelGroup id="totalBar" layout="block">
-
-				<!-- Folha de impressão A4 (visível só ao imprimir) -->
+				<!-- Folha A4 -->
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
 					layout="block">
 					<div id="printSheet">
 						<div class="ps-banner">
-							<div>
-								<div class="t1">Referências de Mensalidade</div>
-								<div class="t2">Plano de pagamentos do ano lectivo</div>
+							<div class="ps-row">
+								<div>
+									<div class="ps-school">#{loginBean.loggedSchool.name}</div>
+									<div class="ps-school-sub">
+										#{loginBean.loggedSchool.address}
+										#{loginBean.loggedSchool.nuit != null ? ' • NUIT:
+										'.concat(loginBean.loggedSchool.nuit) : ''}
+										#{loginBean.loggedSchool.phone != null ? ' • Tel:
+										'.concat(loginBean.loggedSchool.phone) : ''}
+										#{loginBean.loggedSchool.email != null ? ' •
+										'.concat(loginBean.loggedSchool.email) : ''}</div>
+									<div
+										style="margin-top: 10px; font-size: 12px; font-weight: 600; opacity: .95">Referências
+										de Mensalidade - Ano Lectivo
+										#{enrollmentBean.selected.academicYear.year}</div>
+								</div>
+								<div class="ps-year">#{enrollmentBean.selected.academicYear.year}</div>
 							</div>
-							<div class="ps-year">Ano lectivo:
-								#{enrollmentBean.selected.academicYear.year}</div>
 						</div>
 
 						<div class="ps-student">
@@ -442,10 +466,14 @@
 							<div>
 								<div class="name">#{enrollmentBean.selected.student.fullName}</div>
 								<div class="meta">
-									Código do estudante: <b>#{enrollmentBean.selected.student.code}</b>
-									&#160;•&#160; Matrícula: <b>##{enrollmentBean.selected.id}</b><br />
-									Turma: <b>#{enrollmentBean.selected.classroom.name}</b>
-									&#160;•&#160; Ano lectivo: <b>#{enrollmentBean.selected.academicYear.year}</b>
+									Código: <b>#{enrollmentBean.selected.student.code}</b> •
+									Matrícula: <b>##{enrollmentBean.selected.id}</b><br />Turma: <b>#{enrollmentBean.selected.classroom.name}</b>
+									• Ano lectivo: <b>#{enrollmentBean.selected.academicYear.year}</b>
+									• Período: <b>#{enrollmentBean.startMonth != null ?
+										enrollmentBean.months[enrollmentBean.startMonth-1].label : ''}
+										até #{enrollmentBean.endMonth != null ?
+										enrollmentBean.months[enrollmentBean.endMonth-1].label :
+										'Dezembro'}</b>
 								</div>
 							</div>
 						</div>
@@ -483,20 +511,18 @@
 							</div>
 							<div class="val">#{enrollmentBean.totalAmount} MT</div>
 						</div>
-
 						<div class="ps-note">
 							<b>Importante:</b> indique sempre a <b>referência</b> do mês no
-							momento do pagamento e pague até à <b>data limite</b>. Guarde o
+							pagamento e pague até à <b>data limite</b>. Guarde o
 							comprovativo.
 						</div>
-
 						<div class="ps-sign">
 							<div>Encarregado de Educação</div>
-							<div>Secretaria</div>
+							<div>Secretaria - #{loginBean.loggedSchool.name}</div>
 						</div>
-
 						<div class="ps-foot">
-							Emitido em <span id="psDate"></span>
+							Emitido em <span id="psDate"></span> •
+							#{loginBean.loggedSchool.name}
 						</div>
 					</div>
 				</h:panelGroup>
@@ -524,7 +550,7 @@
 						<div style="display: flex; gap: 8px">
 							<p:commandButton value="Gravar Referências" icon="pi pi-save"
 								style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
-								action="#{monthlyFeeBean.saveMonthlyReferences}"
+								action="#{enrollmentBean.saveMonthlyReferences}"
 								update=":formView:growl" />
 							<p:commandButton value="Imprimir" icon="pi pi-print"
 								type="button"

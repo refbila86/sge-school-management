@@ -1,30 +1,36 @@
 package mz.co.sge.repository;
 
-import mz.co.sge.entity.MonthlyFeeEntity;
 import java.util.List;
-import java.util.Optional;
+import mz.co.sge.entity.MonthlyFeeEntity;
+import mz.co.sge.entity.StudentEntity;
 
 public interface IMonthlyFeeRepository
 {
-	MonthlyFeeEntity save(MonthlyFeeEntity entity);
-
-	List<MonthlyFeeEntity> saveAll(List<MonthlyFeeEntity> entities);
-
-	Optional<MonthlyFeeEntity> findById(Long id);
-
-	Optional<MonthlyFeeEntity> findByReference(String reference);
+	List<MonthlyFeeEntity> findAll();
 
 	List<MonthlyFeeEntity> findByEnrollmentId(Long enrollmentId);
+
+	List<MonthlyFeeEntity> findByAcademicYearId(Long yearId);
 
 	List<MonthlyFeeEntity> findByStudentId(Long studentId);
 
 	List<MonthlyFeeEntity> findByYear(Integer year);
 
-	boolean existsByEnrollmentAndMonthYear(Long enrollmentId, Integer month, Integer year);
+	List<MonthlyFeeEntity> findPaidByAcademicYearId(Long yearId);
 
-	long countByEnrollmentId(Long enrollmentId);
+	List<MonthlyFeeEntity> findPaidByYear(Integer year);
 
-	void deleteByEnrollmentId(Long enrollmentId);
+	List<MonthlyFeeEntity> findUnpaidByStudentCode(String code);
 
-	List<MonthlyFeeEntity> findAll();
+	StudentEntity findStudentByCode(String code);
+
+	MonthlyFeeEntity findByReference(String ref);
+
+	boolean existsByReference(String ref);
+
+	boolean existsByEnrollmentMonthYear(Long eid, Integer month, Integer year);
+
+	MonthlyFeeEntity save(MonthlyFeeEntity e);
+
+	MonthlyFeeEntity payFee(Long id);
 }

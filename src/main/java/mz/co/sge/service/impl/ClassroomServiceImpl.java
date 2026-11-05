@@ -1,75 +1,153 @@
 package mz.co.sge.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import mz.co.sge.entity.ClassroomEntity;
 import mz.co.sge.repository.IClassroomRepository;
 import mz.co.sge.service.IClassroomService;
 
 @Service
-@Transactional
 public class ClassroomServiceImpl implements IClassroomService
 {
-
 	@Autowired
-	private IClassroomRepository classroomRepository;
+	private IClassroomRepository repository;
 
 	@Override
+	@Transactional
 	public ClassroomEntity save(ClassroomEntity entity)
 	{
-		return classroomRepository.save(entity);
+		return repository.save(entity);
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public ClassroomEntity findById(Long id)
 	{
-		return classroomRepository.findById(id);
+		try
+		{
+			return repository.findById(id);
+		} catch (Exception e)
+		{
+			return null;
+		}
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public List<ClassroomEntity> findAll()
 	{
-		return classroomRepository.findAll();
+		try
+		{
+			return repository.findAll();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			return new ArrayList<>();
+		}
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public List<ClassroomEntity> findByAcademicYear(Long yearId)
 	{
-		return classroomRepository.findByAcademicYear(yearId);
+		try
+		{
+			return repository.findByAcademicYear(yearId);
+		} catch (Exception e)
+		{
+			return findAll();
+		}
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public List<ClassroomEntity> findBySchoolAndYear(Long schoolId, Long yearId)
 	{
-		// Se tens filtro por escola, adiciona no repository depois
-		// Por agora filtra só por ano letivo
-		return classroomRepository.findByAcademicYear(yearId);
+		// Se não filtra por escola, filtra só por ano
+		return findByAcademicYear(yearId);
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public List<ClassroomEntity> search(String term)
 	{
-		// Busca simples, podes melhorar com NamedQuery depois
-		if (term == null || term.isBlank())
-			return findAll();
-		String lower = term.toLowerCase();
-		return findAll().stream().filter(c -> c.getName().toLowerCase().contains(lower)
-				|| (c.getResponsibleTeacher() != null && c.getResponsibleTeacher().getFirstName().toLowerCase().contains(lower))).toList();
+		try
+		{
+			return repository.search(term, null);
+		} catch (Exception e)
+		{
+			return new ArrayList<>();
+		}
 	}
 
 	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+	public List<ClassroomEntity> search(String term, Long yearId)
+	{
+		try
+		{
+			return repository.search(term, yearId);
+		} catch (Exception e)
+		{
+			return new ArrayList<>();
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public long countByAcademicYear(Long yearId)
 	{
-		return findByAcademicYear(yearId).size();
+		try
+		{
+			return repository.countByAcademicYear(yearId);
+		} catch (Exception e)
+		{
+			return 0;
+		}
 	}
 
 	@Override
+	@Transactional
 	public void delete(Long id)
 	{
-		// implementa se precisares
+		repository.delete(id);
+	}
+
+	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+	public List<ClassroomEntity> getAllClassrooms()
+	{
+		return findAll();
+	}
+
+	@Override
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+	public List<ClassroomEntity> findAllActive()
+	{
+		try
+		{
+			return repository.findAllActive();
+		} catch (Exception e)
+		{
+			return findAll();
+		}
+	}
+
+	@Override
+	@Transactional
+	public void incrementStudents(Long classroomId)
+	{
+		repository.incrementStudents(classroomId);
+	}
+
+	@Override
+	@Transactional
+	public void decrementStudents(Long classroomId)
+	{
+		repository.decrementStudents(classroomId);
 	}
 }

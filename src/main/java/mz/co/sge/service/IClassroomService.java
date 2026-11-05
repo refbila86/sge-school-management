@@ -17,7 +17,17 @@ public interface IClassroomService
 
 	List<ClassroomEntity> search(String term);
 
+	List<ClassroomEntity> search(String term, Long yearId);
+
 	long countByAcademicYear(Long yearId);
 
 	void delete(Long id);
+
+	List<ClassroomEntity> getAllClassrooms();
+
+	List<ClassroomEntity> findAllActive();
+
+	void incrementStudents(Long classroomId);
+
+	void decrementStudents(Long classroomId);
 }

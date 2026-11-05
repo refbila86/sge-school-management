@@ -192,18 +192,49 @@ public class PaymentBean implements Serializable
 			Long yearId = loginBean.getAcademicYearId();
 			if (schoolId == null || yearId == null)
 				return List.of();
-			List<StudentEntity> all = studentService.getStudentsBySchoolIdAndAcademicYearId(schoolId, yearId);
-			if (all.isEmpty())
-				all = studentService.getAllStudents();
-			if (q == null || q.isBlank())
-				return all.stream().limit(20).collect(Collectors.toList());
-			String term = q.toLowerCase().trim();
-			return all.stream().filter(s -> (s.getFullName() != null && s.getFullName().toLowerCase().contains(term))
-					|| (s.getCode() != null && s.getCode().toLowerCase().contains(term))).limit(15).collect(Collectors.toList());
+
+			String like = "%" + (q == null ? "" : q.toLowerCase().trim()) + "%";
+			Long prevYearId = getPreviousYearId(schoolId, yearId);
+
+			StringBuilder jpql = new StringBuilder();
+			jpql.append("SELECT s FROM StudentEntity s WHERE 1=1 ");
+
+			// nunca pode já estar matriculado no ano actual
+			jpql.append("AND NOT EXISTS (SELECT 1 FROM EnrollmentEntity ec WHERE ec.student = s AND ec.academicYear.id = :yearId) ");
+
+			if (prevYearId != null)
+			{
+				// matriculados no ano anterior (renovação) OU novos (sem nenhuma matrícula)
+				jpql.append("AND (EXISTS (SELECT 1 FROM EnrollmentEntity ep WHERE ep.student = s ");
+				jpql.append("             AND ep.school.id = :schoolId AND ep.academicYear.id = :prevYearId) ");
+				jpql.append("     OR NOT EXISTS (SELECT 1 FROM EnrollmentEntity ea WHERE ea.student = s)) ");
+			} else
+			{
+				// sem ano anterior: só novos
+				jpql.append("AND NOT EXISTS (SELECT 1 FROM EnrollmentEntity ea WHERE ea.student = s) ");
+			}
+
+			jpql.append("AND (LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE :like OR LOWER(s.code) LIKE :like) ");
+			jpql.append("ORDER BY s.firstName, s.lastName");
+
+			var query = em.createQuery(jpql.toString(), StudentEntity.class).setParameter("yearId", yearId).setParameter("like", like);
+			if (prevYearId != null)
+			{
+				query.setParameter("schoolId", schoolId);
+				query.setParameter("prevYearId", prevYearId);
+			}
+			return query.setMaxResults(20).getResultList();
 		} catch (Exception e)
 		{
+			e.printStackTrace();
 			return List.of();
 		}
+	}
+
+	private Long getPreviousYearId(Long schoolId, Long yearId)
+	{
+		return em.createQuery("SELECT MAX(e.academicYear.id) FROM EnrollmentEntity e " + "WHERE e.school.id = :schoolId AND e.academicYear.id < :yearId",
+				Long.class).setParameter("schoolId", schoolId).setParameter("yearId", yearId).getSingleResult();
 	}
 
 	public List<StudentEntity> completeStudents(String q)

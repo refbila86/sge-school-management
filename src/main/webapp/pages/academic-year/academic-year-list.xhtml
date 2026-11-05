@@ -68,12 +68,12 @@
 				</p:column>
 				<p:column headerText="Início" width="110" sortBy="#{a.startDate}">
 					<h:outputText value="#{a.startDate}">
-						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
 					</h:outputText>
 				</p:column>
 				<p:column headerText="Fim" width="110" sortBy="#{a.endDate}">
 					<h:outputText value="#{a.endDate}">
-						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
 					</h:outputText>
 				</p:column>
 				<p:column headerText="Estado" width="110" sortBy="#{a.active}">
@@ -87,9 +87,7 @@
 					</h:outputText>
 				</p:column>
 
-				<!-- AÇÕES COM ATIVAR E INATIVAR -->
 				<p:column headerText="Ações" width="200" style="text-align:center">
-					<!-- SE ESTÁ INATIVO - MOSTRA BOTÃO ATIVAR -->
 					<p:commandButton icon="pi pi-check-circle" title="Ativar Ano"
 						rendered="#{!a.active}"
 						styleClass="ui-button-rounded ui-button-text ui-button-success"
@@ -173,6 +171,7 @@
 					<p:commandButton value="Cancelar"
 						styleClass="ui-button-secondary ui-button-outlined"
 						onclick="PF('dlgAcademicYear').hide();return false;" />
+						
 					<p:commandButton value="Salvar" icon="pi pi-check"
 						style="background:#0b2d50;border:none"
 						action="#{academicYearBean.save}"

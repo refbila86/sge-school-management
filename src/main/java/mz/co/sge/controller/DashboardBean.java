@@ -104,7 +104,6 @@ public class DashboardBean implements Serializable
 		case "notas" -> "Lançamento de Notas";
 		case "pautas" -> "Pautas";
 		case "mensalidades" -> "Mensalidades";
-		// case "pagamentos" -> "Pagamentos";
 		case "users" -> "Utilizadores";
 		case "backups" -> "Backups";
 		case "licencas" -> "Licenças";

@@ -31,9 +31,30 @@ public class AcademicYearServiceImpl implements IAcademicYearService
 
 	@Override
 	@Transactional(readOnly = true)
-	public Optional<AcademicYearEntity> getActiveAcademicYear()
+	public List<AcademicYearEntity> findAll()
 	{
-		return repository.findActive();
+		return repository.findAll();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public AcademicYearEntity getActiveAcademicYear()
+	{
+		return repository.findActive().orElse(null);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public AcademicYearEntity getActiveYear()
+	{
+		return repository.findActive().orElse(null);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public AcademicYearEntity findActive()
+	{
+		return repository.findActive().orElse(null);
 	}
 
 	@Override
@@ -57,17 +78,14 @@ public class AcademicYearServiceImpl implements IAcademicYearService
 		{
 			throw new IllegalArgumentException("O campo year é obrigatório");
 		}
-
 		if (repository.findByDescription(academicYear.getYear()).isPresent())
 		{
 			throw new RuntimeException("Ano acadêmico " + academicYear.getYear() + " já existe");
 		}
-
 		if (academicYear.getActive() == null)
 		{
 			academicYear.setActive(false);
 		}
-
 		return repository.save(academicYear);
 	}
 
@@ -85,12 +103,10 @@ public class AcademicYearServiceImpl implements IAcademicYearService
 	public void deleteAcademicYear(Long id)
 	{
 		AcademicYearEntity entity = repository.findById(id).orElseThrow(() -> new RuntimeException("Ano não encontrado: " + id));
-
 		if (Boolean.TRUE.equals(entity.getActive()))
 		{
 			throw new RuntimeException("Não pode remover o ano ativo. Ative outro antes.");
 		}
-
 		repository.delete(id);
 	}
 
@@ -112,21 +128,16 @@ public class AcademicYearServiceImpl implements IAcademicYearService
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<AcademicYearEntity> findByYear(String year)
 	{
-		 return repository.findByYearContaining(year);
+		return repository.findByYearContaining(year);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AcademicYearEntity findByYearId(Long id)
 	{
-	    return repository.findByYearId(id);
-	}
-
-	@Override
-	public AcademicYearEntity getActiveYear()
-	{
-		// TODO Auto-generated method stub
-	    return repository.findActive().orElse(null);
+		return repository.findByYearId(id);
 	}
 }

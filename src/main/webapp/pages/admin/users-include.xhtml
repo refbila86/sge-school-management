@@ -115,21 +115,6 @@
 	border-radius: 10px !important;
 	height: 42px !important
 }
-
-.p-inputtext, .p-dropdown, .p-inputnumber input, .p-password input {
-	border-radius: 10px !important;
-	height: 42px !important
-}
-
-.auto-box {
-	background: #f8fafc;
-	border: 1px dashed #cbd5e1;
-	border-radius: 10px;
-	padding: 10px 12px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center
-}
 </style>
 
 	<div class="user-form-page">
@@ -140,8 +125,8 @@
 					<div>#{userBean.user.id == null ? 'Novo Utilizador' : 'Editar
 						Utilizador'}</div>
 					<div
-						style="font-size: 12px; font-weight: 500; color: #667085; margin-top: 2px">Associado
-						automaticamente à escola logada • #{loginBean.loggedSchool.name}</div>
+						style="font-size: 12px; font-weight: 500; color: #667085; margin-top: 2px">Cadastro
+						de utilizadores do sistema</div>
 				</div>
 			</div>
 			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
@@ -154,40 +139,6 @@
 			<p:growl id="growl" showDetail="true" life="4000" />
 
 			<div class="form-card">
-
-				<!-- AUTO ASSOCIAÇÃO -->
-				<div class="form-section"
-					style="background: linear-gradient(180deg, #fbfdff 0%, #fff 100%)">
-					<div class="section-label">
-						<i class="pi pi-link" /> Associação Automática
-					</div>
-					<div class="grid-2">
-						<div class="auto-box">
-							<div>
-								<span
-									style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700">School
-									ID</span><br />
-								<b style="color: #0a2540">#{userBean.user.schoolId} -
-									#{loginBean.loggedSchool.name}</b>
-							</div>
-							<i class="pi pi-lock" style="color: #94a3b8" />
-						</div>
-						<div class="field">
-							<label>Ano Lectivo <span class="required">*</span></label>
-							<p:selectOneMenu value="#{userBean.user.academicYearId}"
-								style="width:100%" placeholder="Selecione o ano">
-								<f:selectItem itemLabel="Todos os anos (Geral)"
-									itemValue="#{null}" />
-								<f:selectItems value="#{academicYearBean.academicYears}"
-									var="ay" itemLabel="Ano académico de #{ay.year}"
-									itemValue="#{ay.id}" />
-							</p:selectOneMenu>
-							<div class="hint">Se deixar em branco, terá acesso a todos
-								os anos.</div>
-						</div>
-					</div>
-				</div>
-
 				<!-- DADOS PRINCIPAIS -->
 				<div class="form-section">
 					<div class="section-label">
@@ -218,19 +169,20 @@
 							<label>Username <span class="required">*</span></label>
 							<p:inputText value="#{userBean.user.username}" required="true"
 								requiredMessage="Informe username" placeholder="Ex: joao.silva"
-								style="width:100%;text-transform:lowercase" />
-							<div class="hint">Único dentro da escola.</div>
+								style="width:100%" />
+							<div class="hint">Único no sistema.</div>
 						</div>
 						<div class="field">
-							<label>#{userBean.user.id == null ? 'Senha' : 'Nova
-								Senha'} #{userBean.user.id == null ? '*' : ''}</label>
+							<label>#{userBean.user.id == null ? 'Senha *' : 'Nova
+								Senha'}</label>
 							<p:password value="#{userBean.user.password}"
 								placeholder="#{userBean.user.id == null ? 'Min. 6 caracteres' : 'Deixe vazio para manter'}"
 								style="width:100%" toggleMask="true" redisplay="true" />
 						</div>
 						<div class="field">
 							<label>Perfil <span class="required">*</span></label>
-							<p:selectOneMenu value="#{userBean.user.role}" style="width:100%">
+							<p:selectOneMenu value="#{userBean.user.role}" style="width:100%"
+								required="true" requiredMessage="Selecione o perfil">
 								<f:selectItems value="#{userBean.roles}" var="r"
 									itemLabel="#{r}" itemValue="#{r}" />
 							</p:selectOneMenu>
@@ -253,8 +205,8 @@
 					style="background: #fcfcfd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
 					<div
 						style="font-size: 11.5px; color: #667085; display: flex; align-items: center; gap: 6px">
-						<i class="pi pi-info-circle" /> School ID associado
-						automaticamente ao criar. Username único por escola.
+						<i class="pi pi-info-circle" /> Username único. Deixe senha vazia
+						ao editar para manter.
 					</div>
 					<div style="display: flex; gap: 10px">
 						<p:commandButton value="Cancelar"
@@ -268,7 +220,6 @@
 							style="min-width:170px" />
 					</div>
 				</div>
-
 			</div>
 		</h:form>
 	</div>

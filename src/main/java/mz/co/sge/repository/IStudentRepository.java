@@ -32,7 +32,6 @@ public interface IStudentRepository
 
 	List<StudentEntity> findByName(String name);
 
-	// NOVO: Tudo via Enrollment (anos independentes por escola)
 	List<StudentEntity> findBySchoolId(Long schoolId);
 
 	List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
@@ -49,6 +48,15 @@ public interface IStudentRepository
 
 	long countByAcademicYearId(Long academicYearId);
 
-	// Para validação de segurança multi-tenant
 	Optional<StudentEntity> findByIdAndSchoolIdAndAcademicYearId(Long id, Long schoolId, Long yearId);
+
+	List<Long> findNewStudentIds();
+
+	List<Long> findIdsWithPaidPaymentInYear(List<Long> ids, Long yearId);
+
+	List<StudentEntity> findByIds(List<Long> ids);
+
+	List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId);
+
+	List<StudentEntity> findByClassroomId(Long classroomId);
 }

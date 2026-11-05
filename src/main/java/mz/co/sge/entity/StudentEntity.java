@@ -18,8 +18,11 @@ import mz.co.sge.enumes.StudentStatus;
 		@NamedQuery(name = "StudentEntity.findByGuardian", query = "SELECT s FROM StudentEntity s WHERE s.guardian.id = :guardianId ORDER BY s.firstName"),
 		@NamedQuery(name = "StudentEntity.countAll", query = "SELECT COUNT(s) FROM StudentEntity s"),
 		@NamedQuery(name = "StudentEntity.countByGuardian", query = "SELECT COUNT(s) FROM StudentEntity s WHERE s.guardian.id = :guardianId"),
-
-		// CORRIGIDAS - via enrollments
+		@NamedQuery(name = "StudentEntity.findNewStudentIds", query = "SELECT s.id FROM StudentEntity s WHERE s.id NOT IN (SELECT e.student.id FROM EnrollmentEntity e)"),
+		@NamedQuery(name = "StudentEntity.findByIds", query = "SELECT s FROM StudentEntity s WHERE s.id IN :ids"),
+		// CORRIGIDO: via enrollments
+		@NamedQuery(name = "StudentEntity.findByClassroom", query = "SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE e.classroom.id = :classroomId AND e.academicYear.id = :yearId ORDER BY s.firstName, s.lastName"),
+		@NamedQuery(name = "StudentEntity.findByClassroomId", query = "SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE e.classroom.id = :classroomId ORDER BY s.firstName, s.lastName"),
 		@NamedQuery(name = "StudentEntity.findBySchool", query = "SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE e.school.id = :schoolId ORDER BY s.firstName"),
 		@NamedQuery(name = "StudentEntity.findBySchoolAndYear", query = "SELECT DISTINCT s FROM StudentEntity s JOIN s.enrollments e WHERE e.school.id = :schoolId AND e.academicYear.id = :academicYearId ORDER BY s.firstName"),
 		@NamedQuery(name = "StudentEntity.countBySchoolAndYear", query = "SELECT COUNT(DISTINCT s) FROM StudentEntity s JOIN s.enrollments e WHERE e.school.id = :schoolId AND e.academicYear.id = :academicYearId") })
@@ -36,7 +39,7 @@ public class StudentEntity implements java.io.Serializable
 	private String code;
 
 	@Column(name = "document_number", length = 30)
-	private String documentNumber; 
+	private String documentNumber;
 
 	@Column(nullable = false)
 	private String firstName;
@@ -45,13 +48,13 @@ public class StudentEntity implements java.io.Serializable
 	private String lastName;
 
 	private LocalDate birthDate;
-	
+
 	private String gender;
 
 	private String phone;
-	
+
 	private String email;
-	
+
 	private String address;
 
 	@Enumerated(EnumType.STRING)
@@ -71,8 +74,9 @@ public class StudentEntity implements java.io.Serializable
 
 	@Column(nullable = false)
 	private LocalDateTime updatedAt = LocalDateTime.now();
-	
-	
+
+	@Transient
+	private String fullName; // ou getName()
 
 	@PrePersist
 	public void prePersist()

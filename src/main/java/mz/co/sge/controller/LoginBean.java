@@ -125,7 +125,7 @@ public class LoginBean implements Serializable
 				return null;
 			}
 
-			Optional<AcademicYearEntity> active = academicYearService.getActiveAcademicYear();
+			Optional<AcademicYearEntity> active = Optional.ofNullable(academicYearService.getActiveAcademicYear());
 			if (active.isPresent())
 				academicYearId = active.get().getId();
 

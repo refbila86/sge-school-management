@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "class_levels", uniqueConstraints = @UniqueConstraint(columnNames =
+@Table(name = "class_levels", uniqueConstraints = @UniqueConstraint(name = "uk_class_level_year_name", columnNames =
 { "name", "academic_year_id" }))
 @NamedQueries(
 { @NamedQuery(name = "ClassLevel.findAll", query = "SELECT c FROM ClassLevelEntity c ORDER BY c.name"),
-		@NamedQuery(name = "ClassLevel.findByAcademicYear", query = "SELECT c FROM ClassLevelEntity c WHERE c.academicYear.id = :yearId ORDER BY c.name") })
+		@NamedQuery(name = "ClassLevel.findByAcademicYear", query = "SELECT c FROM ClassLevelEntity c WHERE c.academicYear.id = :yearId ORDER BY c.name"),
+		@NamedQuery(name = "ClassLevel.countByNameAndYear", query = "SELECT COUNT(c) FROM ClassLevelEntity c WHERE LOWER(c.name) = :name AND c.academicYear.id = :yearId") })
+
 public class ClassLevelEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -18,7 +20,7 @@ public class ClassLevelEntity implements java.io.Serializable
 	private Long id;
 
 	@Column(nullable = false, length = 100)
-	private String name;  
+	private String name;
 
 	@Column(length = 255)
 	private String description;
@@ -29,6 +31,9 @@ public class ClassLevelEntity implements java.io.Serializable
 
 	@Column(nullable = false)
 	private boolean active = true;
+
+	@Column(name = "has_exam", nullable = false)
+	private boolean hasExam = false;
 
 	private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -88,6 +93,27 @@ public class ClassLevelEntity implements java.io.Serializable
 	public void setActive(boolean active)
 	{
 		this.active = active;
+	}
+
+	public boolean isHasExam()
+	{
+		return hasExam;
+	}
+
+	public void setHasExam(boolean hasExam)
+	{
+		this.hasExam = hasExam;
+	}
+
+	public boolean getHasExam()
+	{
+		return hasExam;
+	}
+
+	@Transient
+	public String getHasExamLabel()
+	{
+		return hasExam ? "Com Exame" : "Sem Exame";
 	}
 
 	public LocalDateTime getCreatedAt()

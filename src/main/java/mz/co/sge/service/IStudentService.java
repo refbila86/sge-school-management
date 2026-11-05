@@ -38,10 +38,10 @@ public interface IStudentService
 	List<StudentEntity> getStudentsByAcademicYearId(Long academicYearId);
 
 	StudentEntity getByIdAndSchoolAndYear(Long id, Long schoolId, Long yearId);
-	
-    List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
-    
-    List<StudentEntity> findBySchoolId(Long schoolId);
+
+	List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+
+	List<StudentEntity> findBySchoolId(Long schoolId);
 
 	// Contagem
 	long countStudents();
@@ -53,4 +53,8 @@ public interface IStudentService
 	long countByAcademicYearId(Long academicYearId);
 
 	long countByGuardianId(Long guardianId);
+
+	List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId);
+
+	List<StudentEntity> findByClassroomId(Long classroomId);
 }

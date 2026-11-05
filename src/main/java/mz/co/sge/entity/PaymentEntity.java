@@ -46,9 +46,12 @@ public class PaymentEntity implements Serializable
 
 	@Column(precision = 12, scale = 2)
 	private BigDecimal totalAmount = BigDecimal.ZERO;
+	
 	@Enumerated(EnumType.STRING)
 	private PaymentMethod method;
+	
 	private String reference;
+	
 	private LocalDateTime createdAt = LocalDateTime.now();
 
 	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

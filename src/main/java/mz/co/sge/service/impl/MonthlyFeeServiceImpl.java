@@ -1,116 +1,167 @@
 package mz.co.sge.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.MonthlyFeeEntity;
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.entity.UserEntity;
 import mz.co.sge.enumes.MonthlyFeeStatus;
+import mz.co.sge.enumes.PaymentMethod;
+import mz.co.sge.repository.IEnrollmentRepository;
 import mz.co.sge.repository.IMonthlyFeeRepository;
 import mz.co.sge.service.IMonthlyFeeService;
 
 @Service
+@Transactional
 public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 {
 
 	@Autowired
-	private IMonthlyFeeRepository monthlyFeeRepository;
-
-	@PersistenceContext
+	private IMonthlyFeeRepository repo;
+	@Autowired
+	private IEnrollmentRepository enrollmentRepo;
+	@Autowired
 	private EntityManager em;
-
-	@Override
-	@Transactional
-	public List<MonthlyFeeEntity> generateFromMonth(Long enrollmentId, int startMonth, int year, BigDecimal amount, int dueDay, Long userId)
-	{
-		EnrollmentEntity enrollment = em.find(EnrollmentEntity.class, enrollmentId);
-		if (enrollment == null)
-			throw new RuntimeException("Matrícula não encontrada: " + enrollmentId);
-
-		String studentCode = enrollment.getStudent() != null ? enrollment.getStudent().getCode() : "SEM-COD";
-		String enrollIdStr = enrollment.getId().toString();
-
-		String[] ptMonths =
-		{ "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
-
-		List<MonthlyFeeEntity> toSave = new ArrayList<>();
-
-		for (int m = startMonth; m <= 12; m++)
-		{
-			if (monthlyFeeRepository.existsByEnrollmentAndMonthYear(enrollmentId, m, year))
-			{
-				continue; // já existe, pula
-			}
-
-			String monthStr = String.format("%02d", m);
-			// REFERENCIA PEDIDA: codigo estudante + codigo matricula + ano + mes
-			String reference = studentCode + "-" + enrollIdStr + "-" + year + "-" + monthStr;
-
-			int day = Math.min(dueDay, LocalDate.of(year, m, 1).lengthOfMonth());
-			LocalDate dueDate = LocalDate.of(year, m, day);
-
-			MonthlyFeeEntity fee = new MonthlyFeeEntity();
-			fee.setEnrollment(enrollment);
-			fee.setStudent(enrollment.getStudent());
-			fee.setReference(reference);
-			fee.setMonth(m);
-			fee.setYear(year);
-			fee.setMonthLabel(ptMonths[m - 1]);
-			fee.setAmount(amount != null ? amount : new BigDecimal("2500.00"));
-			fee.setDueDate(dueDate);
-			fee.setStatus(MonthlyFeeStatus.PENDENTE);
-			if (userId != null)
-			{
-				try
-				{
-					fee.setCreatedBy(em.find(mz.co.sge.entity.UserEntity.class, userId));
-				} catch (Exception ignore)
-				{
-				}
-			}
-
-			toSave.add(fee);
-		}
-
-		return monthlyFeeRepository.saveAll(toSave);
-	}
-
-	@Override
-	public List<MonthlyFeeEntity> findByEnrollmentId(Long enrollmentId)
-	{
-		return monthlyFeeRepository.findByEnrollmentId(enrollmentId);
-	}
-
-	@Override
-	public MonthlyFeeEntity findByReference(String reference)
-	{
-		return monthlyFeeRepository.findByReference(reference).orElse(null);
-	}
 
 	@Override
 	public List<MonthlyFeeEntity> findAll()
 	{
-		return monthlyFeeRepository.findAll();
+		return repo.findAll();
 	}
 
 	@Override
-	@Transactional
+	public List<MonthlyFeeEntity> findByEnrollmentId(Long id)
+	{
+		return repo.findByEnrollmentId(id);
+	}
+
+	@Override
+	public List<MonthlyFeeEntity> findPaidByYear(Integer year)
+	{
+		return repo.findPaidByYear(year);
+	}
+
+	@Override
+	public List<MonthlyFeeEntity> findPaidByAcademicYearId(Long yearId)
+	{
+		return repo.findPaidByAcademicYearId(yearId);
+	}
+
+	@Override
+	public List<MonthlyFeeEntity> findByYear(Integer year)
+	{
+		return repo.findByYear(year);
+	}
+
+	@Override
+	public List<MonthlyFeeEntity> findUnpaidByStudentCode(String code)
+	{
+		return repo.findUnpaidByStudentCode(code);
+	}
+
+	@Override
+	public StudentEntity findStudentByCode(String code)
+	{
+		return repo.findStudentByCode(code);
+	}
+
+	@Override
+	public MonthlyFeeEntity findByReference(String ref)
+	{
+		return repo.findByReference(ref);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public List<MonthlyFeeEntity> generateFromMonth(Long enrollmentId, Integer month, Integer year, BigDecimal amount, Integer dueDay, Long userId)
+	{
+		if (repo.existsByEnrollmentMonthYear(enrollmentId, month, year))
+			return List.of();
+		EnrollmentEntity enr = em.find(EnrollmentEntity.class, enrollmentId);
+		if (enr == null)
+			return List.of();
+		String ref = enr.getStudent().getCode() + "-" + enr.getCode() + "-" + year + "-" + month;
+		if (repo.existsByReference(ref))
+			return List.of();
+		MonthlyFeeEntity m = new MonthlyFeeEntity();
+		m.setEnrollment(enr);
+		m.setStudent(enr.getStudent());
+		m.setAcademicYear(enr.getAcademicYear());
+		m.setReference(ref);
+		m.setMonth(month);
+		m.setYear(year);
+		m.setMonthLabel(Month.of(month).getDisplayName(TextStyle.FULL, new Locale("pt", "MZ")));
+		m.setAmount(amount != null ? amount : new BigDecimal("2500.00"));
+		m.setDueDate(LocalDate.of(year, month, dueDay != null ? dueDay : 10));
+		m.setStatus(MonthlyFeeStatus.PENDENTE);
+		if (userId != null)
+			m.setCreatedBy(em.find(UserEntity.class, userId));
+		repo.save(m);
+		return List.of(m);
+	}
+
+	@Override
+	public MonthlyFeeEntity payFee(Long id, PaymentMethod method, String bank, String transNum, LocalDate payDate)
+	{
+		MonthlyFeeEntity f = em.find(MonthlyFeeEntity.class, id);
+		if (f == null)
+			return null;
+		f.setPaymentMethod(method);
+		f.setBankName(bank);
+		f.setTransactionNumber(transNum);
+		f.setPaymentDate(payDate != null ? payDate : LocalDate.now());
+		return payFee(id);
+	}
+
+	@Override
 	public void deleteByEnrollmentId(Long enrollmentId)
 	{
-		monthlyFeeRepository.deleteByEnrollmentId(enrollmentId);
+		em.createQuery("DELETE FROM MonthlyFeeEntity m WHERE m.enrollment.id=:id").setParameter("id", enrollmentId).executeUpdate();
 	}
 
 	@Override
 	public long countByEnrollmentId(Long enrollmentId)
 	{
-		return monthlyFeeRepository.countByEnrollmentId(enrollmentId);
+		return em.createQuery("SELECT COUNT(m) FROM MonthlyFeeEntity m WHERE m.enrollment.id=:id", Long.class).setParameter("id", enrollmentId)
+				.getSingleResult();
+	}
+
+	@Override
+	public MonthlyFeeEntity payFee(Long id)
+	{
+		MonthlyFeeEntity f = em.find(MonthlyFeeEntity.class, id);
+		if (f == null)
+			return null;
+		if (f.getPaymentDate() == null)
+			f.setPaymentDate(LocalDate.now());
+		return applyPayment(f);
+	}
+
+	private MonthlyFeeEntity applyPayment(MonthlyFeeEntity f)
+	{
+		if (f.getStatus() == MonthlyFeeStatus.PAGO)
+			throw new IllegalStateException("A referência " + f.getReference() + " já foi paga");
+
+		BigDecimal multa = BigDecimal.ZERO;
+		if (f.getDueDate() != null && f.getDueDate().isBefore(f.getPaymentDate()))
+			multa = f.getAmount().multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP);
+
+		f.setFineAmount(multa);
+		f.setTotalPaid(f.getAmount().add(multa));
+		f.setStatus(MonthlyFeeStatus.PAGO);
+		return repo.save(f);
 	}
 }

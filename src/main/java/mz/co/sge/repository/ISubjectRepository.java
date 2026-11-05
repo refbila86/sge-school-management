@@ -1,19 +1,25 @@
 package mz.co.sge.repository;
 
-import java.util.List;
-
 import mz.co.sge.entity.SubjectEntity;
+import java.util.List;
 
 public interface ISubjectRepository
 {
-	SubjectEntity save(SubjectEntity entity);
-
-	SubjectEntity findById(Long id);
-
 	List<SubjectEntity> findAll();
 
-	List<SubjectEntity> findByAcademicYear(Long yearId);
+	List<SubjectEntity> findByAcademicYearId(Long yearId);
 
 	SubjectEntity findByCode(String code);
 
+	List<SubjectEntity> findByName(String name);
+
+	SubjectEntity findById(Long id);
+
+	SubjectEntity save(SubjectEntity entity);
+
+	void delete(Long id);
+
+	boolean existsByCode(String code);
+	
+    List<SubjectEntity> findAllActive();
 }

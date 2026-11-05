@@ -1,6 +1,7 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
@@ -11,9 +12,11 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import mz.co.sge.entity.TeacherEntity;
+import mz.co.sge.entity.SubjectEntity;
 import mz.co.sge.entity.UserEntity;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.service.ITeacherService;
+import mz.co.sge.service.ISubjectService;
 import mz.co.sge.service.IUserService;
 import mz.co.sge.service.IAcademicYearService;
 
@@ -29,6 +32,8 @@ public class TeacherBean implements Serializable
 	private IUserService userService;
 	@Autowired
 	private IAcademicYearService academicYearService;
+	@Autowired
+	private ISubjectService subjectService;
 
 	@Inject
 	private LoginBean loginBean;
@@ -36,21 +41,41 @@ public class TeacherBean implements Serializable
 	private DashboardBean dashboardBean;
 
 	private List<TeacherEntity> teachers;
+	private List<TeacherEntity> filteredTeachers;
 	private List<AcademicYearEntity> academicYears;
 	private List<UserEntity> availableUsers;
+	private List<SubjectEntity> allSubjects;
 
 	private TeacherEntity teacher = new TeacherEntity();
+	private TeacherEntity selected = new TeacherEntity();
 	private boolean editing = false;
 	private String searchTerm;
 	private Long selectedUserId;
 	private Long selectedAcademicYearId;
+	private Long filterYearId;
+	private Long selectedYearId;
+	private List<Long> selectedSubjectIds = new ArrayList<>();
+	
+ 
 
 	@PostConstruct
 	public void init()
 	{
 		loadAcademicYears();
 		loadAvailableUsers();
+		loadAllSubjects();
 		loadTeachers();
+	}
+
+	public void loadAllSubjects()
+	{
+		try
+		{
+			allSubjects = subjectService.findAll();
+		} catch (Exception e)
+		{
+			allSubjects = List.of();
+		}
 	}
 
 	public void loadTeachers()
@@ -66,6 +91,14 @@ public class TeacherBean implements Serializable
 		{
 			teachers = teacherService.findAll();
 		}
+		if (teachers == null)
+			teachers = new ArrayList<>();
+		filteredTeachers = new ArrayList<>(teachers);
+	}
+
+	public void loadAll()
+	{
+		loadTeachers();
 	}
 
 	public void loadAcademicYears()
@@ -85,22 +118,14 @@ public class TeacherBean implements Serializable
 		{
 			Long schoolId = loginBean.getSchoolId();
 			Long yearId = loginBean.getAcademicYearId();
-
 			List<UserEntity> users;
 			if (schoolId != null)
-			{
 				users = userService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
-			} else
-			{
+			else
 				users = userService.findAll();
-			}
-
-			// filtra só TEACHER e que ainda não tem professor associado
 			availableUsers = users.stream().filter(u -> u.getRole() != null && u.getRole().toString().equalsIgnoreCase("TEACHER")).collect(Collectors.toList());
-
 		} catch (Exception e)
 		{
-			e.printStackTrace();
 			availableUsers = List.of();
 		}
 	}
@@ -113,38 +138,106 @@ public class TeacherBean implements Serializable
 			return;
 		}
 		teachers = teacherService.search(searchTerm, loginBean.getAcademicYearId());
+		filteredTeachers = new ArrayList<>(teachers);
+	}
+
+	public void applyFilter()
+	{
+		if (searchTerm == null || searchTerm.isBlank())
+		{
+			filteredTeachers = new ArrayList<>(teachers);
+		} else
+		{
+			String q = searchTerm.toLowerCase();
+			filteredTeachers = teachers.stream()
+					.filter(t -> (t.getFirstName() != null && t.getFirstName().toLowerCase().contains(q))
+							|| (t.getLastName() != null && t.getLastName().toLowerCase().contains(q))
+							|| (t.getCode() != null && t.getCode().toLowerCase().contains(q)))
+					.collect(Collectors.toList());
+		}
+	}
+
+	public void clearFilters()
+	{
+		searchTerm = null;
+		filterYearId = null;
+		loadTeachers();
+	}
+
+	public void prepareNew()
+	{
+		teacher = new TeacherEntity();
+		selected = new TeacherEntity();
+		editing = false;
+		selectedUserId = null;
+		selectedAcademicYearId = loginBean.getAcademicYearId();
+		selectedYearId = selectedAcademicYearId;
+		selectedSubjectIds = new ArrayList<>();
+	}
+
+	public void prepareEdit(TeacherEntity t)
+	{
+		TeacherEntity full = teacherService.findById(t.getId());
+		if (full != null)
+			t = full;
+		selected = t;
+		teacher = t;
+		editing = true;
+		selectedUserId = t.getUser() != null ? t.getUser().getId() : null;
+		selectedAcademicYearId = t.getAcademicYear() != null ? t.getAcademicYear().getId() : null;
+		selectedYearId = selectedAcademicYearId;
+		selectedSubjectIds = t.getSubjects() != null ? t.getSubjects().stream().map(SubjectEntity::getId).collect(Collectors.toList()) : new ArrayList<>();
 	}
 
 	public void cleanForm()
 	{
 		teacher = new TeacherEntity();
+		selected = new TeacherEntity();
 		editing = false;
 		selectedUserId = null;
 		selectedAcademicYearId = loginBean.getAcademicYearId();
+		selectedYearId = selectedAcademicYearId;
+		selectedSubjectIds = new ArrayList<>();
 	}
 
 	public void save()
 	{
 		try
 		{
+			TeacherEntity toSave = editing ? teacher : selected;
+			if (toSave == null)
+				toSave = new TeacherEntity();
+
 			if (selectedUserId != null)
 			{
 				UserEntity u = userService.findById(selectedUserId).orElse(null);
-				teacher.setUser(u);
+				toSave.setUser(u);
 			}
-			Long yId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
+			Long yId = selectedYearId != null ? selectedYearId : (selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId());
 			if (yId != null)
 			{
 				AcademicYearEntity ay = academicYearService.getAcademicYearById(yId).orElse(null);
 				if (ay == null)
 					ay = academicYearService.findByYearId(yId);
-				teacher.setAcademicYear(ay);
+				toSave.setAcademicYear(ay);
 			}
-			if (teacher.getCode() == null || teacher.getCode().isBlank())
+			if (toSave.getCode() == null || toSave.getCode().isBlank())
 			{
-				teacher.setCode("PROF-" + (System.currentTimeMillis() % 10000));
+				toSave.setCode("PROF-" + (System.currentTimeMillis() % 10000));
 			}
-			teacherService.save(teacher);
+			List<SubjectEntity> subs = new ArrayList<>();
+			if (selectedSubjectIds != null)
+			{
+				for (Long sid : selectedSubjectIds)
+				{
+					SubjectEntity s = subjectService.findById(sid);
+					if (s != null)
+						subs.add(s);
+				}
+			}
+			toSave.setSubjects(subs);
+
+			teacherService.save(toSave);
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Professor salvo"));
 			loadTeachers();
 			dashboardBean.navigate("teacher/teacher-list", "professores");
@@ -161,14 +254,23 @@ public class TeacherBean implements Serializable
 		{
 			teacherService.delete(t.getId());
 			loadTeachers();
-			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Removido", t.getName()));
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Removido", t.getFirstName()));
 		} catch (Exception e)
 		{
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", e.getMessage()));
 		}
 	}
+	
+	public void prepareView(TeacherEntity t) {
+	    try {
+	        selected = teacherService.findById(t.getId()); // traz com JOIN FETCH subjects
+	        if (selected == null) selected = t;
+	    } catch (Exception e) {
+	        selected = t;
+	    }
+	}
 
-	// getters/setters
+	// getters/setters + novos
 	public List<TeacherEntity> getTeachers()
 	{
 		return teachers;
@@ -179,6 +281,16 @@ public class TeacherBean implements Serializable
 		this.teachers = teachers;
 	}
 
+	public List<TeacherEntity> getFilteredTeachers()
+	{
+		return filteredTeachers;
+	}
+
+	public void setFilteredTeachers(List<TeacherEntity> filteredTeachers)
+	{
+		this.filteredTeachers = filteredTeachers;
+	}
+
 	public TeacherEntity getTeacher()
 	{
 		return teacher;
@@ -187,6 +299,16 @@ public class TeacherBean implements Serializable
 	public void setTeacher(TeacherEntity teacher)
 	{
 		this.teacher = teacher;
+	}
+
+	public TeacherEntity getSelected()
+	{
+		return selected;
+	}
+
+	public void setSelected(TeacherEntity selected)
+	{
+		this.selected = selected;
 	}
 
 	public boolean isEditing()
@@ -229,6 +351,26 @@ public class TeacherBean implements Serializable
 		this.selectedAcademicYearId = id;
 	}
 
+	public Long getFilterYearId()
+	{
+		return filterYearId;
+	}
+
+	public void setFilterYearId(Long filterYearId)
+	{
+		this.filterYearId = filterYearId;
+	}
+
+	public Long getSelectedYearId()
+	{
+		return selectedYearId;
+	}
+
+	public void setSelectedYearId(Long selectedYearId)
+	{
+		this.selectedYearId = selectedYearId;
+	}
+
 	public List<AcademicYearEntity> getAcademicYears()
 	{
 		return academicYears;
@@ -237,5 +379,20 @@ public class TeacherBean implements Serializable
 	public List<UserEntity> getAvailableUsers()
 	{
 		return availableUsers;
+	}
+
+	public List<SubjectEntity> getAllSubjects()
+	{
+		return allSubjects;
+	}
+
+	public List<Long> getSelectedSubjectIds()
+	{
+		return selectedSubjectIds;
+	}
+
+	public void setSelectedSubjectIds(List<Long> selectedSubjectIds)
+	{
+		this.selectedSubjectIds = selectedSubjectIds;
 	}
 }

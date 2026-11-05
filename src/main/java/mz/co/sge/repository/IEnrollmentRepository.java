@@ -38,4 +38,10 @@ public interface IEnrollmentRepository
 	List<StudentEntity> findStudentsWithPaidFees(Long schoolId, Long yearId, EnrollmentType type);
 
 	List<StudentEntity> findAvailableForEnrollment(Long yearId);
+	
+	List<Long> findEnrolledStudentIdsByYear(Long yearId);
+	
+	Long findPreviousYearId(Long currentYearId);
+	
+	boolean existsByStudentAndYear(Long studentId, Long yearId);
 }

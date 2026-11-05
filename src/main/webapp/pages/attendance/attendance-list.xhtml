@@ -1,0 +1,585 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.ga {
+	--navy: #0b2d50;
+	--blue: #15558a;
+	--ink: #1e293b;
+	--muted: #64748b;
+	--line: #e2e8f0;
+	--bg: #f4f7fa;
+	--ok: #059669;
+	--ok-bg: #ecfdf5;
+	--bad: #dc2626;
+	--bad-bg: #fef2f2;
+	--warn: #d97706;
+	--warn-bg: #fffbeb;
+	--info-bg: #eff6ff;
+	color: var(--ink);
+}
+
+.ga * {
+	box-sizing: border-box;
+}
+
+.ga-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.ga-title {
+	font-size: 22px;
+	font-weight: 800;
+	color: var(--navy);
+	margin: 0;
+}
+
+.ga-title i {
+	margin-right: 10px;
+	color: var(--blue);
+}
+
+.ga-sub {
+	font-size: 13px;
+	color: var(--muted);
+	margin-top: 2px;
+}
+
+.ga-chip {
+	background: var(--navy);
+	color: #fff;
+	padding: 6px 16px;
+	border-radius: 999px;
+	font-size: 13px;
+}
+
+.ga-filters {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 14px 16px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 14px;
+	margin-bottom: 16px;
+}
+
+.ga-field label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+	margin-bottom: 4px;
+}
+
+.ga-field .ui-selectonemenu {
+	width: 100% !important;
+}
+
+.ga-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+	gap: 12px;
+	margin-bottom: 18px;
+}
+
+.ga-stat {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 14px 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+}
+
+.ga-stat-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+}
+
+.ga-stat-value {
+	font-size: 28px;
+	font-weight: 800;
+	line-height: 1.15;
+	margin: 2px 0;
+}
+
+.ga-stat-note {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.ga-ico {
+	width: 42px;
+	height: 42px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	flex-shrink: 0;
+}
+
+.ga-stat.is-main {
+	background: var(--navy);
+	border-color: var(--navy);
+	color: #fff;
+}
+
+.ga-stat.is-main .ga-stat-label, .ga-stat.is-main .ga-stat-note {
+	color: #cbd9e8;
+}
+
+.ga-stat.is-main .ga-ico {
+	background: rgba(255, 255, 255, .12);
+	color: #fff;
+}
+
+.ga-ok {
+	color: var(--ok);
+}
+
+.ga-ok-bg {
+	background: var(--ok-bg);
+}
+
+.ga-bad {
+	color: var(--bad);
+}
+
+.ga-bad-bg {
+	background: var(--bad-bg);
+}
+
+.ga-warn {
+	color: var(--warn);
+}
+
+.ga-warn-bg {
+	background: var(--warn-bg);
+}
+
+.ga-info {
+	color: var(--blue);
+}
+
+.ga-info-bg {
+	background: var(--info-bg);
+}
+
+.ga-panel {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 0;
+	overflow-x: auto;
+}
+
+.ga-foot {
+	padding: 12px 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	border-top: 1px solid var(--line);
+	background: #fafbfc;
+	border-radius: 0 0 12px 12px;
+}
+
+.ga-hint {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.ga .ui-datatable thead th {
+	background: #f1f5f9;
+	color: var(--navy);
+	font-size: 13px;
+	font-weight: 700;
+	border-color: var(--line);
+}
+
+.ga .ui-datatable tbody td {
+	border-color: var(--line);
+	padding: 8px 10px;
+}
+
+.ga .ui-datatable tbody tr:hover td {
+	background: #f8fbff;
+}
+
+.ga .ui-datatable .ui-editable-column {
+	cursor: pointer;
+}
+
+.ga .ui-datatable .ui-editable-column:hover {
+	outline: 1px dashed var(--blue);
+	outline-offset: -3px;
+}
+
+.ga .ui-datatable thead th.ga-center, .ga .ui-datatable tbody td.ga-center
+	{
+	text-align: center !important;
+}
+
+.ga-aluno {
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.ga-code {
+	display: block;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.ga-cell {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.ga-calc {
+	background: #f8fafc;
+	font-weight: 700;
+	color: var(--navy);
+}
+
+.nota {
+	display: inline-block;
+	min-width: 48px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 15px;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+.nota-mb {
+	background: var(--ok-bg);
+	color: var(--ok);
+}
+
+.nota-ok {
+	background: var(--info-bg);
+	color: var(--blue);
+}
+
+.nota-neg {
+	background: var(--bad-bg);
+	color: var(--bad);
+}
+
+.nota-vazia {
+	background: #f1f5f9;
+	color: var(--muted);
+}
+
+.ga .btn-primary.ui-button {
+	background: var(--navy);
+	border-color: var(--navy);
+	font-weight: 600;
+}
+
+.ga .btn-primary.ui-button:hover {
+	background: var(--blue);
+	border-color: var(--blue);
+}
+
+@media ( max-width : 600px) {
+	.ga-title {
+		font-size: 18px;
+	}
+	.ga-stat-value {
+		font-size: 24px;
+	}
+}
+</style>
+
+	<h:form id="formAcademica" styleClass="ga">
+		<p:growl id="growl" showDetail="true" life="4000" />
+
+		<div class="ga-head">
+			<div>
+				<h2 class="ga-title">
+					<i class="pi pi-book" />Gestão de Notas
+				</h2>
+				<div class="ga-sub">#{academicManagementBean.trimestreSelecionado.label}
+					· Lançamento de notas por disciplina</div>
+			</div>
+			<div class="ga-chip">
+				Ano lectivo <b>#{academicManagementBean.activeYear.year}</b>
+			</div>
+		</div>
+
+		<div class="ga-filters">
+			<div class="ga-field">
+				<label>Trimestre *</label>
+				<p:selectOneMenu
+					value="#{academicManagementBean.trimestreSelecionado}"
+					style="font-weight:700">
+					<f:selectItems value="#{academicManagementBean.trimestres}" var="t"
+						itemLabel="#{t.label}" itemValue="#{t}" />
+					<p:ajax listener="#{academicManagementBean.loadStudents}"
+						update="@form" />
+				</p:selectOneMenu>
+			</div>
+			<div class="ga-field">
+				<label>Turma *</label>
+				<p:selectOneMenu value="#{academicManagementBean.classroomId}">
+					<f:selectItem itemLabel="Seleccione" itemValue="#{null}" />
+					<f:selectItems value="#{academicManagementBean.classrooms}" var="c"
+						itemLabel="#{c.name}" itemValue="#{c.id}" />
+					<p:ajax listener="#{academicManagementBean.loadStudents}"
+						update="@form" />
+				</p:selectOneMenu>
+			</div>
+			<div class="ga-field">
+				<label>Disciplina *</label>
+				<p:selectOneMenu value="#{academicManagementBean.subjectId}">
+					<f:selectItem itemLabel="Seleccione" itemValue="#{null}" />
+					<f:selectItems value="#{academicManagementBean.subjects}" var="s"
+						itemLabel="#{s.name}" itemValue="#{s.id}" />
+					<p:ajax listener="#{academicManagementBean.loadStudents}"
+						update="@form" />
+				</p:selectOneMenu>
+			</div>
+		</div>
+
+		<div class="ga-stats">
+			<div class="ga-stat is-main">
+				<div>
+					<div class="ga-stat-label">Média da turma</div>
+					<div class="ga-stat-value">#{academicManagementBean.mediaTurma}</div>
+					<div class="ga-stat-note">#{academicManagementBean.trimestreSelecionado.label}</div>
+				</div>
+				<div class="ga-ico">
+					<i class="pi pi-chart-bar" />
+				</div>
+			</div>
+			<div class="ga-stat">
+				<div>
+					<div class="ga-stat-label">Nota máxima</div>
+					<div class="ga-stat-value ga-ok">#{academicManagementBean.notaMaxima}</div>
+					<div class="ga-stat-note">Melhor da turma</div>
+				</div>
+				<div class="ga-ico ga-ok-bg ga-ok">
+					<i class="pi pi-trophy" />
+				</div>
+			</div>
+			<div class="ga-stat">
+				<div>
+					<div class="ga-stat-label">Nota mínima</div>
+					<div class="ga-stat-value ga-bad">#{academicManagementBean.notaMinima}</div>
+					<div class="ga-stat-note">Requer atenção</div>
+				</div>
+				<div class="ga-ico ga-bad-bg ga-bad">
+					<i class="pi pi-exclamation-triangle" />
+				</div>
+			</div>
+			<div class="ga-stat">
+				<div>
+					<div class="ga-stat-label">Aprovação</div>
+					<div class="ga-stat-value ga-info">#{academicManagementBean.taxaAprovacao}%</div>
+					<div class="ga-stat-note">
+						<span class="ga-ok">#{academicManagementBean.totalAprovados}
+							aprovados</span> / <span class="ga-bad">#{academicManagementBean.totalReprovados}
+							reprovados</span>
+					</div>
+				</div>
+				<div class="ga-ico ga-info-bg ga-info">
+					<i class="pi pi-percentage" />
+				</div>
+			</div>
+			<div class="ga-stat">
+				<div>
+					<div class="ga-stat-label">Muito bom</div>
+					<div class="ga-stat-value ga-ok">#{academicManagementBean.totalMuitoBom}</div>
+					<div class="ga-stat-note">Alunos com 16 a 20</div>
+				</div>
+				<div class="ga-ico ga-ok-bg ga-ok">
+					<i class="pi pi-star-fill" />
+				</div>
+			</div>
+		</div>
+
+		<div class="ga-panel">
+			<p:dataTable id="tableNotas" var="r"
+				value="#{academicManagementBean.notasRows}" editable="true"
+				editMode="cell"
+				emptyMessage="Seleccione a turma e a disciplina para ver os alunos.">
+				<p:column headerText="Aluno" width="240">
+					<span class="ga-aluno">#{r.student.fullName}</span>
+					<span class="ga-code">#{r.student.code}</span>
+				</p:column>
+				<p:column headerText="Classe" width="100" styleClass="ga-center">
+					<span class="ga-cell">#{r.grade.classroom.classLevel.name}</span>
+				</p:column>
+				<p:column headerText="Turma" width="80" styleClass="ga-center">
+					<span class="ga-cell">#{r.classroomName}</span>
+				</p:column>
+				<p:column headerText="ACS 1" width="80" styleClass="ga-center">
+					<p:cellEditor>
+						<f:facet name="output">
+							<span class="ga-cell">#{r.grade.acs1 != null ?
+								r.grade.acs1 : '-'}</span>
+						</f:facet>
+						<f:facet name="input">
+							<p:inputNumber value="#{r.grade.acs1}" minValue="0" maxValue="20"
+								decimalPlaces="1" style="width:100%">
+								<p:ajax event="blur" update="formAcademica:tableNotas"
+									listener="#{academicManagementBean.recalculate}" />
+							</p:inputNumber>
+						</f:facet>
+					</p:cellEditor>
+				</p:column>
+				<p:column headerText="ACS 2" width="80" styleClass="ga-center">
+					<p:cellEditor>
+						<f:facet name="output">
+							<span class="ga-cell">#{r.grade.acs2 != null ?
+								r.grade.acs2 : '-'}</span>
+						</f:facet>
+						<f:facet name="input">
+							<p:inputNumber value="#{r.grade.acs2}" minValue="0" maxValue="20"
+								decimalPlaces="1" style="width:100%">
+								<p:ajax event="blur" update="formAcademica:tableNotas"
+									listener="#{academicManagementBean.recalculate}" />
+							</p:inputNumber>
+						</f:facet>
+					</p:cellEditor>
+				</p:column>
+				<p:column headerText="MACS" width="80"
+					styleClass="ga-center ga-calc">#{r.grade.macs != null ? r.grade.macs : '-'}</p:column>
+				<p:column headerText="AP" width="80" styleClass="ga-center">
+					<p:cellEditor>
+						<f:facet name="output">
+							<span class="ga-cell">#{r.grade.ap != null ? r.grade.ap :
+								'-'}</span>
+						</f:facet>
+						<f:facet name="input">
+							<p:inputNumber value="#{r.grade.ap}" minValue="0" maxValue="20"
+								decimalPlaces="1" style="width:100%">
+								<p:ajax event="blur" update="formAcademica:tableNotas"
+									listener="#{academicManagementBean.recalculate}" />
+							</p:inputNumber>
+						</f:facet>
+					</p:cellEditor>
+				</p:column>
+				<p:column
+					headerText="Média #{academicManagementBean.trimestreSelecionado.code}.º T"
+					width="100" styleClass="ga-center">
+					<span
+						class="nota #{r.grade.mediaFinal == null ? 'nota-vazia' : (r.grade.mediaFinal ge 16 ? 'nota-mb' : (r.grade.mediaFinal ge 10 ? 'nota-ok' : 'nota-neg'))}">#{r.grade.mediaFinal
+						!= null ? r.grade.mediaFinal : '-'}</span>
+				</p:column>
+				<p:column headerText="Aproveitamento" width="140"
+					styleClass="ga-center">
+					<p:tag
+						value="#{academicManagementBean.getAproveitamento(r.grade.mediaFinal)}"
+						severity="#{academicManagementBean.getSeveridade(r.grade.mediaFinal)}"
+						style="font-size:12px;font-weight:700;min-width:100px" />
+				</p:column>
+				<p:column headerText="Imprimir" width="80" styleClass="ga-center">
+					<p:commandButton icon="pi pi-print" title="Imprimir boletim"
+						styleClass="ui-button-outlined ui-button-secondary rounded-button"
+						style="width:34px;height:34px"
+						onclick="imprimirAluno('#{academicManagementBean.school.name}', '#{academicManagementBean.school.code}', '#{academicManagementBean.school.nuit}', '#{academicManagementBean.school.address}', '#{academicManagementBean.school.phone}', '#{academicManagementBean.school.email}', '#{r.student.fullName}', '#{r.student.code}', '#{r.grade.acs1}', '#{r.grade.acs2}', '#{r.grade.macs}', '#{r.grade.ap}', '#{r.grade.mediaFinal}', '#{academicManagementBean.getAproveitamento(r.grade.mediaFinal)}', '#{academicManagementBean.trimestreSelecionado.label}', '#{academicManagementBean.currentSubjectName}', '#{academicManagementBean.currentClassroomName}'); return false;" />
+				</p:column>
+			</p:dataTable>
+			<div class="ga-foot">
+				<span class="ga-hint"><i class="pi pi-info-circle" /> Clique
+					numa nota (ACS 1, ACS 2 ou AP) para a editar.</span>
+				<div style="display: flex; gap: 8px">
+					<p:commandButton icon="pi pi-print"
+						value="Imprimir Pauta #{academicManagementBean.trimestreSelecionado.code}.º T"
+						styleClass="ui-button-outlined"
+						onclick="imprimirPautaTrimestral(); return false;" />
+					<p:commandButton
+						value="Guardar notas - #{academicManagementBean.trimestreSelecionado.label}"
+						icon="pi pi-save" action="#{academicManagementBean.saveNotas}"
+						update=":formAcademica:growl formAcademica"
+						styleClass="btn-primary" />
+				</div>
+			</div>
+		</div>
+
+		<div id="pautaPrint" style="display: none">
+			<table id="tabelaPautaHidden">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Aluno</th>
+						<th>Código</th>
+						<th>ACS1</th>
+						<th>ACS2</th>
+						<th>MACS</th>
+						<th>AP</th>
+						<th>MÉDIA</th>
+						<th>Aproveitamento</th>
+					</tr>
+				</thead>
+				<tbody>
+					<ui:repeat value="#{academicManagementBean.notasRows}" var="row"
+						varStatus="vs">
+						<tr>
+							<td>#{vs.index+1}</td>
+							<td>#{row.student.fullName}</td>
+							<td>#{row.student.code}</td>
+							<td>#{row.grade.acs1}</td>
+							<td>#{row.grade.acs2}</td>
+							<td>#{row.grade.macs}</td>
+							<td>#{row.grade.ap}</td>
+							<td>#{row.grade.mediaFinal}</td>
+							<td>#{academicManagementBean.getAproveitamento(row.grade.mediaFinal)}</td>
+						</tr>
+					</ui:repeat>
+				</tbody>
+			</table>
+		</div>
+
+		<h:outputScript>
+		function imprimirAluno(nomeEscola, codigoEscola, nuit, endereco, telefone, email, nome, codigoAluno, acs1, acs2, macs, ap, media, aprov, trimestre, disciplina, turma){
+		    var win = window.open('', '', 'width=900,height=700');
+		    win.document.write('&lt;html&gt;&lt;head&gt;&lt;title&gt;Boletim '+nome+'&lt;/title&gt;');
+		    win.document.write('&lt;style&gt;body{font-family:Arial,Helvetica,sans-serif;padding:30px;color:#1e293b} .header{text-align:center;border-bottom:3px solid #0b2d50;padding-bottom:15px;margin-bottom:20px} .header h1{margin:0;color:#0b2d50;font-size:22px;text-transform:uppercase} .header .meta{margin:4px 0;font-size:11px;color:#64748b} .header h2{margin:12px 0 0;color:#15558a;font-size:14px;letter-spacing:1px} table{width:100%;border-collapse:collapse;margin-top:20px} th,td{border:1px solid #cbd5e1;padding:10px;text-align:center} th{background:#0b2d50;color:white;font-size:12px} td{font-size:13px} .info{margin:18px 0;font-size:13px;line-height:1.6} .info b{color:#0b2d50} .footer{margin-top:60px;display:flex;justify-content:space-between;font-size:11px;text-align:center} &lt;/style&gt;');
+		    win.document.write('&lt;/head&gt;&lt;body&gt;');
+		    win.document.write('&lt;div class="header"&gt;&lt;h1&gt;'+nomeEscola+'&lt;/h1&gt;&lt;div class="meta"&gt;Código: '+codigoEscola+' | NUIT: '+nuit+' | Tel: '+telefone+' | Email: '+email+'&lt;/div&gt;&lt;div class="meta"&gt;'+endereco+'&lt;/div&gt;&lt;h2&gt;BOLETIM INDIVIDUAL - '+trimestre.toUpperCase()+'&lt;/h2&gt;&lt;/div&gt;');
+		    win.document.write('&lt;div class="info"&gt;&lt;p&gt;&lt;b&gt;Aluno:&lt;/b&gt; '+nome+'&lt;br/&gt;&lt;b&gt;Código Aluno:&lt;/b&gt; '+codigoAluno+'&lt;br/&gt;&lt;b&gt;Turma:&lt;/b&gt; '+turma+'&lt;br/&gt;&lt;b&gt;Disciplina:&lt;/b&gt; '+disciplina+'&lt;br/&gt;&lt;b&gt;Data Emissão:&lt;/b&gt; '+new Date().toLocaleDateString()+'&lt;/p&gt;&lt;/div&gt;');
+		    win.document.write('&lt;table&gt;&lt;tr&gt;&lt;th&gt;DISCIPLINA&lt;/th&gt;&lt;th&gt;ACS1&lt;/th&gt;&lt;th&gt;ACS2&lt;/th&gt;&lt;th&gt;MACS&lt;/th&gt;&lt;th&gt;AP&lt;/th&gt;&lt;th&gt;MÉDIA&lt;/th&gt;&lt;th&gt;APROVEITAMENTO&lt;/th&gt;&lt;/tr&gt;');
+		    win.document.write('&lt;tr&gt;&lt;td&gt;&lt;b&gt;'+disciplina.toUpperCase()+'&lt;/b&gt;&lt;/td&gt;&lt;td&gt;'+acs1+'&lt;/td&gt;&lt;td&gt;'+acs2+'&lt;/td&gt;&lt;td&gt;'+macs+'&lt;/td&gt;&lt;td&gt;'+ap+'&lt;/td&gt;&lt;td&gt;&lt;b style="font-size:18px;color:#0b2d50"&gt;'+media+'&lt;/b&gt;&lt;/td&gt;&lt;td&gt;&lt;b&gt;'+aprov+'&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;');
+		    win.document.write('&lt;div class="footer"&gt;&lt;span&gt;___________________________&lt;br/&gt;Director Pedagógico&lt;/span&gt;&lt;span&gt;___________________________&lt;br/&gt;Director da Turma&lt;/span&gt;&lt;span&gt;___________________________&lt;br/&gt;Encarregado de Educação&lt;/span&gt;&lt;/div&gt;');
+		    win.document.write('&lt;/body&gt;&lt;/html&gt;'); win.document.close(); win.print();
+		}
+		function imprimirPautaTrimestral(){
+		    var nomeEscola = '#{academicManagementBean.school.name}';
+		    var codigoEscola = '#{academicManagementBean.school.code}';
+		    var nuit = '#{academicManagementBean.school.nuit}';
+		    var endereco = '#{academicManagementBean.school.address}';
+		    var telefone = '#{academicManagementBean.school.phone}';
+		    var email = '#{academicManagementBean.school.email}';
+		    var trimestre = '#{academicManagementBean.trimestreSelecionado.label}';
+		    var disciplina = '#{academicManagementBean.currentSubjectName}';
+		    var turma = '#{academicManagementBean.currentClassroomName}';
+		    var conteudo = document.getElementById('tabelaPautaHidden').innerHTML;
+		    var win = window.open('', '', 'width=1100,height=750');
+		    win.document.write('&lt;html&gt;&lt;head&gt;&lt;title&gt;Pauta '+trimestre+'&lt;/title&gt;');
+		    win.document.write('&lt;style&gt;body{font-family:Arial;padding:20px;color:#1e293b} .header{text-align:center;border-bottom:3px solid #0b2d50;padding-bottom:12px;margin-bottom:12px} h1{margin:0;color:#0b2d50;font-size:18px;text-transform:uppercase} .meta-small{font-size:10px;color:#64748b;margin:2px} h2{color:#15558a;font-size:13px;margin:8px 0 0;letter-spacing:1px} table{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px} th,td{border:1px solid #999;padding:5px;text-align:center} th{background:#0b2d50;color:white;font-size:10px} .meta{font-size:11px;margin:10px 0;padding:8px;background:#f1f5f9;border-radius:6px} .footer{margin-top:40px;display:flex;justify-content:space-between;font-size:10px;text-align:center} &lt;/style&gt;&lt;/head&gt;&lt;body&gt;');
+		    win.document.write('&lt;div class="header"&gt;&lt;h1&gt;'+nomeEscola+'&lt;/h1&gt;&lt;div class="meta-small"&gt;Código: '+codigoEscola+' | NUIT: '+nuit+' | Tel: '+telefone+' | Email: '+email+'&lt;/div&gt;&lt;div class="meta-small"&gt;'+endereco+'&lt;/div&gt;&lt;h2&gt;PAUTA TRIMESTRAL - '+trimestre.toUpperCase()+'&lt;/h2&gt;&lt;h2 style="color:#0b2d50"&gt;'+disciplina.toUpperCase()+' - TURMA: '+turma.toUpperCase()+'&lt;/h2&gt;&lt;/div&gt;');
+		    win.document.write('&lt;div class="meta"&gt;&lt;b&gt;Disciplina:&lt;/b&gt; '+disciplina+' | &lt;b&gt;Turma:&lt;/b&gt; '+turma+' | &lt;b&gt;Média Turma:&lt;/b&gt; #{academicManagementBean.mediaTurma} | &lt;b&gt;Máxima:&lt;/b&gt; #{academicManagementBean.notaMaxima} | &lt;b&gt;Mínima:&lt;/b&gt; #{academicManagementBean.notaMinima} | &lt;b&gt;Aprovação:&lt;/b&gt; #{academicManagementBean.taxaAprovacao}% | &lt;b&gt;Data:&lt;/b&gt; '+new Date().toLocaleDateString()+'&lt;/div&gt;');
+		    win.document.write('&lt;table&gt;'+conteudo+'&lt;/table&gt;');
+		    win.document.write('&lt;div class="footer"&gt;&lt;span&gt;___________________________&lt;br/&gt;Director Pedagógico&lt;/span&gt;&lt;span&gt;___________________________&lt;br/&gt;Professor da Disciplina&lt;/span&gt;&lt;span&gt;___________________________&lt;br/&gt;Secretaria&lt;/span&gt;&lt;/div&gt;');
+		    win.document.write('&lt;/body&gt;&lt;/html&gt;'); win.document.close(); win.print();
+		}
+		</h:outputScript>
+	</h:form>
+</ui:composition>

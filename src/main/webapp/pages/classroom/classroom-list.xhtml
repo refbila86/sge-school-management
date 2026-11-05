@@ -1,7 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
-
 	<style>
 .page-header {
 	display: flex;
@@ -32,9 +31,7 @@
 
 .compact-table .ui-datatable-data td {
 	padding: 12px 8px !important;
-	font-size: 13.5px !important;
-	font-weight: 400;
-	color: #1e293b
+	font-size: 13.5px !important
 }
 
 .compact-table .ui-datatable-thead th {
@@ -43,12 +40,29 @@
 	font-weight: 700;
 	color: #0a2540;
 	text-transform: uppercase;
-	letter-spacing: .3px;
-	background: #f8fafc
+	background: #f8fafc !important
 }
 
-.compact-table .ui-datatable-data tr {
-	height: 54px
+.progress-bg {
+	height: 8px;
+	background: #f1f5f9;
+	border-radius: 10px;
+	overflow: hidden
+}
+
+.progress-fill {
+	height: 8px;
+	border-radius: 10px;
+	transition: width .3s
+}
+
+.badge-classe {
+	background: #eef2ff;
+	color: #4338ca;
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-weight: 700;
+	font-size: 11px
 }
 
 .shift-pill {
@@ -56,18 +70,14 @@
 	font-weight: 700;
 	padding: 4px 10px;
 	border-radius: 20px;
-	text-transform: uppercase;
-	letter-spacing: .3px
+	text-transform: uppercase
 }
 </style>
-
 	<h:form id="formList">
 		<p:growl id="growl" showDetail="true" />
-
 		<div class="page-header">
 			<div class="page-title">
-				<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />Gestão
-				de Turmas
+				<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />Turmas
 			</div>
 			<div style="display: flex; gap: 8px">
 				<p:commandButton value="Nova Turma" icon="pi pi-plus"
@@ -81,7 +91,6 @@
 					update=":contentPanel" process="@this" />
 			</div>
 		</div>
-
 		<div class="filter-bar">
 			<p:inputText value="#{classroomBean.searchTerm}"
 				placeholder="Nome, classe ou professor..."
@@ -89,70 +98,62 @@
 			<p:commandButton icon="pi pi-search" value="Buscar"
 				style="border-radius:10px;font-size:13px"
 				action="#{classroomBean.search}" update=":contentPanel" />
-			<p:commandButton value="Limpar"
-				styleClass="ui-button-secondary ui-button-outlined"
-				style="border-radius:10px;font-size:13px"
-				action="#{classroomBean.loadClassrooms}" update=":contentPanel"
-				process="@this" />
 			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
-				<b>#{empty classroomBean.classrooms ? '0' :
-					classroomBean.classrooms.size()}</b>
+				<b>#{classroomBean.classrooms.size()}</b>
 			</span>
 		</div>
-
 		<div
 			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
 			class="compact-table">
 			<p:dataTable value="#{classroomBean.classrooms}" var="t"
 				paginator="true" rows="8" paginatorPosition="bottom"
-				stripedRows="true"
-				emptyMessage="Nenhuma turma cadastrada para este ano letivo">
-
-				<p:column headerText="TURMA" width="280" sortBy="#{t.name}"
-					filterBy="#{t.name}">
+				stripedRows="true" emptyMessage="Nenhuma turma">
+				<p:column headerText="TURMA" width="220">
 					<div style="display: flex; align-items: center; gap: 10px">
 						<div
-							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">#{t.name.substring(0,1)}</div>
+							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700">#{t.name.substring(0,1)}</div>
 						<div>
-							<b style="font-size: 14px; display: block; color: #0a2540">#{t.name}</b>
-							<span style="font-size: 11px; color: #64748b">#{t.currentStudents}/#{t.capacity}
-								• #{t.percentOcupacao}%</span>
+							<b style="font-size: 14px; display: block">#{t.name}</b><span
+								style="font-size: 11px; color: #64748b">#{t.classeNome}</span>
 						</div>
 					</div>
 				</p:column>
-
-				<p:column headerText="CLASSE" width="120" sortBy="#{t.classeNome}">
-					<span
-						style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px">#{t.classeNome}</span>
+				<p:column headerText="CLASSE" width="100" style="text-align:center">
+					<span class="badge-classe">#{t.classeNome}</span>
 				</p:column>
-
-				<p:column headerText="LOTAÇÃO MÁXIMA" width="120"
-					style="text-align:center" sortBy="#{t.capacity}">
-					<b style="font-size: 14px">#{t.capacity}</b>
-					<br />
-					<span style="font-size: 10px; color: #64748b">ALUNOS</span>
+				<p:column headerText="OCUPAÇÃO" width="260">
+					<div
+						style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px">
+						<span><b>#{t.currentStudents}/#{t.capacity}</b> •
+							#{t.vacancy} vagas</span><span
+							style="font-weight:800;color:#{t.occupancyPercent &gt;= 90 ? '#ef4444' : t.occupancyPercent &gt;= 70 ? '#f59e0b' : '#10b981'}">#{t.occupancyPercent}%</span>
+					</div>
+					<div class="progress-bg">
+						<div class="progress-fill"
+							style="width:#{t.occupancyPercent}%;background:#{t.occupancyPercent &gt;= 90 ? '#ef4444' : t.occupancyPercent &gt;= 70 ? '#f59e0b' : '#0a2540'}"></div>
+					</div>
 				</p:column>
-
-				<p:column headerText="TURNO" width="110" style="text-align:center">
+				<p:column headerText="TURNO" width="90" style="text-align:center">
 					<span class="shift-pill"
-						style="background:#{t.shift eq 'MORNING' ? '#fef3c7;color:#92400e' : t.shift eq 'AFTERNOON' ? '#dbeafe;color:#1e40af' : '#ede9fe;color:#5b21b6'}">
-						#{t.shift eq 'MORNING' ? 'Manhã' : t.shift eq 'AFTERNOON' ?
-						'Tarde' : 'Noite'} </span>
+						style="background:#{t.shift eq 'MORNING' ? '#fef3c7;color:#92400e' : t.shift eq 'AFTERNOON' ? '#dbeafe;color:#1e40af' : '#ede9fe;color:#5b21b6'}">#{t.shift
+						eq 'MORNING' ? 'Manhã' : t.shift eq 'AFTERNOON' ? 'Tarde' :
+						'Noite'}</span>
 				</p:column>
-
-				<p:column headerText="PROF. RESPONSÁVEL" width="200">
+				<p:column headerText="PROFESSOR" width="180">
 					<h:panelGroup rendered="#{t.responsibleTeacher != null}">
 						<span style="font-size: 13px">#{t.professorNome}</span>
-						<br />
-						<span style="font-size: 11px; color: #64748b">#{t.responsibleTeacher.code}</span>
 					</h:panelGroup>
 					<h:panelGroup rendered="#{t.responsibleTeacher == null}">
 						<span style="font-size: 12px; color: #94a3b8; font-style: italic">Sem
 							professor</span>
 					</h:panelGroup>
 				</p:column>
-
-				<p:column headerText="AÇÕES" width="110" style="text-align:center">
+				<p:column headerText="AÇÕES" width="150" style="text-align:center">
+					<p:commandButton icon="pi pi-eye"
+						styleClass="ui-button-rounded ui-button-text"
+						style="width:34px;height:34px" title="Ver alunos"
+						action="#{classroomBean.viewStudents(t)}" process="@this"
+						update=":formList:dlgAlunos" oncomplete="PF('dlgAlunos').show()" />
 					<p:commandButton icon="pi pi-pencil"
 						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
 						style="width:34px;height:34px" title="Editar"
@@ -162,21 +163,46 @@
 							target="#{classroomBean.classroom}" />
 						<f:setPropertyActionListener value="#{true}"
 							target="#{classroomBean.editing}" />
-						<f:setPropertyActionListener
-							value="#{t.responsibleTeacher != null ? t.responsibleTeacher.id : null}"
-							target="#{classroomBean.selectedTeacherId}" />
-						<f:setPropertyActionListener
-							value="#{t.classLevel != null ? t.classLevel.id : null}"
-							target="#{classroomBean.selectedClassLevelId}" />
-						<f:setPropertyActionListener
-							value="#{t.academicYear != null ? t.academicYear.id : null}"
-							target="#{classroomBean.selectedAcademicYearId}" />
 					</p:commandButton>
 					<p:commandButton icon="pi pi-trash"
 						styleClass="ui-button-rounded ui-button-text ui-button-danger"
-						style="width:34px;height:34px" title="Remover" />
+						style="width:34px;height:34px" title="Remover"
+						action="#{classroomBean.delete(t)}" update=":contentPanel">
+						<p:confirm header="Remover" message="Remover turma #{t.name}?"
+							icon="pi pi-exclamation-triangle" />
+					</p:commandButton>
 				</p:column>
 			</p:dataTable>
 		</div>
+		<p:confirmDialog global="true" width="400">
+			<p:commandButton value="Não" type="button"
+				styleClass="ui-confirmdialog-no ui-button-flat" />
+			<p:commandButton value="Sim" type="button"
+				styleClass="ui-confirmdialog-yes" />
+		</p:confirmDialog>
+		<p:dialog id="dlgAlunos" widgetVar="dlgAlunos" modal="true"
+			width="700" draggable="false" resizable="false"
+			header="Alunos da turma #{classroomBean.viewedClassroom.name} (#{classroomBean.classroomStudents.size()})">
+			<p:dataTable value="#{classroomBean.classroomStudents}" var="en"
+				paginator="true" rows="10" stripedRows="true"
+				emptyMessage="Nenhum aluno matriculado nesta turma.">
+				<p:column headerText="#" width="40" style="text-align:center">
+					<h:outputText value="#{rowIndex + 1}" />
+				</p:column>
+				<p:column headerText="Código" sortBy="#{en.student.code}">
+					<h:outputText value="#{en.student.code}" />
+				</p:column>
+				<p:column headerText="Nome" sortBy="#{en.student.firsName}"
+					filterBy="#{en.student.firsName}" filterMatchMode="contains">
+					<h:outputText value="#{en.student.fullName}" />
+				</p:column>
+				<p:column headerText="Matrícula">
+					<h:outputText value="#{en.code}" />
+				</p:column>
+				<p:column headerText="Estado" style="text-align:center">
+					<p:tag value="#{en.status}" severity="success" />
+				</p:column>
+			</p:dataTable>
+		</p:dialog>
 	</h:form>
 </ui:composition>

@@ -10,7 +10,6 @@ import mz.co.sge.repository.ITeacherRepository;
 @Repository
 public class TeacherRepositoryImpl implements ITeacherRepository
 {
-
 	@PersistenceContext
 	private EntityManager em;
 
@@ -19,6 +18,11 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 	{
 		if (entity.getId() == null)
 		{
+			if (entity.getCode() == null || entity.getCode().isEmpty())
+			{
+				Long count = em.createQuery("SELECT COUNT(t) FROM TeacherEntity t", Long.class).getSingleResult();
+				entity.setCode(String.format("TEA-%04d", count + 1));
+			}
 			em.persist(entity);
 			return entity;
 		}
@@ -28,7 +32,15 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 	@Override
 	public TeacherEntity findById(Long id)
 	{
-		return em.find(TeacherEntity.class, id);
+		try
+		{
+			return em.createQuery(
+					"SELECT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.user LEFT JOIN FETCH t.academicYear WHERE t.id = :id",
+					TeacherEntity.class).setParameter("id", id).getSingleResult();
+		} catch (Exception e)
+		{
+			return em.find(TeacherEntity.class, id);
+		}
 	}
 
 	@Override
@@ -36,7 +48,9 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 	{
 		try
 		{
-			return em.createNamedQuery("Teacher.findAll", TeacherEntity.class).getResultList();
+			return em.createQuery(
+					"SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.user LEFT JOIN FETCH t.academicYear ORDER BY t.firstName",
+					TeacherEntity.class).getResultList();
 		} catch (Exception e)
 		{
 			return em.createQuery("SELECT t FROM TeacherEntity t LEFT JOIN FETCH t.user LEFT JOIN FETCH t.academicYear ORDER BY t.firstName",
@@ -50,14 +64,15 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 		if (yearId == null)
 			return findAll();
 		return em.createQuery(
-				"SELECT t FROM TeacherEntity t LEFT JOIN FETCH t.user LEFT JOIN FETCH t.academicYear WHERE t.academicYear.id = :yId ORDER BY t.firstName",
+				"SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.user LEFT JOIN FETCH t.academicYear WHERE t.academicYear.id = :yId ORDER BY t.firstName",
 				TeacherEntity.class).setParameter("yId", yearId).getResultList();
 	}
 
 	@Override
 	public List<TeacherEntity> findByUserId(Long userId)
 	{
-		return em.createNamedQuery("Teacher.findByUserId", TeacherEntity.class).setParameter("userId", userId).getResultList();
+		return em.createQuery("SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.user.id = :userId", TeacherEntity.class)
+				.setParameter("userId", userId).getResultList();
 	}
 
 	@Override
@@ -67,11 +82,11 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 		if (yearId != null)
 		{
 			return em.createQuery(
-					"SELECT t FROM TeacherEntity t WHERE t.academicYear.id = :yId AND (LOWER(t.firstName) LIKE :term OR LOWER(t.lastName) LIKE :term OR LOWER(t.code) LIKE :term OR LOWER(t.email) LIKE :term) ORDER BY t.firstName",
+					"SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.academicYear.id = :yId AND (LOWER(t.firstName) LIKE :term OR LOWER(t.lastName) LIKE :term OR LOWER(t.code) LIKE :term OR LOWER(t.email) LIKE :term) ORDER BY t.firstName",
 					TeacherEntity.class).setParameter("yId", yearId).setParameter("term", like).getResultList();
 		}
 		return em.createQuery(
-				"SELECT t FROM TeacherEntity t WHERE LOWER(t.firstName) LIKE :term OR LOWER(t.lastName) LIKE :term OR LOWER(t.code) LIKE :term OR LOWER(t.email) LIKE :term ORDER BY t.firstName",
+				"SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE LOWER(t.firstName) LIKE :term OR LOWER(t.lastName) LIKE :term OR LOWER(t.code) LIKE :term OR LOWER(t.email) LIKE :term ORDER BY t.firstName",
 				TeacherEntity.class).setParameter("term", like).getResultList();
 	}
 

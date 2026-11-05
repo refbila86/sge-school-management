@@ -118,7 +118,8 @@ label {
 							<f:selectItem itemLabel="Selecione..." itemValue="#{null}"
 								noSelectionOption="true" />
 							<f:selectItems value="#{classroomBean.classLevels}" var="cl"
-								itemLabel="#{cl.name}" itemValue="#{cl.id}" />
+								itemLabel="#{cl.name} #{cl.hasExam ? '(Com Exame)' : ''}"
+								itemValue="#{cl.id}" />
 						</p:selectOneMenu>
 					</div>
 					<div>
@@ -154,7 +155,8 @@ label {
 							style="width:100%" filter="true" filterMatchMode="contains">
 							<f:selectItem itemLabel="Sem professor" itemValue="#{null}" />
 							<f:selectItems value="#{classroomBean.teachers}" var="prof"
-								itemLabel="#{prof.name} (#{prof.code})" itemValue="#{prof.id}" />
+								itemLabel="#{prof.fullName} (#{prof.code})"
+								itemValue="#{prof.id}" />
 						</p:selectOneMenu>
 					</div>
 					<div>

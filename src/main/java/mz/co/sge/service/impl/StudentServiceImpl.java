@@ -226,4 +226,16 @@ public class StudentServiceImpl implements IStudentService
 	{
 		return studentRepository.findBySchoolId(schoolId);
 	}
+
+	@Override
+	public List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId)
+	{
+		return studentRepository.findByClassroom(classroomId, academicYearId);
+	}
+
+	@Override
+	public List<StudentEntity> findByClassroomId(Long classroomId)
+	{
+		return studentRepository.findByClassroomId(classroomId);
+	}
 }

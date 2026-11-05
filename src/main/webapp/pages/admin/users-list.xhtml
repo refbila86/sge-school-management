@@ -22,7 +22,6 @@
 	font-size: 22px;
 	font-weight: 800;
 	color: #0a2540;
-	letter-spacing: -.3px;
 	display: flex;
 	align-items: center;
 	gap: 10px
@@ -49,15 +48,7 @@
 	gap: 10px;
 	align-items: center;
 	margin-bottom: 14px;
-	flex-wrap: wrap;
-	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-	width: 100%
-}
-
-.search-input .ui-inputfield {
-	height: 40px !important;
-	border-radius: 10px !important;
-	font-size: 13px
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
 }
 
 .btn-primary {
@@ -97,18 +88,8 @@
 	font-weight: 700;
 	color: #475569;
 	text-transform: uppercase;
-	letter-spacing: .4px;
 	background: #f8fafc !important;
 	border-color: #eef2f7 !important
-}
-
-.compact-table .ui-datatable-data tr {
-	height: 56px;
-	transition: background .15s
-}
-
-.compact-table .ui-datatable-data tr:hover {
-	background: #f8fafc !important
 }
 
 .user-avatar {
@@ -121,8 +102,7 @@
 	align-items: center;
 	justify-content: center;
 	font-weight: 700;
-	font-size: 14px;
-	flex-shrink: 0
+	font-size: 14px
 }
 
 .role-badge {
@@ -142,15 +122,6 @@
 	font-size: 11.5px;
 	font-weight: 600;
 	border: 1px solid #e6eaf0
-}
-
-.last-login {
-	font-size: 11.5px;
-	color: #475569
-}
-
-.last-login b {
-	color: #0a2540
 }
 </style>
 
@@ -174,62 +145,42 @@
 			</div>
 
 			<div class="filter-bar">
-				<span class="search-input" style="flex: 1; max-width: 320px">
-					<p:inputText placeholder="Buscar por nome ou username..."
-						style="width:100%" />
-				</span>
-				<p:selectOneMenu value="#{userBean.currentAcademicYearId}"
-					style="width:200px">
-					<f:selectItem itemLabel="Todos os Anos" itemValue="#{null}" />
-					<f:selectItems value="#{academicYearBean.academicYears}" var="ay"
-						itemLabel="#{ay.year}" itemValue="#{ay.id}" />
-					<p:ajax listener="#{userBean.loadUsers}" update=":contentPanel" />
-				</p:selectOneMenu>
 				<span
-					style="margin-left: auto; font-size: 12.5px; color: #64748b; background: #f8fafc; border: 1px solid #eef2f7; padding: 6px 12px; border-radius: 20px">Total:
-					<b style="color: #0a2540">#{userBean.users.size()}</b> • Escola: <b>#{loginBean.loggedSchool.name}</b>
+					style="font-size: 12.5px; color: #64748b; background: #f8fafc; border: 1px solid #eef2f7; padding: 6px 12px; border-radius: 20px">
+					Total: <b style="color: #0a2540">#{userBean.users.size()}</b>
+					utilizadores
 				</span>
 			</div>
 
 			<div class="compact-table">
 				<p:dataTable value="#{userBean.users}" var="u" paginator="true"
-					rows="10" paginatorPosition="bottom" stripedRows="false"
-					emptyMessage="Nenhum utilizador cadastrado."
-					paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
-					style="width:100%">
+					rows="10" paginatorPosition="bottom"
+					emptyMessage="Nenhum utilizador cadastrado." style="width:100%">
 
 					<p:column headerText="UTILIZADOR" width="260">
 						<div style="display: flex; align-items: center; gap: 10px">
 							<div class="user-avatar">#{u.name.substring(0,1).toUpperCase()}</div>
-							<div style="min-width: 0">
-								<b
-									style="font-size: 13.5px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">#{u.name}</b>
+							<div>
+								<b style="font-size: 13.5px">#{u.name}</b><br />
 								<span style="font-size: 11.5px; color: #64748b">#{u.email}</span>
 							</div>
 						</div>
 					</p:column>
-
 					<p:column headerText="USERNAME" width="140"
 						style="text-align:center">
 						<span class="username-chip">@#{u.username}</span>
 					</p:column>
-
-					<p:column headerText="PERFIL" width="100" style="text-align:center">
+					<p:column headerText="PERFIL" width="120" style="text-align:center">
 						<span class="role-badge"
 							style="background:#{u.role eq 'ADMIN' ? '#fef3c7;color:#92400e' : u.role eq 'TEACHER' ? '#e0e7ff;color:#3730a3' : '#dcfce7;color:#166534'}">#{u.role}</span>
 					</p:column>
-
 					<p:column headerText="ÚLTIMO LOGIN" width="160"
 						style="text-align:center">
-						<h:panelGroup rendered="#{u.lastLogin != null}"
-							styleClass="last-login">
+						<h:panelGroup rendered="#{u.lastLogin != null}">
 							<b><h:outputText value="#{u.lastLogin}">
-									<f:convertDateTime pattern="dd/MM/yyyy" type="localDateTime" />
+									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+										type="localDateTime" />
 								</h:outputText></b>
-							<br />
-							<h:outputText value="#{u.lastLogin}">
-								<f:convertDateTime pattern="HH:mm" type="localDateTime" />
-							</h:outputText>
 						</h:panelGroup>
 						<h:panelGroup rendered="#{u.lastLogin == null}">
 							<span
@@ -237,29 +188,19 @@
 								LOGOU</span>
 						</h:panelGroup>
 					</p:column>
-
-					<p:column headerText="ANO" width="110" style="text-align:center">
-						<span
-							style="background: #eef2ff; color: #4338ca; border: 1px solid #e0e7ff; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700">
-							#{academicYearBean.getYearLabel(u.academicYearId)} </span>
-					</p:column>
-
 					<p:column headerText="ESTADO" width="90" style="text-align:center">
 						<p:tag value="#{u.active ? 'Ativo' : 'Inativo'}"
-							severity="#{u.active ? 'success' : 'danger'}"
-							style="font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px" />
+							severity="#{u.active ? 'success' : 'danger'}" />
 					</p:column>
-
 					<p:column headerText="AÇÕES" width="130" style="text-align:center">
 						<p:commandButton icon="pi pi-eye"
-							styleClass="ui-button-rounded ui-button-text"
-							style="width:32px;height:32px" title="Ver"
+							styleClass="ui-button-rounded ui-button-text" title="Ver"
 							actionListener="#{userBean.selectForDelete(u)}"
 							update=":formList:viewDialog"
 							oncomplete="PF('viewDialog').show()" />
 						<p:commandButton icon="pi pi-pencil"
 							styleClass="ui-button-rounded ui-button-text ui-button-secondary"
-							style="width:32px;height:32px" title="Editar"
+							title="Editar"
 							action="#{dashboardBean.navigate('admin/users-include','users')}"
 							update=":contentPanel">
 							<f:setPropertyActionListener value="#{u}"
@@ -267,8 +208,7 @@
 						</p:commandButton>
 						<p:commandButton icon="pi pi-trash"
 							styleClass="ui-button-rounded ui-button-text ui-button-danger"
-							style="width:32px;height:32px" title="Remover"
-							actionListener="#{userBean.selectForDelete(u)}"
+							title="Remover" actionListener="#{userBean.selectForDelete(u)}"
 							update=":formList:confirmDialog"
 							oncomplete="PF('confirmDialog').show()" />
 					</p:column>
@@ -277,7 +217,7 @@
 
 			<p:dialog widgetVar="viewDialog" id="viewDialog"
 				header="Detalhes do Utilizador" modal="true" width="520"
-				responsive="true" showEffect="fade" hideEffect="fade">
+				showEffect="fade" hideEffect="fade">
 				<h:panelGroup rendered="#{userBean.selectedUser != null}"
 					style="display:grid;gap:14px;font-size:13px">
 					<div style="display: flex; gap: 14px; align-items: center">
@@ -285,58 +225,47 @@
 							style="width: 52px; height: 52px; border-radius: 14px; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">#{userBean.selectedUser.name.substring(0,1).toUpperCase()}</div>
 						<div>
 							<b style="font-size: 16px">#{userBean.selectedUser.name}</b><br />
-							<span style="color: #64748b; font-size: 12.5px">@#{userBean.selectedUser.username}
+							<span style="color: #64748b">@#{userBean.selectedUser.username}
 								• #{userBean.selectedUser.role}</span>
 						</div>
 					</div>
 					<div
 						style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: #f8fafc; border: 1px solid #eef2f7; border-radius: 12px; padding: 14px">
 						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">Username</span><br />
+							Username<br />
 							<b>@#{userBean.selectedUser.username}</b>
 						</div>
 						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">Email</span><br />
+							Email<br />
 							<b>#{userBean.selectedUser.email}</b>
 						</div>
 						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">Último
-								Login</span><br /> <b><h:outputText
-									value="#{userBean.selectedUser.lastLogin}">
-									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
-										type="localDateTime" />
-								</h:outputText></b><br /> <span style="font-size: 11px; color: #64748b">#{userBean.selectedUser.lastLogin
-								== null ? 'Nunca acessou' : ''}</span>
-						</div>
-						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">Criado
-								Em</span><br /> <b><h:outputText
-									value="#{userBean.selectedUser.createdAt}">
+							Último Login<br />
+							<b><h:outputText value="#{userBean.selectedUser.lastLogin}">
 									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
 										type="localDateTime" />
 								</h:outputText></b>
 						</div>
 						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">School
-								ID</span><br /> <b>#{userBean.selectedUser.schoolId}</b>
+							Criado Em<br />
+							<b><h:outputText value="#{userBean.selectedUser.createdAt}">
+									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+										type="localDateTime" />
+								</h:outputText></b>
 						</div>
 						<div>
-							<span
-								style="color: #64748b; font-size: 10px; text-transform: uppercase; font-weight: 700">Academic
-								Year ID</span><br /> <b>#{academicYearBean.getYearLabel(userBean.selectedUser.academicYearId)}</b>
+							Estado<br />
+							<b>#{userBean.selectedUser.active ? 'Ativo' : 'Inativo'}</b>
+						</div>
+						<div>
+							Role<br />
+							<b>#{userBean.selectedUser.role}</b>
 						</div>
 					</div>
 				</h:panelGroup>
 				<f:facet name="footer">
-					<p:commandButton value="Fechar" icon="pi pi-times"
-						onclick="PF('viewDialog').hide()"
-						styleClass="ui-button-secondary ui-button-outlined"
-						style="border-radius:10px" />
+					<p:commandButton value="Fechar" onclick="PF('viewDialog').hide()"
+						styleClass="ui-button-secondary" />
 				</f:facet>
 			</p:dialog>
 
@@ -344,11 +273,11 @@
 				header="Confirmar Remoção"
 				message="Remover #{userBean.selectedUser.name}?" severity="warn">
 				<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
-					style="border-radius:10px" action="#{userBean.delete}"
-					update=":contentPanel" oncomplete="PF('confirmDialog').hide()" />
+					action="#{userBean.delete}" update=":contentPanel"
+					oncomplete="PF('confirmDialog').hide()" />
 				<p:commandButton value="Cancelar"
 					styleClass="ui-button-secondary ui-button-outlined"
-					style="border-radius:10px" onclick="PF('confirmDialog').hide()" />
+					onclick="PF('confirmDialog').hide()" />
 			</p:confirmDialog>
 		</h:form>
 	</div>

@@ -222,6 +222,9 @@
 </h:head>
 <h:body
 	style="margin:0;background:#f6f8fb;font-family:'Inter',sans-serif">
+	
+		<p:growl id="globalGrowl" showDetail="true" autoUpdate="true" />
+	
 	<div class="app">
 		<div
 			class="sidebar #{dashboardBean.sidebarCollapsed ? 'collapsed' : ''}"
@@ -397,11 +400,11 @@
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cDisc" widgetVar="navDisc"
 							style="display:none"
-							action="#{dashboardBean.navigate('subjects/subject-list','disciplinas')}"
+							action="#{dashboardBean.navigate('subject/subject-list','disciplinas')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cNotas" widgetVar="navNotas"
 							style="display:none"
-							action="#{dashboardBean.navigate('evaluation/grade-entry','notas')}"
+							action="#{dashboardBean.navigate('attendance/attendance-list','notas')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cPautas" widgetVar="navPautas"
 							style="display:none"
@@ -409,7 +412,7 @@
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cMens" widgetVar="navMens"
 							style="display:none"
-							action="#{dashboardBean.navigate('finance/fees-list','mensalidades')}"
+							action="#{dashboardBean.navigate('monthly-fee/monthly-fee-list','mensalidades')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cPag" widgetVar="navPag" style="display:none"
 							action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"

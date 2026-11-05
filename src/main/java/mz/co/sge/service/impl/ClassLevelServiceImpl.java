@@ -55,4 +55,12 @@ public class ClassLevelServiceImpl implements IClassLevelService
 		String lower = term.toLowerCase();
 		return base.stream().filter(c -> c.getName().toLowerCase().contains(lower)).toList();
 	}
+	
+	@Override
+	public boolean existsByNameAndYear(String name, Long yearId)
+	{
+		if (name == null || name.isBlank() || yearId == null)
+			return false;
+		return repository.existsByNameAndYear(name, yearId);
+	}
 }

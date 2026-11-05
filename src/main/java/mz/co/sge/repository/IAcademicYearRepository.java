@@ -8,6 +8,7 @@ public interface IAcademicYearRepository
 {
 	List<AcademicYearEntity> findAll();
 
+	
 	Optional<AcademicYearEntity> findActive();
 
 	Optional<AcademicYearEntity> findByDescription(String description);
@@ -27,5 +28,7 @@ public interface IAcademicYearRepository
 	List<AcademicYearEntity> findByYear(int year);
 
 	AcademicYearEntity findByYearId(Long id);
-
+	
+	
+	
 }

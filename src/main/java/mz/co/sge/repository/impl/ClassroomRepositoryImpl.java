@@ -1,5 +1,6 @@
 package mz.co.sge.repository.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 import jakarta.persistence.EntityManager;
@@ -13,19 +14,25 @@ public class ClassroomRepositoryImpl implements IClassroomRepository
 	@PersistenceContext
 	private EntityManager em;
 
-	public ClassroomEntity save(ClassroomEntity entity)
+	public ClassroomEntity save(ClassroomEntity e)
 	{
-		if (entity.getId() == null)
+		if (e.getId() == null)
 		{
-			em.persist(entity);
-			return entity;
+			em.persist(e);
+			return e;
 		}
-		return em.merge(entity);
+		return em.merge(e);
 	}
 
 	public ClassroomEntity findById(Long id)
 	{
-		return em.find(ClassroomEntity.class, id);
+		try
+		{
+			return em.find(ClassroomEntity.class, id);
+		} catch (Exception ex)
+		{
+			return null;
+		}
 	}
 
 	public List<ClassroomEntity> findAll()
@@ -33,53 +40,114 @@ public class ClassroomRepositoryImpl implements IClassroomRepository
 		try
 		{
 			return em.createNamedQuery("Classroom.findAll", ClassroomEntity.class).getResultList();
-		} catch (Exception e)
+		} catch (Exception e1)
 		{
-			// fallback se named query não existir
-			return em.createQuery(
-					"SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear ORDER BY c.name",
-					ClassroomEntity.class).getResultList();
+			try
+			{
+				return em.createQuery(
+						"SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher ORDER BY c.name",
+						ClassroomEntity.class).getResultList();
+			} catch (Exception e2)
+			{
+				e2.printStackTrace();
+				return new ArrayList<>();
+			}
 		}
 	}
 
-	public List<ClassroomEntity> findByAcademicYear(Long yearId)
+	public List<ClassroomEntity> findByAcademicYear(Long yId)
 	{
-		if (yearId == null)
-		{
+		if (yId == null)
 			return findAll();
-		}
 		try
 		{
-			return em.createNamedQuery("Classroom.findByAcademicYear", ClassroomEntity.class).setParameter("yearId", yearId).getResultList();
-		} catch (Exception e)
+			return em.createNamedQuery("Classroom.findByAcademicYear", ClassroomEntity.class).setParameter("yearId", yId).getResultList();
+		} catch (Exception e1)
 		{
-			e.printStackTrace();
-			return em.createQuery(
-					"SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear WHERE c.academicYear.id = :yearId ORDER BY c.name",
-					ClassroomEntity.class).setParameter("yearId", yearId).getResultList();
+			try
+			{
+				return em.createQuery(
+						"SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id=:yearId ORDER BY c.name",
+						ClassroomEntity.class).setParameter("yearId", yId).getResultList();
+			} catch (Exception e2)
+			{
+				return findAll();
+			}
 		}
 	}
 
-	public List<ClassroomEntity> search(String term, Long yearId)
+	public List<ClassroomEntity> search(String term, Long yId)
 	{
-		if (yearId == null)
-			yearId = 0L; // evita null
-		String like = "%" + (term != null ? term.toLowerCase() : "") + "%";
-		return em.createQuery(
-				"SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id = :yId AND (LOWER(c.name) LIKE :term OR LOWER(c.classLevel.name) LIKE :term) ORDER BY c.name",
-				ClassroomEntity.class).setParameter("yId", yearId).setParameter("term", like).getResultList();
+		try
+		{
+			if (term == null || term.isBlank())
+				return yId != null ? findByAcademicYear(yId) : findAll();
+			String like = "%" + term.toLowerCase() + "%";
+			if (yId == null || yId == 0)
+				return em.createQuery(
+						"SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE LOWER(c.name) LIKE :t OR LOWER(c.classLevel.name) LIKE :t ORDER BY c.name",
+						ClassroomEntity.class).setParameter("t", like).getResultList();
+			return em.createQuery(
+					"SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id=:yId AND (LOWER(c.name) LIKE :t OR LOWER(c.classLevel.name) LIKE :t) ORDER BY c.name",
+					ClassroomEntity.class).setParameter("yId", yId).setParameter("t", like).getResultList();
+		} catch (Exception e)
+		{
+			return new ArrayList<>();
+		}
 	}
 
-	public long countByAcademicYear(Long yearId)
+	public long countByAcademicYear(Long yId)
 	{
-		return em.createQuery("SELECT COUNT(c) FROM ClassroomEntity c WHERE c.academicYear.id = :yId", Long.class).setParameter("yId", yearId)
-				.getSingleResult();
+		try
+		{
+			return em.createQuery("SELECT COUNT(c) FROM ClassroomEntity c WHERE c.academicYear.id=:yId", Long.class).setParameter("yId", yId).getSingleResult();
+		} catch (Exception e)
+		{
+			return 0;
+		}
 	}
 
 	public void delete(Long id)
 	{
-		ClassroomEntity e = findById(id);
-		if (e != null)
-			em.remove(e);
+		try
+		{
+			ClassroomEntity e = findById(id);
+			if (e != null)
+				em.remove(e);
+		} catch (Exception ex)
+		{
+		}
+	}
+
+	public void incrementStudents(Long id)
+	{
+		try
+		{
+			em.createQuery("UPDATE ClassroomEntity c SET c.currentStudents=c.currentStudents+1 WHERE c.id=:id").setParameter("id", id).executeUpdate();
+		} catch (Exception e)
+		{
+		}
+	}
+
+	public void decrementStudents(Long id)
+	{
+		try
+		{
+			em.createQuery("UPDATE ClassroomEntity c SET c.currentStudents=CASE WHEN c.currentStudents>0 THEN c.currentStudents-1 ELSE 0 END WHERE c.id=:id")
+					.setParameter("id", id).executeUpdate();
+		} catch (Exception e)
+		{
+		}
+	}
+
+	public List<ClassroomEntity> findAllActive()
+	{
+		try
+		{
+			return em.createNamedQuery("ClassroomEntity.findAllActive", ClassroomEntity.class).getResultList();
+		} catch (Exception e)
+		{
+			return findAll();
+		}
 	}
 }

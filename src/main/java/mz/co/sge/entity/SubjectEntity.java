@@ -7,10 +7,16 @@ import java.time.LocalDateTime;
 @Table(name = "subjects", uniqueConstraints = @UniqueConstraint(columnNames =
 { "code" }))
 @NamedQueries(
-{ @NamedQuery(name = "Subject.findAll", query = "SELECT s FROM SubjectEntity s ORDER BY s.name ASC"),
-		@NamedQuery(name = "Subject.findByCode", query = "SELECT s FROM SubjectEntity s WHERE s.code = :code"),
-		@NamedQuery(name = "Subject.findByAcademicYear", query = "SELECT s FROM SubjectEntity s WHERE s.academicYear.id = :yearId AND s.active = true"),
-		@NamedQuery(name = "Subject.findByName", query = "SELECT s FROM SubjectEntity s WHERE LOWER(s.name) LIKE :name") })
+{ @NamedQuery(name = "SubjectEntity.findAll", query = "SELECT s FROM SubjectEntity s ORDER BY s.name ASC"),
+		@NamedQuery(name = "SubjectEntity.findByCode", query = "SELECT s FROM SubjectEntity s WHERE s.code = :code"),
+		@NamedQuery(name = "SubjectEntity.findByAcademicYear", query = "SELECT s FROM SubjectEntity s WHERE s.academicYear.id = :yearId AND s.active = true"),
+
+		@NamedQuery(name = "SubjectEntity.findAllActive", query = "SELECT s FROM SubjectEntity s WHERE s.active = true ORDER BY s.name"),
+		//@NamedQuery(name = "SubjectEntity.findAll", query = "SELECT s FROM SubjectEntity s ORDER BY s.name"),
+
+		@NamedQuery(name = "SubjectEntity.findByAcademicYearId", query = "SELECT s FROM SubjectEntity s WHERE s.academicYear.id = :yearId ORDER BY s.name ASC"),
+
+		@NamedQuery(name = "SubjectEntity.findByName", query = "SELECT s FROM SubjectEntity s WHERE LOWER(s.name) LIKE :name") })
 public class SubjectEntity implements java.io.Serializable
 {
 
@@ -36,7 +42,17 @@ public class SubjectEntity implements java.io.Serializable
 	@Column(nullable = false)
 	private boolean active = true;
 
+	@Column(name = "workload_hours")
+	private Integer workloadHours; // carga horária em horas
+
 	private LocalDateTime createdAt = LocalDateTime.now();
+
+	public SubjectEntity() {}
+
+	public SubjectEntity(Long id)
+	{
+		this.id = id;
+	}
 
 	@PrePersist
 	public void prePersist()
@@ -105,6 +121,16 @@ public class SubjectEntity implements java.io.Serializable
 	public void setActive(boolean active)
 	{
 		this.active = active;
+	}
+
+	public Integer getWorkloadHours()
+	{
+		return workloadHours;
+	}
+
+	public void setWorkloadHours(Integer workloadHours)
+	{
+		this.workloadHours = workloadHours;
 	}
 
 	public LocalDateTime getCreatedAt()

@@ -1,58 +1,47 @@
 package mz.co.sge.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.io.Serializable;
 
 @Entity
-@Table(name = "classrooms", uniqueConstraints = @UniqueConstraint(name = "uk_classroom_year_shift", columnNames =
-{ "name", "academic_year_id", "shift" }))
+@Table(name = "classrooms")
 @NamedQueries(
-{ @NamedQuery(name = "Classroom.findAll", query = "SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear ORDER BY c.name"),
-		@NamedQuery(name = "Classroom.findByAcademicYear", query = "SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear WHERE c.academicYear.id = :yearId ORDER BY c.name"),
-		@NamedQuery(name = "Classroom.search", query = "SELECT c FROM ClassroomEntity c WHERE (LOWER(c.name) LIKE :term OR LOWER(c.classLevel.name) LIKE :term) AND c.academicYear.id = :yearId"),
-		@NamedQuery(name = "Classroom.countByAcademicYear", query = "SELECT COUNT(c) FROM ClassroomEntity c WHERE c.academicYear.id = :yearId") })
-public class ClassroomEntity implements java.io.Serializable
+{ @NamedQuery(name = "Classroom.findAll", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher ORDER BY c.name"),
+		@NamedQuery(name = "Classroom.findByAcademicYear", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id = :yearId ORDER BY c.name"),
+		@NamedQuery(name = "ClassroomEntity.findAllActive", query = "SELECT c FROM ClassroomEntity c WHERE c.active = true ORDER BY c.name") })
+public class ClassroomEntity implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(nullable = false, length = 50)
 	private String name;
-	@Column(nullable = false)
-	private int capacity;
-	@Column(name = "current_students", nullable = false)
-	private int currentStudents = 0;
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private Shift shift;
-	@Column(nullable = false)
-	private boolean active = true;
+	private Integer capacity;
+	private Integer currentStudents = 0;
+	private String shift;
+	private Boolean active = true;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "responsible_teacher_id")
 	private TeacherEntity responsibleTeacher;
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "class_level_id", nullable = false)
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "class_level_id")
 	private ClassLevelEntity classLevel;
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "academic_year_id", nullable = false)
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "academic_year_id")
 	private AcademicYearEntity academicYear;
-	@Column(name = "created_at")
-	private LocalDateTime createdAt = LocalDateTime.now();
 
-	public enum Shift
+	public ClassroomEntity()
 	{
-		MORNING, AFTERNOON, NIGHT
 	}
 
-	@PrePersist
-	public void prePersist()
+	public ClassroomEntity(Long id)
 	{
-		if (createdAt == null)
-			createdAt = LocalDateTime.now();
+		this.id = id;
 	}
 
+	// GETTERS E SETTERS BLINDADOS
 	public Long getId()
 	{
 		return id;
@@ -65,52 +54,52 @@ public class ClassroomEntity implements java.io.Serializable
 
 	public String getName()
 	{
-		return name;
+		return name != null ? name : "";
 	}
 
-	public void setName(String name)
+	public void setName(String n)
 	{
-		this.name = name;
+		this.name = n;
 	}
 
-	public int getCapacity()
+	public Integer getCapacity()
 	{
 		return capacity;
 	}
 
-	public void setCapacity(int capacity)
+	public void setCapacity(Integer c)
 	{
-		this.capacity = capacity;
+		this.capacity = c;
 	}
 
-	public int getCurrentStudents()
+	public Integer getCurrentStudents()
 	{
-		return currentStudents;
+		return currentStudents != null ? currentStudents : 0;
 	}
 
-	public void setCurrentStudents(int currentStudents)
+	public void setCurrentStudents(Integer c)
 	{
-		this.currentStudents = currentStudents;
+		this.currentStudents = c;
 	}
 
-	public Shift getShift()
+	public String getShift()
 	{
 		return shift;
 	}
 
-	public void setShift(Shift shift)
+	public void setShift(String s)
 	{
-		this.shift = shift;
+		this.shift = s;
 	}
 
-	public boolean isActive()
+	public Boolean getActive()
 	{
-		return active;
+		return active != null ? active : true;
 	}
 
-	public void setActive(boolean active)
+	public void setActive(Boolean a)
 	{
-		this.active = active;
+		this.active = a;
 	}
 
 	public TeacherEntity getResponsibleTeacher()
@@ -118,9 +107,9 @@ public class ClassroomEntity implements java.io.Serializable
 		return responsibleTeacher;
 	}
 
-	public void setResponsibleTeacher(TeacherEntity responsibleTeacher)
+	public void setResponsibleTeacher(TeacherEntity t)
 	{
-		this.responsibleTeacher = responsibleTeacher;
+		this.responsibleTeacher = t;
 	}
 
 	public ClassLevelEntity getClassLevel()
@@ -128,9 +117,9 @@ public class ClassroomEntity implements java.io.Serializable
 		return classLevel;
 	}
 
-	public void setClassLevel(ClassLevelEntity classLevel)
+	public void setClassLevel(ClassLevelEntity c)
 	{
-		this.classLevel = classLevel;
+		this.classLevel = c;
 	}
 
 	public AcademicYearEntity getAcademicYear()
@@ -138,45 +127,9 @@ public class ClassroomEntity implements java.io.Serializable
 		return academicYear;
 	}
 
-	public void setAcademicYear(AcademicYearEntity academicYear)
+	public void setAcademicYear(AcademicYearEntity a)
 	{
-		this.academicYear = academicYear;
-	}
-
-	public LocalDateTime getCreatedAt()
-	{
-		return createdAt;
-	}
-
-	public int getPercentOcupacao()
-	{
-		if (capacity <= 0)
-			return 0;
-		return (int) Math.round((currentStudents * 100.0) / capacity);
-	}
-
-	// CORRIGIDO - NÃO QUEBRA COM LAZY
-	@Transient
-	public String getProfessorNome()
-	{
-		try
-		{
-			if (responsibleTeacher != null)
-			{
-				String fn = responsibleTeacher.getFirstName();
-				String ln = responsibleTeacher.getLastName();
-				if (fn != null || ln != null)
-					return (fn != null ? fn : "") + " " + (ln != null ? ln : "");
-				return responsibleTeacher.getName() != null ? responsibleTeacher.getName() : null;
-			}
-		} catch (org.hibernate.LazyInitializationException e)
-		{
-			return "Professor (ID: " + (responsibleTeacher != null ? responsibleTeacher.getId() : "") + ")";
-		} catch (Exception e)
-		{
-			return null;
-		}
-		return null;
+		this.academicYear = a;
 	}
 
 	@Transient
@@ -185,16 +138,55 @@ public class ClassroomEntity implements java.io.Serializable
 		try
 		{
 			if (classLevel != null)
-			{
 				return classLevel.getName();
-			}
-		} catch (org.hibernate.LazyInitializationException e)
-		{
-			return "Classe ID " + (classLevel != null ? classLevel.getId() : "");
 		} catch (Exception e)
 		{
-			return null;
+		}
+		return "-";
+	}
+
+	@Transient
+	public String getProfessorNome()
+	{
+		try
+		{
+			if (responsibleTeacher != null)
+			{
+				if (responsibleTeacher.getFullName() != null)
+					return responsibleTeacher.getFullName();
+				return responsibleTeacher.getFirstName() + " " + responsibleTeacher.getLastName();
+			}
+		} catch (Exception e)
+		{
 		}
 		return null;
+	}
+
+	@Transient
+	public int getVacancy()
+	{
+		try
+		{
+			if (capacity == null)
+				return 0;
+			return capacity - getCurrentStudents();
+		} catch (Exception e)
+		{
+			return 0;
+		}
+	}
+
+	@Transient
+	public int getOccupancyPercent()
+	{
+		try
+		{
+			if (capacity == null || capacity == 0)
+				return 0;
+			return (int) (getCurrentStudents() * 100.0 / capacity);
+		} catch (Exception e)
+		{
+			return 0;
+		}
 	}
 }

@@ -9,9 +9,9 @@ import java.io.Serializable;
 { @NamedQuery(name = "AcademicYearEntity.findAll", query = "SELECT a FROM AcademicYearEntity a ORDER BY a.year DESC"),
 		@NamedQuery(name = "AcademicYearEntity.findActive", query = "SELECT a FROM AcademicYearEntity a WHERE a.active = true ORDER BY a.year DESC"),
 		@NamedQuery(name = "AcademicYearEntity.findByYear", query = "SELECT a FROM AcademicYearEntity a WHERE a.year = :year"),
-		@NamedQuery(name = "AcademicYearEntity.findBySchool", query = "SELECT a FROM AcademicYearEntity a ORDER BY a.year DESC") // mantida pra compatibilidade,
-																																	// mas agora retorna tudo
-})
+		@NamedQuery(name = "AcademicYearEntity.findIdByYearValue", query = "SELECT a.id FROM AcademicYearEntity a WHERE a.year = :yearValue"),
+		@NamedQuery(name = "AcademicYearEntity.findYearValueById", query = "SELECT a.year FROM AcademicYearEntity a WHERE a.id = :id"),
+		@NamedQuery(name = "AcademicYearEntity.findBySchool", query = "SELECT a FROM AcademicYearEntity a ORDER BY a.year DESC") })
 public class AcademicYearEntity implements Serializable
 {
 	@Id
@@ -30,7 +30,28 @@ public class AcademicYearEntity implements Serializable
 	@Column(name = "end_date")
 	private java.time.LocalDateTime endDate;
 
-	// getters/setters
+	@Column(name = "created_at")
+	private java.time.LocalDateTime createdAt;
+
+	@PrePersist
+	public void prePersist()
+	{
+		if (createdAt == null)
+		{
+			createdAt = java.time.LocalDateTime.now();
+		}
+	}
+	
+	public AcademicYearEntity(Long id)
+	{
+		this.id = id;
+	}
+
+	public AcademicYearEntity()
+	{
+	}
+
+	// getters/setters existentes...
 	public Long getId()
 	{
 		return id;
@@ -59,5 +80,40 @@ public class AcademicYearEntity implements Serializable
 	public void setActive(Boolean active)
 	{
 		this.active = active;
+	}
+
+	public boolean isActive()
+	{
+		return active != null && active;
+	}
+
+	public java.time.LocalDateTime getStartDate()
+	{
+		return startDate;
+	}
+
+	public void setStartDate(java.time.LocalDateTime startDate)
+	{
+		this.startDate = startDate;
+	}
+
+	public java.time.LocalDateTime getEndDate()
+	{
+		return endDate;
+	}
+
+	public void setEndDate(java.time.LocalDateTime endDate)
+	{
+		this.endDate = endDate;
+	}
+
+	public java.time.LocalDateTime getCreatedAt()
+	{
+		return createdAt;
+	}
+
+	public void setCreatedAt(java.time.LocalDateTime createdAt)
+	{
+		this.createdAt = createdAt;
 	}
 }

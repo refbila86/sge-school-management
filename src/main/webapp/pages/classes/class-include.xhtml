@@ -1,7 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
-
 	<style>
 .form-card {
 	background: white;
@@ -62,16 +61,30 @@ label {
 					</p:selectOneMenu>
 				</div>
 			</div>
+
 			<div style="margin-top: 14px">
 				<label>Descrição</label>
 				<p:inputTextarea value="#{classLevelBean.level.description}"
 					placeholder="Ex: Ensino Secundário" rows="3" style="width:100%" />
 			</div>
-			<div style="margin-top: 14px">
-				<label>Estado</label><br />
-				<p:toggleSwitch value="#{classLevelBean.level.active}"
-					onLabel="Ativa" offLabel="Inativa" />
+
+			<div
+				style="margin-top: 14px; display: flex; gap: 40px; flex-wrap: wrap">
+				<div>
+					<label>Estado</label><br />
+					<p:toggleSwitch value="#{classLevelBean.level.active}"
+						onLabel="Ativa" offLabel="Inativa" />
+				</div>
+				<div>
+					<label>Tem Exame Nacional? <span class="required">*</span></label><br />
+					<p:selectBooleanButton value="#{classLevelBean.level.hasExam}"
+						onLabel="Com Exame" offLabel="Sem Exame" onIcon="pi pi-check"
+						offIcon="pi pi-times" style="width:160px;font-weight:700" />
+					<div style="font-size: 11px; color: #64748b; margin-top: 4px">Ative
+						se esta classe faz exame nacional (10ª e 12ª)</div>
+				</div>
 			</div>
+
 			<div
 				style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px">
 				<p:commandButton value="Cancelar"

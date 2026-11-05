@@ -50,4 +50,14 @@ public class ClassLevelRepositoryImpl implements IClassLevelRepository
 		if (e != null)
 			em.remove(e);
 	}
+	
+	@Override
+	public boolean existsByNameAndYear(String name, Long yearId)
+	{
+		Long count = em.createNamedQuery("ClassLevel.countByNameAndYear", Long.class)
+				.setParameter("name", name.trim().toLowerCase())
+				.setParameter("yearId", yearId)
+				.getSingleResult();
+		return count != null && count > 0;
+	}
 }

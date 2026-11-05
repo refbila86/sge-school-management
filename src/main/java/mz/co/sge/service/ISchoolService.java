@@ -28,4 +28,7 @@ public interface ISchoolService
 	void delete(Long id);
 
 	void toggleActive(Long id);
+	
+    SchoolEntity getSchool();
+
 }

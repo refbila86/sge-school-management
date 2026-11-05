@@ -1,0 +1,186 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+	<style>
+.form-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px
+}
+
+.step {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 12px
+}
+
+.step-num {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #0a2540;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800
+}
+</style>
+
+	<h:form id="formPay">
+		<p:growl id="growl" showDetail="true" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
+			<div
+				style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center; gap: 10px">
+				<p:commandButton icon="pi pi-arrow-left"
+					styleClass="ui-button-text ui-button-rounded"
+					style="width:36px;height:36px"
+					action="#{dashboardBean.navigate('monthly-fee/monthly-fee-list','mensalidades')}"
+					process="@this" update=":contentPanel" />
+				Novo Pagamento
+			</div>
+		</div>
+
+		<div class="form-card">
+			<div class="step">
+				<div class="step-num">1</div>
+				<b>Digite código do estudante (ex: STU-00002-2026)</b>
+			</div>
+			<div style="display: flex; gap: 12px">
+				<h:inputText value="#{monthlyFeeBean.searchCode}"
+					pt:placeholder="STU-00002-2026"
+					style="flex:1;text-transform:uppercase; padding:10px; border-radius:10px; border:1px solid #e6eaf0" />
+				<p:commandButton value="Buscar" icon="pi pi-search"
+					action="#{monthlyFeeBean.searchByStudentCode}"
+					process="@form"
+					update="studentInfo refsPanel totalPanel growl"
+					style="border-radius:12px;background:#0a2540;border:none" />
+			</div>
+
+			<h:panelGroup id="studentInfo">
+				<h:panelGroup rendered="#{monthlyFeeBean.foundStudent != null}">
+					<div
+						style="background: #f8fafc; border-radius: 12px; padding: 12px; display: flex; gap: 12px; align-items: center">
+						<div
+							style="width: 48px; height: 48px; border-radius: 50%; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800">#{monthlyFeeBean.foundStudent.firstName.substring(0,1)}</div>
+						<div>
+							<b>#{monthlyFeeBean.foundStudent.fullName}</b> -
+							#{monthlyFeeBean.foundStudent.code}<br /> <small>#{monthlyFeeBean.unpaidFees.size()}
+								referência(s) em aberto</small>
+						</div>
+					</div>
+				</h:panelGroup>
+			</h:panelGroup>
+
+			<div class="step">
+				<div class="step-num">2</div>
+				<b>Selecione referências (pode pagar mais de 1)</b>
+			</div>
+
+			<h:panelGroup id="refsPanel">
+				<p:dataTable id="tableRefs" value="#{monthlyFeeBean.unpaidFees}"
+					var="r" selection="#{monthlyFeeBean.selectedFees}" rowKey="#{r.id}"
+					paginator="false" emptyMessage="Nenhuma referência em aberto">
+					<p:ajax event="rowSelect" update=":formPay:totalPanel" />
+					<p:ajax event="rowUnselect" update=":formPay:totalPanel" />
+					<p:ajax event="rowSelectCheckbox" update=":formPay:totalPanel" />
+					<p:ajax event="rowUnselectCheckbox" update=":formPay:totalPanel" />
+					<p:ajax event="toggleSelect" update=":formPay:totalPanel" />
+					<p:column selectionMode="multiple"
+						style="width:40px;text-align:center" />
+					<p:column headerText="Referência">
+						<b>#{r.reference}</b>
+						<br />
+						<small>#{r.monthLabel} #{r.year}</small>
+					</p:column>
+					<p:column headerText="Turma">#{r.enrollment.classroom.name}</p:column>
+					<p:column headerText="Valor" style="text-align:right">
+						<b>#{r.amount} MT</b>
+					</p:column>
+					<p:column headerText="Multa" style="text-align:right;color:#dc2626">
+						<b>#{monthlyFeeBean.calcMulta(r)} MT</b>
+					</p:column>
+					<p:column headerText="Total" style="text-align:right">
+						<b>#{monthlyFeeBean.calcTotalPagoComMulta(r)} MT</b>
+					</p:column>
+				</p:dataTable>
+			</h:panelGroup>
+
+			<div class="step">
+				<div class="step-num">3</div>
+				<b>Forma de pagamento</b>
+			</div>
+
+			<h:panelGroup id="totalPanel">
+				<div
+					style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; align-items: end">
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Forma
+							Pagamento</span><br />
+						<h:selectOneMenu value="#{monthlyFeeBean.paymentMethod}"
+							style="width:100%; padding:8px; border-radius:8px">
+							<f:selectItem itemLabel="NUMERÁRIO" itemValue="NUMERARIO" />
+							<f:selectItem itemLabel="TRANSFERÊNCIA BANCÁRIA"
+								itemValue="TRANSFERENCIA_BANCARIA" />
+							<f:ajax render="totalPanel" />
+						</h:selectOneMenu>
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Banco</span><br />
+						<h:selectOneMenu value="#{monthlyFeeBean.bankName}"
+							style="width:100%; padding:8px; border-radius:8px"
+							disabled="#{monthlyFeeBean.paymentMethod != 'TRANSFERENCIA_BANCARIA'}">
+							<f:selectItem itemLabel="Selecione banco" itemValue="" />
+							<f:selectItems value="#{monthlyFeeBean.banks}" var="b"
+								itemLabel="#{b}" itemValue="#{b}" />
+						</h:selectOneMenu>
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Nº
+							Transação</span><br />
+						<h:inputText value="#{monthlyFeeBean.transactionNumber}"
+							pt:placeholder="Ex: 123456789"
+							style="width:100%; padding:8px; border-radius:8px; border:1px solid #e6eaf0"
+							disabled="#{monthlyFeeBean.paymentMethod != 'TRANSFERENCIA_BANCARIA'}" />
+					</div>
+					<div>
+						<span
+							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Data
+							pagamento</span><br />
+						<h:inputText value="#{monthlyFeeBean.paymentDate}" pt:type="date"
+							style="width:100%; padding:8px; border-radius:8px; border:1px solid #e6eaf0">
+							<f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
+						</h:inputText>
+					</div>
+				</div>
+
+				<div
+					style="background: #0a2540; color: #fff; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px">
+					<div>
+						<div style="font-size: 12px; opacity: .7">TOTAL SELECIONADO</div>
+						<div style="font-size: 22px; font-weight: 800">#{monthlyFeeBean.totalSelecionado}
+							MT</div>
+						<small>#{monthlyFeeBean.selectedFees.size()} referência(s)
+							| Multa #{monthlyFeeBean.multaSelecionada} MT</small>
+					</div>
+					<p:commandButton value="Próximo" icon="pi pi-arrow-right"
+						action="#{monthlyFeeBean.goToConfirm}"
+						process="@form" update=":contentPanel :formPay:growl"
+						style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
+						disabled="#{empty monthlyFeeBean.selectedFees}" />
+				</div>
+			</h:panelGroup>
+		</div>
+	</h:form>
+</ui:composition>

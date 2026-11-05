@@ -14,6 +14,8 @@ public interface IClassLevelService
 	List<ClassLevelEntity> findByAcademicYear(Long yearId);
 
 	List<ClassLevelEntity> search(String term, Long yearId);
+	
+	boolean existsByNameAndYear(String name, Long yearId);
 
 	void delete(Long id);
 }

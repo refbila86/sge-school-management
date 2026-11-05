@@ -39,7 +39,11 @@ import mz.co.sge.enumes.EnrollmentType;
 		@NamedQuery(name = "EnrollmentEntity.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
 		@NamedQuery(name = "EnrollmentEntity.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
 		@NamedQuery(name = "EnrollmentEntity.countByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId"),
+		@NamedQuery(name = "EnrollmentEntity.findEnrolledStudentIdsByYear", query = "SELECT e.student.id FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
+		@NamedQuery(name = "Enrollment.findEnrolledStudentIdsByYear", query = "SELECT e.student.id FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
+		@NamedQuery(name = "Enrollment.existsByStudentAndYear", query = "SELECT COUNT(e) > 0 FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
 		@NamedQuery(name = "EnrollmentEntity.countPreviousByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id <> :yearId") })
+
 public class EnrollmentEntity implements Serializable
 {
 
@@ -86,7 +90,7 @@ public class EnrollmentEntity implements Serializable
 	private EnrollmentStatus status;
 
 	@Column(nullable = false, unique = true, length = 25)
-	private String code;  
+	private String code;
 
 	@Column(name = "enrollment_date", nullable = false)
 	private LocalDateTime enrollmentDate;

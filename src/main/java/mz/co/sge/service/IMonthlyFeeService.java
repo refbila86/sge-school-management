@@ -1,24 +1,39 @@
 package mz.co.sge.service;
 
-import mz.co.sge.entity.MonthlyFeeEntity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import mz.co.sge.entity.MonthlyFeeEntity;
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.PaymentMethod;
+
 public interface IMonthlyFeeService
 {
+	List<MonthlyFeeEntity> findAll();
 
-	// Gera referências de mês inicial até Dezembro - referência =
-	// CODIGO_ESTUDANTE-CODIGO_MATRICULA-ANO-MES
-	List<MonthlyFeeEntity> generateFromMonth(Long enrollmentId, int startMonth, int year, BigDecimal amount, int dueDay, Long userId);
+	List<MonthlyFeeEntity> findByEnrollmentId(Long id);
 
-	List<MonthlyFeeEntity> findByEnrollmentId(Long enrollmentId);
+	List<MonthlyFeeEntity> findPaidByYear(Integer year);
+
+	List<MonthlyFeeEntity> findPaidByAcademicYearId(Long yearId);
+
+	List<MonthlyFeeEntity> findByYear(Integer year);
+
+	List<MonthlyFeeEntity> findUnpaidByStudentCode(String code);
+
+	StudentEntity findStudentByCode(String code);
+
+	List<MonthlyFeeEntity> generateFromMonth(Long enrollmentId, Integer month, Integer year, BigDecimal amount, Integer dueDay, Long userId);
+
+	MonthlyFeeEntity payFee(Long id);	
+	
+	MonthlyFeeEntity payFee(Long id, PaymentMethod method, String bank, String transNum, LocalDate payDate);
 
 	MonthlyFeeEntity findByReference(String reference);
-
-	List<MonthlyFeeEntity> findAll();
 
 	void deleteByEnrollmentId(Long enrollmentId);
 
 	long countByEnrollmentId(Long enrollmentId);
+	
 }

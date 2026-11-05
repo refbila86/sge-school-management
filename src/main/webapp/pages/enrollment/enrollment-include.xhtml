@@ -1,7 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
-
 	<style>
 .page-header {
 	display: flex;
@@ -93,7 +92,6 @@
 	color: #64748b
 }
 </style>
-
 	<h:form id="formInclude">
 		<p:growl id="growl" showDetail="true" />
 		<div class="page-header">
@@ -143,7 +141,7 @@
 						<f:selectItems value="#{enrollmentBean.academicYearsCache}"
 							var="y" itemLabel="#{y.year}" itemValue="#{y.id}" />
 						<p:ajax listener="#{enrollmentBean.onAcademicYearChange}"
-							update="@form" />
+							process="@this" update="@form" />
 					</p:selectOneMenu>
 				</div>
 				<div>
@@ -156,7 +154,8 @@
 						<f:selectItems value="#{enrollmentBean.availableStudents}" var="s"
 							itemLabel="#{s.fullName} - #{s.code}" itemValue="#{s.id}" />
 						<p:ajax listener="#{enrollmentBean.onStudentChange}"
-							update="@form" />
+							process="@this"
+							update="statusType paymentsPanel confirmBtn growl" />
 					</p:selectOneMenu>
 				</div>
 				<div>
@@ -167,19 +166,19 @@
 						<f:selectItems value="#{enrollmentBean.availableClassLevels}"
 							var="cl" itemLabel="#{cl.name}" itemValue="#{cl.id}" />
 						<p:ajax listener="#{enrollmentBean.onClassLevelChange}"
-							update="turmaSelect growl" />
+							process="@this" update="turmaSelect growl" />
 					</p:selectOneMenu>
 				</div>
 				<div>
-					<span class="field-label">Turma *</span>
+					<span class="field-label">Turma * (com vaga)</span>
 					<p:selectOneMenu id="turmaSelect"
 						value="#{enrollmentBean.selectedClassroomId}" style="width:100%">
 						<f:selectItem itemLabel="Selecione turma..." itemValue="#{null}" />
-						<f:selectItems value="#{enrollmentBean.availableClassrooms}"
-							var="c"
-							itemLabel="#{c.name} - #{c.shift} (#{c.currentStudents}/#{c.capacity})"
+						<f:selectItems
+							value="#{enrollmentBean.availableClassroomsWithVacancy}" var="c"
+							itemLabel="#{c.name} - #{c.shift} (#{c.currentStudents}/#{c.capacity}) - #{c.vacancy} vagas"
 							itemValue="#{c.id}" />
-						<p:ajax update="confirmBtn" />
+						<p:ajax process="@this" update="confirmBtn" />
 					</p:selectOneMenu>
 				</div>
 			</div>
@@ -246,7 +245,8 @@
 										<p:selectBooleanCheckbox value="#{pay.selected}"
 											disabled="#{pay.status != 'PAGO'}">
 											<p:ajax listener="#{enrollmentBean.onPaymentSelect(pay)}"
-												update="@form" />
+												process="@this"
+												update=":formInclude:confirmBtn :formInclude:growl" />
 										</p:selectBooleanCheckbox>
 										<div
 											style="width: 36px; height: 36px; border-radius: 8px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px">
@@ -293,16 +293,12 @@
 					action="#{dashboardBean.navigate('enrollment/enrollment-list','matriculas')}"
 					update=":contentPanel" process="@this" />
 				<h:panelGroup id="confirmBtn">
-
 					<p:commandButton value="Confirmar → MATRÍCULA"
 						icon="pi pi-check-circle"
-						style="border-radius:12px;background:#0a2540;border:none;
-           font-weight:700;padding:10px 20px"
-						disabled="#{!enrollmentBean.hasValidPayment
-                or enrollmentBean.selectedClassroomId == null}"
+						style="border-radius:12px;background:#0a2540;border:none;font-weight:700;padding:10px 20px"
+						disabled="#{!enrollmentBean.hasValidPayment or enrollmentBean.selectedClassroomId == null}"
 						action="#{enrollmentBean.goToConfirm}" process="@form"
 						update=":contentPanel" />
-
 					<div
 						style="font-size: 10px; color: #64748b; margin-top: 4px; text-align: right">
 						<h:outputText

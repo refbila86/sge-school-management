@@ -1,22 +1,17 @@
 package mz.co.sge.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "teachers")
 @NamedQueries(
-{ @NamedQuery(name = "Teacher.findAll", query = "SELECT t FROM TeacherEntity t"),
-		@NamedQuery(name = "Teacher.findByUserId", query = "SELECT t FROM TeacherEntity t WHERE t.user.id = :userId") })
+{ @NamedQuery(name = "Teacher.findAll", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user ORDER BY t.firstName"),
+		@NamedQuery(name = "Teacher.findById", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.id = :id"),
+		@NamedQuery(name = "Teacher.findByAcademicYear", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.academicYear.id = :yearId ORDER BY t.firstName"),
+		@NamedQuery(name = "Teacher.findByUserId", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.user.id = :userId"),
+		@NamedQuery(name = "Teacher.findBySubject", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects s WHERE s.id = :subjectId") })
 public class TeacherEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -25,35 +20,32 @@ public class TeacherEntity implements java.io.Serializable
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(unique = true)
+	@Column(unique = true, length = 20)
 	private String code;
 
 	private String firstName;
-
 	private String lastName;
-
 	private String phone;
 	private String email;
 
-	@OneToOne(optional = false)
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", unique = true)
 	private UserEntity user;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "academic_year_id")
 	private AcademicYearEntity academicYear;
+
+	@ManyToMany(fetch = FetchType.LAZY) // <--- MUDA PARA LAZY, vamos controlar com FETCH na query
+	@JoinTable(name = "teacher_subjects", joinColumns = @JoinColumn(name = "teacher_id"), inverseJoinColumns = @JoinColumn(name = "subject_id"))
+	private List<SubjectEntity> subjects = new ArrayList<>();
+
+	@Column(nullable = false)
+	private boolean active = true;
 
 	public Long getId()
 	{
 		return id;
-	}
-
-	@jakarta.persistence.Transient
-	public String getName()
-	{
-		String f = firstName != null ? firstName : "";
-		String l = lastName != null ? lastName : "";
-		return (f + " " + l).trim();
 	}
 
 	public void setId(Long id)
@@ -73,7 +65,7 @@ public class TeacherEntity implements java.io.Serializable
 
 	public String getFirstName()
 	{
-		return firstName;
+		return firstName != null ? firstName : "";
 	}
 
 	public void setFirstName(String firstName)
@@ -83,12 +75,23 @@ public class TeacherEntity implements java.io.Serializable
 
 	public String getLastName()
 	{
-		return lastName;
+		return lastName != null ? lastName : "";
 	}
 
 	public void setLastName(String lastName)
 	{
 		this.lastName = lastName;
+	}
+
+	public String getFullName()
+	{
+		try
+		{
+			return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+		} catch (Exception e)
+		{
+			return code;
+		}
 	}
 
 	public String getPhone()
@@ -129,5 +132,25 @@ public class TeacherEntity implements java.io.Serializable
 	public void setAcademicYear(AcademicYearEntity academicYear)
 	{
 		this.academicYear = academicYear;
+	}
+
+	public List<SubjectEntity> getSubjects()
+	{
+		return subjects;
+	}
+
+	public void setSubjects(List<SubjectEntity> subjects)
+	{
+		this.subjects = subjects != null ? subjects : new ArrayList<>();
+	}
+
+	public boolean isActive()
+	{
+		return active;
+	}
+
+	public void setActive(boolean active)
+	{
+		this.active = active;
 	}
 }

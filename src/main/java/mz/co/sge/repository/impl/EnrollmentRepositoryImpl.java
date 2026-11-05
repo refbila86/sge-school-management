@@ -1,16 +1,19 @@
 package mz.co.sge.repository.impl;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.EnrollmentStatus;
 import mz.co.sge.enumes.EnrollmentType;
 import mz.co.sge.repository.IEnrollmentRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class EnrollmentRepositoryImpl implements IEnrollmentRepository
@@ -116,7 +119,7 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 	}
 
 	@Override
-	public List<StudentEntity> findAvailableForEnrollment( Long yearId)
+	public List<StudentEntity> findAvailableForEnrollment(Long yearId)
 	{
 		return em.createQuery("""
 				SELECT DISTINCT s FROM StudentEntity s
@@ -128,5 +131,32 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 				    SELECT 1 FROM PaymentEntity p JOIN p.items pi
 				    WHERE p.student.id = s.id AND p.academicYear.id = :yearId AND p.status = 'PAID'
 				) ORDER BY s.firstName""", StudentEntity.class).setParameter("yearId", yearId).getResultList();
+	}
+
+	@Override
+	public List<Long> findEnrolledStudentIdsByYear(Long yearId)
+	{
+		return em.createNamedQuery("Enrollment.findEnrolledStudentIdsByYear", Long.class).setParameter("yearId", yearId).getResultList();
+	}
+
+	@Override
+	public Long findPreviousYearId(Long currentYearId)
+	{
+		try
+		{
+			Integer currentYear = em.createNamedQuery("AcademicYear.findYearValueById", Integer.class).setParameter("id", currentYearId).getSingleResult();
+			return em.createNamedQuery("AcademicYear.findIdByYearValue", Long.class).setParameter("yearValue", currentYear - 1).setMaxResults(1)
+					.getSingleResult();
+		} catch (NoResultException e)
+		{
+			return null; // primeiro ano
+		}
+	}
+
+	@Override
+	public boolean existsByStudentAndYear(Long studentId, Long yearId)
+	{
+		return em.createNamedQuery("Enrollment.existsByStudentAndYear", Boolean.class).setParameter("studentId", studentId).setParameter("yearId", yearId)
+				.getSingleResult();
 	}
 }

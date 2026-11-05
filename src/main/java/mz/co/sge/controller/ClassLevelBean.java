@@ -1,6 +1,7 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
@@ -21,7 +22,7 @@ public class ClassLevelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	@Autowired
-	private IClassLevelService service;
+	private IClassLevelService classLevelService;
 	@Autowired
 	private IAcademicYearService academicYearService;
 
@@ -30,30 +31,58 @@ public class ClassLevelBean implements Serializable
 	@Inject
 	private DashboardBean dashboardBean;
 
-	private List<ClassLevelEntity> levels;
+	private List<ClassLevelEntity> levels = new ArrayList<>();
 	private ClassLevelEntity level = new ClassLevelEntity();
 	private boolean editing = false;
 	private String searchTerm;
 	private Long selectedAcademicYearId;
-	private List<AcademicYearEntity> academicYears;
+	private List<AcademicYearEntity> academicYears = new ArrayList<>();
 
 	@PostConstruct
 	public void init()
 	{
-		selectedAcademicYearId = loginBean.getAcademicYearId();
+		try
+		{
+			if (loginBean != null)
+			{
+				selectedAcademicYearId = loginBean.getAcademicYearId();
+			}
+		} catch (Exception e)
+		{
+			selectedAcademicYearId = null;
+		}
 		load();
 		loadAcademicYears();
 	}
 
 	public void load()
 	{
-		Long yearId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
-		if (yearId != null)
+		try
 		{
-			levels = service.findByAcademicYear(yearId);
-		} else
+			Long yearId = selectedAcademicYearId;
+			if (yearId == null)
+			{
+				try
+				{
+					if (loginBean != null)
+						yearId = loginBean.getAcademicYearId();
+				} catch (Exception e)
+				{
+				}
+			}
+			if (yearId != null)
+			{
+				levels = classLevelService.findByAcademicYear(yearId);
+			} else
+			{
+				levels = classLevelService.findAll();
+			}
+			if (levels == null)
+				levels = new ArrayList<>();
+		} catch (Exception e)
 		{
-			levels = service.findAll();
+			e.printStackTrace();
+			levels = new ArrayList<>();
 		}
 	}
 
@@ -62,9 +91,11 @@ public class ClassLevelBean implements Serializable
 		try
 		{
 			academicYears = academicYearService.getAllAcademicYears();
+			if (academicYears == null)
+				academicYears = new ArrayList<>();
 		} catch (Exception e)
 		{
-			academicYears = List.of();
+			academicYears = new ArrayList<>();
 		}
 	}
 
@@ -72,38 +103,85 @@ public class ClassLevelBean implements Serializable
 	{
 		level = new ClassLevelEntity();
 		level.setActive(true);
+		level.setHasExam(false); // GARANTE EXAME DESLIGADO POR PADRÃO
 		editing = false;
-		if (loginBean.getAcademicYearId() != null)
+		try
 		{
-			selectedAcademicYearId = loginBean.getAcademicYearId();
+			if (loginBean != null && loginBean.getAcademicYearId() != null)
+			{
+				selectedAcademicYearId = loginBean.getAcademicYearId();
+			}
+		} catch (Exception e)
+		{
+			selectedAcademicYearId = null;
 		}
 	}
 
 	public void search()
 	{
-		levels = service.search(searchTerm, loginBean.getAcademicYearId());
+		try
+		{
+			Long yearId = selectedAcademicYearId;
+			if (yearId == null)
+			{
+				try
+				{
+					if (loginBean != null)
+						yearId = loginBean.getAcademicYearId();
+				} catch (Exception ex)
+				{
+				}
+			}
+			if (searchTerm == null || searchTerm.isBlank())
+			{
+				load();
+			} else
+			{
+				levels = classLevelService.search(searchTerm, yearId);
+				if (levels == null)
+					levels = new ArrayList<>();
+			}
+		} catch (Exception e)
+		{
+			levels = new ArrayList<>();
+		}
 	}
 
 	public void save()
 	{
 		try
 		{
-			Long yearIdToUse = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
+			Long yearIdToUse = selectedAcademicYearId;
+			if (yearIdToUse == null)
+			{
+				try
+				{
+					if (loginBean != null)
+						yearIdToUse = loginBean.getAcademicYearId();
+				} catch (Exception ex)
+				{
+				}
+			}
 			if (yearIdToUse != null)
 			{
-				// teu service retorna Optional ou entity direta, trata os dois
 				try
 				{
 					AcademicYearEntity year = academicYearService.findByYearId(yearIdToUse);
 					level.setAcademicYear(year);
 				} catch (Exception ex)
 				{
-					// fallback se findByYearId falhar, tenta Optional
 					academicYearService.getAcademicYearById(yearIdToUse).ifPresent(level::setAcademicYear);
 				}
 			}
 
-			service.save(level);
+			if (level.getId() == null && classLevelService.existsByNameAndYear(level.getName(), yearIdToUse))
+			{
+				FacesContext.getCurrentInstance().addMessage(null,
+						new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", "Já existe esta classe neste ano lectivo"));
+				return;
+			}
+
+			classLevelService.save(level);
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Classe salva!"));
 			load();
 			dashboardBean.navigate("classes/class-list", "classes");

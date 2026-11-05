@@ -42,16 +42,17 @@
 				<i class="pi pi-user-plus" style="margin-right: 8px; color: #2563eb" />
 				#{teacherBean.editing ? 'Editar Professor' : 'Novo Professor'}
 			</div>
+
 			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
-				styleClass="ui-button-secondary ui-button-outlined"
+				immediate="true" styleClass="ui-button-secondary ui-button-outlined"
 				style="border-radius:10px;font-size:13px"
 				action="#{dashboardBean.navigate('teacher/teacher-list','professores')}"
-				update=":contentPanel" process="@this" />
+				ajax="false" />
+
 		</div>
 
 		<div class="form-card">
 			<div class="form-grid">
-				<!-- CÓDIGO -->
 				<div>
 					<span class="label">Código</span>
 					<p:inputText value="#{teacherBean.teacher.code}"
@@ -61,7 +62,6 @@
 						automaticamente se vazio</small>
 				</div>
 
-				<!-- ANO LETIVO -->
 				<div>
 					<span class="label">Ano Letivo *</span>
 					<p:selectOneMenu value="#{teacherBean.selectedAcademicYearId}"
@@ -90,7 +90,7 @@
 				<div>
 					<span class="label">Telefone</span>
 					<p:inputMask value="#{teacherBean.teacher.phone}"
-						mask="99 82 999 9999" placeholder="82 123 4567"
+						mask="82 999 9999" placeholder="82 123 4567"
 						style="width:100%;font-size:13px" />
 				</div>
 
@@ -101,6 +101,22 @@
 						style="width:100%;font-size:13px">
 						<f:validateRegex pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$" />
 					</p:inputText>
+				</div>
+
+				<!-- DISCIPLINAS QUE VAI LECIONAR -->
+				<div style="grid-column: 1/-1">
+					<span class="label">Disciplinas que vai lecionar *</span>
+					<p:selectCheckboxMenu value="#{teacherBean.selectedSubjectIds}"
+						label="Selecione as disciplinas" filter="true"
+						filterMatchMode="contains" style="width:100%;font-size:13px"
+						multiple="true" updateLabel="true" required="true"
+						requiredMessage="Selecione ao menos 1 disciplina">
+						<f:selectItems value="#{teacherBean.allSubjects}" var="sub"
+							itemLabel="#{sub.code} - #{sub.name} (#{sub.workloadHours}h - #{sub.academicYear.year})"
+							itemValue="#{sub.id}" />
+					</p:selectCheckboxMenu>
+					<small style="color: #2563eb; font-size: 11px; font-weight: 700">Obrigatório
+						selecionar 1 ou mais disciplinas</small>
 				</div>
 
 				<div style="grid-column: 1/-1">
@@ -121,17 +137,16 @@
 
 			<div
 				style="display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end">
-				<p:commandButton value="Cancelar"
+				<p:commandButton value="Cancelar" immediate="true"
 					styleClass="ui-button-secondary ui-button-outlined"
 					style="border-radius:10px;font-size:13px"
 					action="#{dashboardBean.navigate('teacher/teacher-list','professores')}"
-					update=":contentPanel" process="@this" />
+					ajax="false" />
 				<p:commandButton
 					value="#{teacherBean.editing ? 'Atualizar' : 'Salvar'}"
 					icon="pi pi-check"
 					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
-					action="#{teacherBean.save}"
-					update=":contentPanel :formInclude:growl" />
+					action="#{teacherBean.save}" update="@form" />
 			</div>
 		</div>
 	</h:form>

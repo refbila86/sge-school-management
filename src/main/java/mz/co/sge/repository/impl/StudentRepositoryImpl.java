@@ -176,4 +176,42 @@ public class StudentRepositoryImpl implements IStudentRepository
 			return Optional.empty();
 		}
 	}
+
+	@Override
+	public List<Long> findNewStudentIds()
+	{
+		return em.createNamedQuery("Student.findNewStudentIds", Long.class).getResultList();
+	}
+
+	@Override
+	public List<Long> findIdsWithPaidPaymentInYear(List<Long> ids, Long yearId)
+	{
+		if (ids == null || ids.isEmpty())
+			return List.of();
+		return em.createNamedQuery("Student.findIdsWithPaidPaymentInYear", Long.class).setParameter("ids", ids).setParameter("yearId", yearId).getResultList();
+	}
+
+	@Override
+	public List<StudentEntity> findByIds(List<Long> ids)
+	{
+		if (ids == null || ids.isEmpty())
+			return List.of();
+		return em.createNamedQuery("Student.findByIds", StudentEntity.class).setParameter("ids", ids).getResultList();
+	}
+
+	@Override
+	public List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId)
+	{
+		return em.createNamedQuery("StudentEntity.findByClassroom", StudentEntity.class)
+				.setParameter("classroomId", classroomId)
+				.setParameter("yearId", academicYearId).getResultList();
+	}
+
+	@Override
+	public List<StudentEntity> findByClassroomId(Long classroomId)
+	{
+		return em.createNamedQuery("StudentEntity.findByClassroomId", 
+				StudentEntity.class).setParameter("classroomId", classroomId)
+				.getResultList();
+	}
 }
