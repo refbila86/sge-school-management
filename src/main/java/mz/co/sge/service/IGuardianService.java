@@ -27,6 +27,8 @@ public interface IGuardianService
 	GuardianEntity createGuardian(GuardianEntity guardian);
 
 	GuardianEntity updateGuardian(GuardianEntity guardian);
+	
+	GuardianEntity findUserById(Long userId);
 
 	void deleteGuardian(Long id);
 

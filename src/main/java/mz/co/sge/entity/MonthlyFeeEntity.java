@@ -19,6 +19,7 @@ import mz.co.sge.enumes.PaymentMethod;
 		@NamedQuery(name = "MonthlyFeeEntity.findByAcademicYear", query = "SELECT m FROM MonthlyFeeEntity m WHERE m.academicYear.id = :yearId ORDER BY m.student.firstName, m.month"),
 		@NamedQuery(name = "MonthlyFeeEntity.findByStudent", query = "SELECT m FROM MonthlyFeeEntity m WHERE m.student.id = :studentId ORDER BY m.year, m.month"),
 		@NamedQuery(name = "MonthlyFeeEntity.findByReference", query = "SELECT m FROM MonthlyFeeEntity m WHERE m.reference = :ref"),
+		@NamedQuery(name = "MonthlyFeeEntity.findByStudentId", query = "SELECT m FROM MonthlyFeeEntity m WHERE m.student.id = :studentId"),
 		@NamedQuery(name = "MonthlyFeeEntity.existsByReference", query = "SELECT COUNT(m) FROM MonthlyFeeEntity m WHERE m.reference = :ref"),
 		@NamedQuery(name = "MonthlyFeeEntity.existsByEnrollmentMonthYear", query = "SELECT COUNT(m) FROM MonthlyFeeEntity m WHERE m.enrollment.id = :eid AND m.month = :m AND m.year = :y"),
 		@NamedQuery(name = "MonthlyFeeEntity.findByYear", query = "SELECT m FROM MonthlyFeeEntity m WHERE m.year = :year ORDER BY m.year DESC, m.month DESC"),
@@ -68,26 +69,26 @@ public class MonthlyFeeEntity implements Serializable
 
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
-	
+
 	@Column(name = "fine_amount", precision = 10, scale = 2)
 	private BigDecimal fineAmount = BigDecimal.ZERO;
-	
+
 	@Column(name = "total_paid", precision = 10, scale = 2)
 	private BigDecimal totalPaid = BigDecimal.ZERO;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "payment_method", length = 30)
 	private PaymentMethod paymentMethod;
-	
+
 	@Column(name = "bank_name", length = 100)
 	private String bankName;
-	
+
 	@Column(name = "transaction_number", length = 100)
 	private String transactionNumber;
 
 	@Column(name = "created_at")
 	private LocalDateTime createdAt = LocalDateTime.now();
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "created_by_id")
 	private UserEntity createdBy;

@@ -120,4 +120,11 @@ public class GuardianRepositoryImpl implements IGuardianRepository
 		return em.createQuery("SELECT COUNT(g) FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId", Long.class)
 				.setParameter("academicYearId", academicYearId).getSingleResult();
 	}
+
+	@Override
+	public GuardianEntity findUserById(Long userId)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

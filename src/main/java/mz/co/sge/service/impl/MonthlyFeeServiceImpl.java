@@ -30,7 +30,7 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 {
 
 	@Autowired
-	private IMonthlyFeeRepository repo;
+	private IMonthlyFeeRepository monthlyFeeRepository;
 	@Autowired
 	private IEnrollmentRepository enrollmentRepo;
 	@Autowired
@@ -39,62 +39,62 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 	@Override
 	public List<MonthlyFeeEntity> findAll()
 	{
-		return repo.findAll();
+		return monthlyFeeRepository.findAll();
 	}
 
 	@Override
 	public List<MonthlyFeeEntity> findByEnrollmentId(Long id)
 	{
-		return repo.findByEnrollmentId(id);
+		return monthlyFeeRepository.findByEnrollmentId(id);
 	}
 
 	@Override
 	public List<MonthlyFeeEntity> findPaidByYear(Integer year)
 	{
-		return repo.findPaidByYear(year);
+		return monthlyFeeRepository.findPaidByYear(year);
 	}
 
 	@Override
 	public List<MonthlyFeeEntity> findPaidByAcademicYearId(Long yearId)
 	{
-		return repo.findPaidByAcademicYearId(yearId);
+		return monthlyFeeRepository.findPaidByAcademicYearId(yearId);
 	}
 
 	@Override
 	public List<MonthlyFeeEntity> findByYear(Integer year)
 	{
-		return repo.findByYear(year);
+		return monthlyFeeRepository.findByYear(year);
 	}
 
 	@Override
 	public List<MonthlyFeeEntity> findUnpaidByStudentCode(String code)
 	{
-		return repo.findUnpaidByStudentCode(code);
+		return monthlyFeeRepository.findUnpaidByStudentCode(code);
 	}
 
 	@Override
 	public StudentEntity findStudentByCode(String code)
 	{
-		return repo.findStudentByCode(code);
+		return monthlyFeeRepository.findStudentByCode(code);
 	}
 
 	@Override
 	public MonthlyFeeEntity findByReference(String ref)
 	{
-		return repo.findByReference(ref);
+		return monthlyFeeRepository.findByReference(ref);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public List<MonthlyFeeEntity> generateFromMonth(Long enrollmentId, Integer month, Integer year, BigDecimal amount, Integer dueDay, Long userId)
 	{
-		if (repo.existsByEnrollmentMonthYear(enrollmentId, month, year))
+		if (monthlyFeeRepository.existsByEnrollmentMonthYear(enrollmentId, month, year))
 			return List.of();
 		EnrollmentEntity enr = em.find(EnrollmentEntity.class, enrollmentId);
 		if (enr == null)
 			return List.of();
 		String ref = enr.getStudent().getCode() + "-" + enr.getCode() + "-" + year + "-" + month;
-		if (repo.existsByReference(ref))
+		if (monthlyFeeRepository.existsByReference(ref))
 			return List.of();
 		MonthlyFeeEntity m = new MonthlyFeeEntity();
 		m.setEnrollment(enr);
@@ -109,7 +109,7 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 		m.setStatus(MonthlyFeeStatus.PENDENTE);
 		if (userId != null)
 			m.setCreatedBy(em.find(UserEntity.class, userId));
-		repo.save(m);
+		monthlyFeeRepository.save(m);
 		return List.of(m);
 	}
 
@@ -162,6 +162,12 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 		f.setFineAmount(multa);
 		f.setTotalPaid(f.getAmount().add(multa));
 		f.setStatus(MonthlyFeeStatus.PAGO);
-		return repo.save(f);
+		return monthlyFeeRepository.save(f);
+	}
+
+	@Override
+	public List<MonthlyFeeEntity> findByStudentId(Long studentId)
+	{
+	    return monthlyFeeRepository.findByStudentId(studentId);
 	}
 }

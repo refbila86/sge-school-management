@@ -33,4 +33,6 @@ public interface IMonthlyFeeRepository
 	MonthlyFeeEntity save(MonthlyFeeEntity e);
 
 	MonthlyFeeEntity payFee(Long id);
+	
+
 }

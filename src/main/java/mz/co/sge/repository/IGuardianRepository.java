@@ -39,5 +39,8 @@ public interface IGuardianRepository
 	
 	public long countAllByAcademicYearId(Long academicYearId);
 	
+	GuardianEntity findUserById(Long userId);
+
+	
 	
 }

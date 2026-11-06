@@ -36,4 +36,7 @@ public interface IMonthlyFeeService
 
 	long countByEnrollmentId(Long enrollmentId);
 	
+	List<MonthlyFeeEntity> findByStudentId(Long studentId);
+
+	
 }

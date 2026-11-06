@@ -176,6 +176,12 @@ public class GuardianServiceImpl implements IGuardianService
 	}
 
 	@Override
+	public GuardianEntity findUserById(Long userId)
+	{
+		return guardianRepository.findUserById(userId);
+	}
+
+	@Override
 	public List<GuardianEntity> findByAcademicYearId(Long academicYearId)
 	{
 		// TODO Auto-generated method stub

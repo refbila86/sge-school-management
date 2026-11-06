@@ -1,8 +1,13 @@
 package mz.co.sge.repository.impl;
 
-import jakarta.persistence.*;
-import org.springframework.stereotype.Repository;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.MonthlyFeeEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.repository.IMonthlyFeeRepository;
@@ -35,7 +40,13 @@ public class MonthlyFeeRepositoryImpl implements IMonthlyFeeRepository
 	@Override
 	public List<MonthlyFeeEntity> findByStudentId(Long studentId)
 	{
-		return em.createNamedQuery("MonthlyFeeEntity.findByStudent", MonthlyFeeEntity.class).setParameter("studentId", studentId).getResultList();
+		try
+		{
+			return em.createNamedQuery("MonthlyFeeEntity.findByStudentId", MonthlyFeeEntity.class).setParameter("studentId", studentId).getResultList();
+		} catch (Exception e)
+		{
+			return new ArrayList<>();
+		}
 	}
 
 	@Override
