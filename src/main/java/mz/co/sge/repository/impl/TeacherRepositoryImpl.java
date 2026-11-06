@@ -97,4 +97,19 @@ public class TeacherRepositoryImpl implements ITeacherRepository
 		if (e != null)
 			em.remove(e);
 	}
+	
+	@Override
+	public TeacherEntity findUserById(Long userId)
+	{
+	    try
+	    {
+	        List<TeacherEntity> list = em.createNamedQuery("TeacherEntity.findUserById", TeacherEntity.class)
+	            .setParameter("userId", userId)
+	            .getResultList();
+	        return list != null && !list.isEmpty() ? list.get(0) : null;
+	    } catch (Exception e)
+	    {
+	        return null;
+	    }
+	}
 }

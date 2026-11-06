@@ -21,9 +21,11 @@ import jakarta.servlet.http.HttpSession;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.LicenseEntity;
 import mz.co.sge.entity.SchoolEntity;
+import mz.co.sge.entity.TeacherEntity;
 import mz.co.sge.entity.UserEntity;
 import mz.co.sge.service.IAcademicYearService;
 import mz.co.sge.service.ILicenseService;
+import mz.co.sge.service.ITeacherService;
 import mz.co.sge.service.SchoolsService;
 import mz.co.sge.service.UsersService;
 
@@ -36,6 +38,7 @@ public class LoginBean implements Serializable
 	private final UsersService userService;
 	private final SchoolsService schoolService;
 	private final IAcademicYearService academicYearService;
+	private final ITeacherService teacherService; // <-- ÚNICA INJEÇÃO NOVA
 
 	private Long schoolId;
 	private String username;
@@ -54,16 +57,19 @@ public class LoginBean implements Serializable
 	private String role;
 	private boolean yearStep = false;
 
+	private Long teacherId; // já tinhas, só nunca era preenchido
+
 	@Autowired
 	private ILicenseService licenseService;
 
 	private LicenseEntity loggedLicense;
 
-	public LoginBean(UsersService userService, SchoolsService schoolService, IAcademicYearService academicYearService)
+	public LoginBean(UsersService userService, SchoolsService schoolService, IAcademicYearService academicYearService, ITeacherService teacherService)
 	{
 		this.userService = userService;
 		this.schoolService = schoolService;
 		this.academicYearService = academicYearService;
+		this.teacherService = teacherService;
 	}
 
 	@PostConstruct
@@ -196,8 +202,22 @@ public class LoginBean implements Serializable
 			this.loggedAcademicYear = academicYear;
 			this.fullname = user.getName();
 			this.role = userRole;
-			this.loggedLicense = null; // força recarregar
+			this.loggedLicense = null;
 			this.password = null;
+
+			// ===== ENCAIXE: preencher teacherId se for PROFESSOR =====
+			this.teacherId = null;
+			if ("TEACHER".equals(userRole) && user.getId() != null)
+			{
+				try
+				{
+					TeacherEntity teacher = teacherService.findUserById(user.getId());
+					if (teacher != null)
+						this.teacherId = teacher.getId();
+				} catch (Exception e) { this.teacherId = null; }
+			}
+			session.setAttribute("teacherId", this.teacherId);
+			// ===== FIM ENCAIXE =====
 
 			return "/pages/dashboard.xhtml?faces-redirect=true";
 		} catch (Exception e)
@@ -233,6 +253,7 @@ public class LoginBean implements Serializable
 			academicYearId = null;
 			selectedProfile = "ADMIN";
 			yearStep = false;
+			teacherId = null; // <-- faltava limpar no teu logout()
 		}
 		return "/login.xhtml?faces-redirect=true";
 	}
@@ -303,8 +324,6 @@ public class LoginBean implements Serializable
 			return "";
 		return exp.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 	}
-	
- 
 
 	public long getLicenseDaysRemaining()
 	{
@@ -457,6 +476,16 @@ public class LoginBean implements Serializable
 	public String getAcademicYearLabel()
 	{
 		return loggedAcademicYear != null ? loggedAcademicYear.getYear() : "";
+	}
+
+	public Long getTeacherId()
+	{
+		return teacherId;
+	}
+
+	public void setTeacherId(Long teacherId)
+	{
+		this.teacherId = teacherId;
 	}
 
 	public Long getLoggedUserId()

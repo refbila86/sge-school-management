@@ -76,12 +76,22 @@
 	<h:form id="formList">
 		<p:growl id="growl" showDetail="true" />
 		<div class="page-header">
-			<div class="page-title">
-				<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />Turmas
+			<div>
+				<div class="page-title">
+					<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />#{classroomBean.professor
+					? 'Minhas Turmas' : 'Turmas'}
+				</div>
+				<!-- Só aparece quando é PROFESSOR -->
+				<h:panelGroup rendered="#{classroomBean.professor}">
+					<div style="margin-top: 6px; font-size: 13px; color: #64748b">
+						Turmas associadas ao professor: <b style="color: #0a2540">#{loginBean.fullname}</b>
+					</div>
+				</h:panelGroup>
 			</div>
 			<div style="display: flex; gap: 8px">
 				<p:commandButton value="Nova Turma" icon="pi pi-plus"
 					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
+					rendered="#{!classroomBean.professor}"
 					actionListener="#{classroomBean.cleanForm}"
 					action="#{dashboardBean.navigate('classroom/classroom-include','turmas')}"
 					update=":contentPanel" />
@@ -157,6 +167,7 @@
 					<p:commandButton icon="pi pi-pencil"
 						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
 						style="width:34px;height:34px" title="Editar"
+						rendered="#{!classroomBean.professor}"
 						action="#{dashboardBean.navigate('classroom/classroom-include','turmas')}"
 						update=":contentPanel">
 						<f:setPropertyActionListener value="#{t}"
@@ -167,6 +178,7 @@
 					<p:commandButton icon="pi pi-trash"
 						styleClass="ui-button-rounded ui-button-text ui-button-danger"
 						style="width:34px;height:34px" title="Remover"
+						rendered="#{!classroomBean.professor}"
 						action="#{classroomBean.delete(t)}" update=":contentPanel">
 						<p:confirm header="Remover" message="Remover turma #{t.name}?"
 							icon="pi pi-exclamation-triangle" />
@@ -197,7 +209,7 @@
 					<h:outputText value="#{en.student.fullName}" />
 				</p:column>
 				<p:column headerText="Matrícula">
-					<h:outputText value="#{en.code}" />
+					<h:outputText value="#{en.student.code}" />
 				</p:column>
 				<p:column headerText="Estado" style="text-align:center">
 					<p:tag value="#{en.status}" severity="success" />

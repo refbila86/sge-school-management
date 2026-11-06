@@ -16,4 +16,7 @@ public interface ITeacherService
 	List<TeacherEntity> search(String term, Long yearId);
 
 	void delete(Long id);
+	
+	TeacherEntity findUserById(Long userId);
+
 }

@@ -1,10 +1,14 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import jakarta.annotation.PostConstruct;
+import mz.co.sge.entity.ClassroomEntity;
 
 @Component("dashboardBean")
 @Scope("session")
@@ -21,9 +25,15 @@ public class DashboardBean implements Serializable
 
 	@Autowired
 	private mz.co.sge.service.IStudentService studentService;
-	
+
 	@Autowired
 	private MenuBean menuBean;
+
+	@Autowired
+	private mz.co.sge.service.IClassroomService classroomService;
+
+	@Autowired
+	private mz.co.sge.service.ITeacherService teacherService;
 
 	@PostConstruct
 	public void init()
@@ -45,6 +55,16 @@ public class DashboardBean implements Serializable
 	{
 		if (page == null || page.isBlank())
 			return;
+
+		// PROFESSOR: só dashboard, turmas, notas, pautas
+		if (loginBean != null && "TEACHER".equals(loginBean.getSelectedProfile()))
+		{
+			boolean permitido = menu == null || menu.equals("dashboard") || menu.equals("turmas") || menu.equals("notas") || menu.equals("pautas")
+					|| menu.equals("pauta");
+			if (!permitido)
+				return;
+		}
+
 		String normalized = page.trim();
 		if (normalized.startsWith("/pages/"))
 			normalized = normalized.substring(7);
@@ -102,7 +122,9 @@ public class DashboardBean implements Serializable
 		case "disciplinas" -> "Disciplinas";
 		case "notas" -> "Lançamento de Notas";
 		case "pautas" -> "Pautas";
+		case "pauta" -> "Pautas";
 		case "mensalidades" -> "Mensalidades";
+		case "matriculas" -> "Matrículas";
 		case "users" -> "Utilizadores";
 		case "backups" -> "Backups";
 		case "licencas" -> "Licenças";
@@ -164,6 +186,56 @@ public class DashboardBean implements Serializable
 		{
 		}
 		return 0;
+	}
+
+	public List<ClassroomEntity> getMinhasTurmas()
+	{
+		if (!isProfessor())
+			return new java.util.ArrayList<>();
+		try
+		{
+			Long tid = loginBean.getTeacherId();
+			if (tid == null)
+				return new java.util.ArrayList<>();
+			return classroomService.findAllActive().stream().filter(c -> c.getResponsibleTeacher() != null && tid.equals(c.getResponsibleTeacher().getId()))
+					.filter(c -> loginBean.getAcademicYearId() == null
+							|| (c.getAcademicYear() != null && loginBean.getAcademicYearId().equals(c.getAcademicYear().getId())))
+					.collect(java.util.stream.Collectors.toList());
+		} catch (Exception e)
+		{
+			return new java.util.ArrayList<>();
+		}
+	}
+
+	public boolean isProfessor()
+	{
+		return loginBean != null && "TEACHER".equals(loginBean.getSelectedProfile());
+	}
+
+ 
+
+	public int getTotalMinhasTurmas()
+	{
+		return getMinhasTurmas().size();
+	}
+
+	public int getTotalMeusAlunos()
+	{
+		return getMinhasTurmas().stream().mapToInt(c -> c.getCurrentStudents() != null ? c.getCurrentStudents() : 0).sum();
+	}
+
+	public int getTotalMinhasDisciplinas()
+	{
+		if (!isProfessor())
+			return 0;
+		try
+		{
+			var t = teacherService.findById(loginBean.getTeacherId());
+			return t != null && t.getSubjects() != null ? t.getSubjects().size() : 0;
+		} catch (Exception e)
+		{
+			return 0;
+		}
 	}
 
 	public String getTotalAlunosFormatted()

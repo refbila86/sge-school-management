@@ -8,10 +8,11 @@ import java.util.List;
 @Table(name = "teachers")
 @NamedQueries(
 { @NamedQuery(name = "Teacher.findAll", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user ORDER BY t.firstName"),
-		@NamedQuery(name = "Teacher.findById", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.id = :id"),
-		@NamedQuery(name = "Teacher.findByAcademicYear", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.academicYear.id = :yearId ORDER BY t.firstName"),
-		@NamedQuery(name = "Teacher.findByUserId", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.user.id = :userId"),
-		@NamedQuery(name = "Teacher.findBySubject", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects s WHERE s.id = :subjectId") })
+		@NamedQuery(name = "TeacherEntity.findById", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.id = :id"),
+		@NamedQuery(name = "TeacherEntity.findByAcademicYear", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects LEFT JOIN FETCH t.academicYear LEFT JOIN FETCH t.user WHERE t.academicYear.id = :yearId ORDER BY t.firstName"),
+		@NamedQuery(name = "TeacherEntity.findByUserId", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.user.id = :userId"),
+		@NamedQuery(name = "TeacherEntity.findUserById", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects WHERE t.user.id = :userId"),
+		@NamedQuery(name = "TeacherEntity.findBySubject", query = "SELECT DISTINCT t FROM TeacherEntity t LEFT JOIN FETCH t.subjects s WHERE s.id = :subjectId") })
 public class TeacherEntity implements java.io.Serializable
 {
 	private static final long serialVersionUID = 1L;

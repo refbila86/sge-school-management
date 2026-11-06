@@ -14,6 +14,8 @@ public interface ITeacherRepository
 	List<TeacherEntity> findByAcademicYear(Long yearId);
 
 	List<TeacherEntity> findByUserId(Long userId);
+	
+	TeacherEntity findUserById(Long userId);
 
 	List<TeacherEntity> search(String term, Long yearId);
 

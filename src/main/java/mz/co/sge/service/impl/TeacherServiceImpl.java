@@ -13,41 +13,47 @@ import mz.co.sge.service.ITeacherService;
 public class TeacherServiceImpl implements ITeacherService
 {
 	@Autowired
-	private ITeacherRepository repository;
+	private ITeacherRepository teacherRepository;
 
 	@Override
 	public TeacherEntity save(TeacherEntity entity)
 	{
-		return repository.save(entity);
+		return teacherRepository.save(entity);
 	}
 
 	@Override
 	public TeacherEntity findById(Long id)
 	{
-		return repository.findById(id);
+		return teacherRepository.findById(id);
 	}
 
 	@Override
 	public List<TeacherEntity> findAll()
 	{
-		return repository.findAll();
+		return teacherRepository.findAll();
 	}
 
 	@Override
 	public List<TeacherEntity> findByAcademicYear(Long yearId)
 	{
-		return repository.findByAcademicYear(yearId);
+		return teacherRepository.findByAcademicYear(yearId);
 	}
 
 	@Override
 	public List<TeacherEntity> search(String term, Long yearId)
 	{
-		return repository.search(term, yearId);
+		return teacherRepository.search(term, yearId);
 	}
 
 	@Override
 	public void delete(Long id)
 	{
-		repository.delete(id);
+		teacherRepository.delete(id);
+	}
+	
+	@Override
+	public TeacherEntity findUserById(Long userId)
+	{
+	    return teacherRepository.findUserById(userId);
 	}
 }

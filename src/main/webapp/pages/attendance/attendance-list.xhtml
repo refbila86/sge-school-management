@@ -310,13 +310,29 @@
 		<p:growl id="growl" showDetail="true" life="4000" />
 
 		<div class="ga-head">
-			<div>
-				<h2 class="ga-title">
-					<i class="pi pi-book" />Gestão de Notas
-				</h2>
-				<div class="ga-sub">#{academicManagementBean.trimestreSelecionado.label}
-					· Lançamento de notas por disciplina</div>
-			</div>
+			<!-- PROFESSOR -->
+			<h:panelGroup rendered="#{academicManagementBean.professor}">
+				<div>
+					<h2 class="ga-title">
+						<i class="pi pi-book" />Gestão de Notas
+					</h2>
+					<div class="ga-sub">#{academicManagementBean.trimestreSelecionado.label}
+						· Lançamento de notas por disciplina</div>
+					<div style="margin-top: 6px; font-size: 13px; color: #64748b">
+						Turmas associadas ao professor: <b style="color: #0a2540">#{loginBean.fullname}</b>
+					</div>
+				</div>
+			</h:panelGroup>
+			<!-- ADMIN -->
+			<h:panelGroup rendered="#{!academicManagementBean.professor}">
+				<div>
+					<h2 class="ga-title">
+						<i class="pi pi-book" />Gestão de Notas
+					</h2>
+					<div class="ga-sub">#{academicManagementBean.trimestreSelecionado.label}
+						· Lançamento de notas por disciplina</div>
+				</div>
+			</h:panelGroup>
 			<div class="ga-chip">
 				Ano lectivo <b>#{academicManagementBean.activeYear.year}</b>
 			</div>
@@ -359,7 +375,8 @@
 				autoUpdate="true">
 				<h:panelGroup rendered="#{academicManagementBean.anual}">
 					<label>&#160;</label>
-					<p:commandButton value="Gerar Excel" icon="pi pi-file-excel"
+					<p:commandButton value="Gerar Pauta Anual" icon="pi pi-file-excel"
+						rendered="#{!academicManagementBean.professor}"
 						action="#{academicManagementBean.gerarPautaAnualExcel}"
 						ajax="false"
 						disabled="#{academicManagementBean.classroomId == null or academicManagementBean.subjectId == null}"
@@ -531,13 +548,13 @@
 				<thead>
 					<tr>
 						<th>#</th>
-						<th>Aluno</th>
 						<th>Código</th>
+						<th>Aluno</th>
 						<th>ACS1</th>
 						<th>ACS2</th>
-						<th>MACS</th>
+						<th>Média ACS</th>
 						<th>AP</th>
-						<th>MÉDIA</th>
+						<th>Média Trimestral</th>
 						<th>Aproveitamento</th>
 					</tr>
 				</thead>
@@ -546,8 +563,8 @@
 						varStatus="vs">
 						<tr>
 							<td>#{vs.index+1}</td>
-							<td>#{row.student.fullName}</td>
 							<td>#{row.student.code}</td>
+							<td>#{row.student.fullName}</td>
 							<td>#{row.grade.acs1}</td>
 							<td>#{row.grade.acs2}</td>
 							<td>#{row.grade.macs}</td>
