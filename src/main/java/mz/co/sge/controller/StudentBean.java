@@ -2,9 +2,12 @@ package mz.co.sge.controller;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.file.UploadedFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,8 @@ import jakarta.faces.context.FacesContext;
 import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.GuardianEntity;
 import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.MunicipalDistrict;
+import mz.co.sge.enumes.Province;
 import mz.co.sge.enumes.StudentStatus;
 import mz.co.sge.service.IAcademicYearService;
 import mz.co.sge.service.IGuardianService;
@@ -42,7 +47,7 @@ public class StudentBean implements Serializable
 	private List<GuardianEntity> guardians;
 	private List<AcademicYearEntity> academicYears;
 
-	private StudentEntity student = new StudentEntity();
+	private StudentEntity student = newStudent();;
 	private StudentEntity selectedStudent;
 	private Long selectedGuardianId;
 	private GuardianEntity selectedGuardianEntity;
@@ -210,6 +215,13 @@ public class StudentBean implements Serializable
 		loadStudents();
 	}
 
+	private StudentEntity newStudent()
+	{
+		StudentEntity s = new StudentEntity();
+		s.setStatus(StudentStatus.PENDING_ENROLLMENT);
+		return s;
+	}
+
 	public void loadGuardians()
 	{
 		String term = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm : filterTerm;
@@ -253,7 +265,7 @@ public class StudentBean implements Serializable
 
 	public void cleanForm()
 	{
-		this.student = new StudentEntity();
+		this.student = newStudent();
 		this.selectedGuardianId = null;
 		this.selectedGuardianEntity = null;
 		this.studentsOfSelectedGuardian = new ArrayList<>();
@@ -346,19 +358,16 @@ public class StudentBean implements Serializable
 		}
 	}
 
-	// CORRIGIDO: SEM academicYear e SEM school no Student
 	private void saveInternal()
 	{
-		if (selectedGuardianId == null)
-			throw new IllegalArgumentException("Deve indicar o encarregado");
-
-		GuardianEntity guardian = guardianService.getGuardianById(selectedGuardianId)
-				.orElseThrow(() -> new IllegalArgumentException("Encarregado não encontrado: " + selectedGuardianId));
-
-		student.setGuardian(guardian);
-		// REMOVIDO: student.setAcademicYear e student.setSchool
-		// Aluno é cadastro único, ano e escola ficam na Enrollment
-
+		if (selectedGuardianId != null)
+		{
+			GuardianEntity guardian = guardianService.getGuardianById(selectedGuardianId).orElse(null);
+			student.setGuardian(guardian);
+		} else
+		{
+			student.setGuardian(null);
+		}
 		if (editing)
 			studentService.updateStudent(student);
 		else
@@ -375,7 +384,10 @@ public class StudentBean implements Serializable
 
 	public StudentStatus[] getStatusValues()
 	{
-		return StudentStatus.values();
+		if (editing)
+			return StudentStatus.values();
+		return new StudentStatus[]
+		{ StudentStatus.PENDING_ENROLLMENT };
 	}
 
 	private void addMessage(String summary, String detail)
@@ -386,6 +398,45 @@ public class StudentBean implements Serializable
 	private void addMessage(FacesMessage.Severity severity, String summary, String detail)
 	{
 		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+	}
+
+	public void handlePhotoUpload(FileUploadEvent event)
+	{
+		UploadedFile file = event.getFile();
+		student.setPhoto(file.getContent());
+		student.setPhotoContentType(file.getContentType());
+	}
+
+	public Province[] getProvinces()
+	{
+		return Province.values();
+	}
+
+	public MunicipalDistrict[] getDistricts()
+	{
+		return MunicipalDistrict.values();
+	}
+
+	public String getSelectedPhotoSrc()
+	{
+		if (selectedStudent == null || selectedStudent.getPhoto() == null || selectedStudent.getPhoto().length == 0)
+			return null;
+		String type = selectedStudent.getPhotoContentType() != null ? selectedStudent.getPhotoContentType() : "image/jpeg";
+		return "data:" + type + ";base64," + Base64.getEncoder().encodeToString(selectedStudent.getPhoto());
+	}
+
+	public void removePhoto()
+	{
+		student.setPhoto(null);
+		student.setPhotoContentType(null);
+	}
+
+	public String getPhotoSrc()
+	{
+		if (student == null || student.getPhoto() == null || student.getPhoto().length == 0)
+			return null;
+		String type = student.getPhotoContentType() != null ? student.getPhotoContentType() : "image/jpeg";
+		return "data:" + type + ";base64," + Base64.getEncoder().encodeToString(student.getPhoto());
 	}
 
 	// Getters / Setters

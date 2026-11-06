@@ -3,292 +3,613 @@
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
 
 	<style>
-.page-header {
+.sl {
+	--navy: #0a2540;
+	--blue: #2563eb;
+	--blue-soft: #eff4ff;
+	--line: #e6eaf0;
+	--muted: #64748b;
+	--bg: #f8fafc;
+}
+
+.sl-head {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 18px;
 	flex-wrap: wrap;
-	gap: 12px
+	gap: 12px;
+	margin-bottom: 18px
 }
 
-.page-title {
-	font-size: 19px;
+.sl-title {
+	display: flex;
+	align-items: center;
+	gap: 14px
+}
+
+.sl-title-icon {
+	width: 46px;
+	height: 46px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	color: #fff;
+	display: grid;
+	place-items: center;
+	font-size: 20px;
+	box-shadow: 0 6px 16px rgba(37, 99, 235, .25)
+}
+
+.sl-title h2 {
+	margin: 0;
+	font-size: 20px;
 	font-weight: 700;
-	color: #0a2540
+	color: var(--navy);
+	line-height: 1.2
 }
 
-.filter-bar {
-	background: white;
-	border: 1px solid #e6eaf0;
+.sl-title p {
+	margin: 2px 0 0;
+	font-size: 13px;
+	color: var(--muted)
+}
+
+.sl-head-actions {
+	display: flex;
+	gap: 8px
+}
+
+.sl .sl-btn {
+	border-radius: 10px;
+	font-size: 13px
+}
+
+.sl .sl-btn-primary {
+	background: var(--navy);
+	border: none
+}
+
+.sl .sl-btn-primary:hover {
+	background: #123760 !important
+}
+
+.sl-filter {
+	background: #fff;
+	border: 1px solid var(--line);
 	border-radius: 14px;
 	padding: 12px;
 	display: flex;
 	gap: 10px;
 	align-items: center;
+	flex-wrap: wrap;
 	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(10, 37, 64, .04)
+}
+
+.sl-search {
+	position: relative;
+	flex: 1;
+	min-width: 220px;
+	max-width: 380px
+}
+
+.sl-search i {
+	position: absolute;
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #94a3b8;
+	font-size: 13px;
+	z-index: 1
+}
+
+.sl-search .ui-inputfield {
+	width: 100%;
+	padding: 10px 12px 10px 34px;
+	border-radius: 10px;
+	font-size: 13.5px
+}
+
+.sl-total {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: var(--blue-soft);
+	color: var(--blue);
+	border-radius: 999px;
+	padding: 5px 12px;
+	font-size: 12.5px;
+	font-weight: 600
+}
+
+.sl-table-wrap {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	padding: 6px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(10, 37, 64, .04), 0 8px 24px
+		rgba(10, 37, 64, .05)
+}
+
+.sl-table .ui-datatable-thead th {
+	padding: 12px 10px !important;
+	font-size: 12.5px !important;
+	font-weight: 700;
+	color: var(--navy);
+	background: var(--bg) !important;
+	border-color: var(--line) !important
+}
+
+.sl-table .ui-datatable-data td {
+	padding: 10px !important;
+	font-size: 13.5px !important;
+	color: #1e293b;
+	border-color: #f1f5f9 !important
+}
+
+.sl-table .ui-datatable-data tr {
+	height: 56px
+}
+
+.sl-table .ui-datatable-data tr:hover {
+	background: var(--blue-soft) !important
+}
+
+.sl-code {
+	font-weight: 700;
+	color: var(--navy)
+}
+
+.sl-person {
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.sl-avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--navy);
+	color: #fff;
+	display: grid;
+	place-items: center;
+	font-weight: 700;
+	font-size: 14px;
+	flex: none
+}
+
+.sl-name {
+	display: block;
+	font-size: 14px;
+	color: var(--navy)
+}
+
+.sl-sub {
+	font-size: 12px;
+	color: var(--muted)
+}
+
+.sl-warn {
+	font-size: 12px;
+	color: #dc2626
+}
+
+.sl-none {
+	font-size: 12px;
+	color: #94a3b8
+}
+
+.sl .ui-tag {
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 10px;
+	border-radius: 999px
+}
+
+.sl-view-head {
+	display: flex;
+	gap: 18px;
+	align-items: center;
+	padding-bottom: 16px;
+	margin-bottom: 16px;
+	border-bottom: 1px solid var(--line)
+}
+
+.sl-view-photo {
+	width: 96px;
+	height: 120px;
+	border-radius: 14px;
+	object-fit: cover;
+	border: 1px solid var(--line);
+	box-shadow: 0 4px 12px rgba(10, 37, 64, .1);
+	flex: none
+}
+
+.sl-view-initial {
+	width: 96px;
+	height: 120px;
+	border-radius: 14px;
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	color: #fff;
+	display: grid;
+	place-items: center;
+	font-size: 38px;
+	font-weight: 800;
+	flex: none
+}
+
+.sl-view-name {
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--navy);
+	display: block;
+	margin-bottom: 4px
+}
+
+.sl-view-meta {
+	font-size: 13px;
+	color: var(--muted);
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	flex-wrap: wrap
 }
 
-.compact-table .ui-datatable-data td {
-	padding: 12px 8px !important;
-	font-size: 13.5px !important;
-	font-weight: 400;
-	color: #1e293b
+.sl-info-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px 18px
 }
 
-.compact-table .ui-datatable-thead th {
-	padding: 12px 8px !important;
-	font-size: 12px !important;
-	font-weight: 700;
-	color: #0a2540;
+.sl-info-grid .full {
+	grid-column: 1/-1
+}
+
+.sl-k {
+	display: block;
+	font-size: 11px;
+	color: var(--muted);
+	margin-bottom: 2px;
 	text-transform: uppercase;
+	font-weight: 700;
 	letter-spacing: .3px
 }
 
-.compact-table .ui-datatable-data tr {
-	height: 52px
+.sl-v {
+	font-size: 13.5px;
+	font-weight: 600;
+	color: #1e293b
+}
+
+.sl-box {
+	margin-top: 16px;
+	border-radius: 12px;
+	padding: 14px;
+	background: var(--bg);
+	border: 1px solid var(--line)
+}
+
+.sl-box.amber {
+	background: #fffbeb;
+	border-color: #fde68a
+}
+
+.sl-box-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--navy);
+	margin-bottom: 10px
+}
+
+.sl-box.amber .sl-box-title {
+	color: #92400e
+}
+
+.sl-rel {
+	background: #eef2ff;
+	color: #4338ca;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-weight: 700;
+	font-size: 11.5px
+}
+
+.sl-bi {
+	font-family: monospace;
+	background: #f1f5f9;
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .5px
+}
+
+@media ( max-width :700px) {
+	.sl-info-grid {
+		grid-template-columns: 1fr
+	}
+	.sl-view-head {
+		flex-direction: column;
+		align-items: flex-start
+	}
+	.sl-total {
+		margin-left: 0
+	}
 }
 </style>
 
 	<h:form id="formList">
 		<p:growl id="growl" showDetail="true" />
-		<div class="page-header">
-			<div class="page-title">
-				<i class="pi pi-users" style="margin-right: 8px; color: #2563eb" />Gestão
-				de Estudantes
-			</div>
-			<div style="display: flex; gap: 8px">
-				<p:commandButton value="Novo Estudante" icon="pi pi-plus"
-					style="border-radius:10px;background:#0a2540;border:none;font-size:13px"
-					actionListener="#{studentBean.cleanForm}"
-					action="#{dashboardBean.navigate('student/student-include','estudantes')}"
-					update=":contentPanel" />
-				<p:commandButton icon="pi pi-refresh"
-					styleClass="ui-button-secondary ui-button-outlined"
-					style="border-radius:10px" action="#{studentBean.loadStudents}"
-					update=":contentPanel" />
-			</div>
-		</div>
-
-		<div class="filter-bar">
-			<p:inputText value="#{studentBean.searchTerm}"
-				placeholder="Código, nome, email ou encarregado..."
-				style="width:340px;font-size:13px" />
-			<p:commandButton icon="pi pi-search" value="Buscar"
-				style="border-radius:10px;font-size:13px"
-				action="#{studentBean.search}" update=":contentPanel" />
-			<p:commandButton value="Limpar"
-				styleClass="ui-button-secondary ui-button-outlined"
-				style="border-radius:10px;font-size:13px"
-				action="#{studentBean.loadStudents}" update=":contentPanel"
-				process="@this">
-				<f:setPropertyActionListener value=""
-					target="#{studentBean.searchTerm}" />
-			</p:commandButton>
-			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
-				<b>#{studentBean.students.size()}</b>
-			</span>
-		</div>
-
-		<div
-			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
-			class="compact-table">
-			<p:dataTable value="#{studentBean.students}" var="s" paginator="true"
-				rows="8" paginatorPosition="bottom" stripedRows="true"
-				emptyMessage="Nenhum estudante cadastrado">
-				<p:column headerText="CÓDIGO" width="95">
-					<b style="color: #0a2540; font-size: 13.5px">#{s.code}</b>
-				</p:column>
-				<p:column headerText="NOME DO ESTUDANTE" width="300">
-					<div style="display: flex; align-items: center; gap: 10px">
-						<div
-							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">#{s.firstName
-							!= null ? s.firstName.substring(0,1).toUpperCase() : '?'}</div>
-						<div>
-							<b style="font-size: 14px; display: block">#{s.firstName}
-								#{s.lastName}</b><span style="font-size: 12px; color: #64748b">#{s.email}</span>
-						</div>
+		<p:defaultCommand target="btnSearch" />
+		<div class="sl">
+			<div class="sl-head">
+				<div class="sl-title">
+					<div class="sl-title-icon">
+						<i class="pi pi-users" />
 					</div>
-				</p:column>
-				<p:column headerText="ENCARREGADO" width="220">
-					<h:panelGroup rendered="#{s.guardian != null}">
-						<b style="font-size: 13.5px">#{s.guardian.firstName}
-							#{s.guardian.lastName}</b>
-						<br />
-						<span style="font-size: 11px; color: #64748b">#{s.guardian.relationship}
-							• #{s.guardian.phone}</span>
-					</h:panelGroup>
-					<h:panelGroup rendered="#{s.guardian == null}">
-						<span style="font-size: 11px; color: #ef4444">Sem
-							encarregado</span>
-					</h:panelGroup>
-				</p:column>
-				<p:column headerText="ÚLTIMA MATRÍCULA" width="140">
-					<h:panelGroup
-						rendered="#{s.enrollments != null and !s.enrollments.isEmpty()}">
-						<b style="font-size: 12px">#{s.enrollments[0].academicYear !=
-							null ? s.enrollments[0].academicYear.year : 'N/A'}</b>
-						<br />
-						<span style="font-size: 10px; color: #64748b">#{s.enrollments[0].school
-							!= null ? s.enrollments[0].school.code : ''}</span>
-					</h:panelGroup>
-					<h:panelGroup
-						rendered="#{s.enrollments == null or s.enrollments.isEmpty()}">
-						<span style="font-size: 11px; color: #94a3b8">Sem matrícula</span>
-					</h:panelGroup>
-				</p:column>
-				<p:column headerText="TELEFONE" width="120">
-					<span style="font-size: 13.5px">#{s.phone}</span>
-				</p:column>
-				<p:column headerText="ESTADO" width="100" style="text-align:center">
-					<p:tag value="#{s.status}"
-						severity="#{s.status.name() == 'ENROLLED' ? 'success' : s.status.name() == 'REGISTERED' ? 'info' : 'warning'}"
-						style="font-size:11px;font-weight:700;padding:4px 10px" />
-				</p:column>
-				<p:column headerText="AÇÕES" width="130" style="text-align:center">
-					<p:commandButton icon="pi pi-eye"
-						styleClass="ui-button-rounded ui-button-text"
-						style="width:34px;height:34px;font-size:14px" title="Visualizar"
-						action="#{studentBean.prepareView(s)}"
-						update=":formList:viewDialog" oncomplete="PF('viewDialog').show()" />
-					<p:commandButton icon="pi pi-pencil"
-						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
-						style="width:34px;height:34px" title="Editar"
+					<div>
+						<h2>Gestão de estudantes</h2>
+						<p>Consulte, registe e actualize. BI + Província + Distrito
+							incluídos.</p>
+					</div>
+				</div>
+				<div class="sl-head-actions">
+					<p:commandButton value="Novo estudante" icon="pi pi-plus"
+						styleClass="sl-btn sl-btn-primary"
+						actionListener="#{studentBean.cleanForm}"
 						action="#{dashboardBean.navigate('student/student-include','estudantes')}"
-						update=":contentPanel">
-						<f:setPropertyActionListener value="#{s}"
-							target="#{studentBean.student}" />
-						<f:setPropertyActionListener value="#{true}"
-							target="#{studentBean.editing}" />
-						<f:setPropertyActionListener
-							value="#{s.guardian != null ? s.guardian.id : null}"
-							target="#{studentBean.selectedGuardianId}" />
-					</p:commandButton>
-					<p:commandButton icon="pi pi-trash"
-						styleClass="ui-button-rounded ui-button-text ui-button-danger"
-						style="width:34px;height:34px" title="Remover"
-						action="#{studentBean.prepareDelete(s)}"
-						update=":formList:confirmDialog"
-						oncomplete="PF('confirmDialog').show()" />
-				</p:column>
-			</p:dataTable>
-		</div>
+						update=":contentPanel" />
+					<p:commandButton icon="pi pi-refresh" title="Actualizar lista"
+						styleClass="sl-btn ui-button-secondary ui-button-outlined"
+						action="#{studentBean.loadStudents}" update=":contentPanel" />
+				</div>
+			</div>
 
-		<p:dialog widgetVar="viewDialog" id="viewDialog"
-			header="Detalhes do Estudante" modal="true" width="620"
-			responsive="true">
-			<h:panelGroup rendered="#{studentBean.selectedStudent != null}"
-				style="display:grid;gap:12px;font-size:13.5px">
-				<div
-					style="display: flex; gap: 14px; align-items: center; margin-bottom: 6px">
-					<div
-						style="width: 54px; height: 54px; border-radius: 16px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">#{studentBean.selectedStudent.firstName
-						!= null ?
-						studentBean.selectedStudent.firstName.substring(0,1).toUpperCase()
-						: '?'}</div>
-					<div>
-						<b style="font-size: 16px">#{studentBean.selectedStudent.firstName}
-							#{studentBean.selectedStudent.lastName}</b><br /> <span
-							style="color: #64748b; font-size: 13px">#{studentBean.selectedStudent.code}
-							• #{studentBean.selectedStudent.status}</span>
-					</div>
+			<div class="sl-filter">
+				<div class="sl-search">
+					<i class="pi pi-search" />
+					<p:inputText value="#{studentBean.searchTerm}"
+						placeholder="Código, nome, BI, email ou encarregado" />
 				</div>
-				<div
-					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-					<div>
-						<span
-							style="color: #64748b; font-size: 11px; text-transform: uppercase">Data
-							Nasc.</span><br />
-						<b style="font-size: 13.5px"><h:outputText
-								value="#{studentBean.selectedStudent.birthDate}">
-								<f:convertDateTime pattern="dd/MM/yyyy" type="localDate" />
-							</h:outputText></b>
-					</div>
-					<div>
-						<span
-							style="color: #64748b; font-size: 11px; text-transform: uppercase">Gênero</span><br />
-						<b style="font-size: 13.5px">#{studentBean.selectedStudent.gender}</b>
-					</div>
-					<div>
-						<span
-							style="color: #64748b; font-size: 11px; text-transform: uppercase">Telefone</span><br />
-						<b style="font-size: 13.5px">#{studentBean.selectedStudent.phone}</b>
-					</div>
-					<div>
-						<span
-							style="color: #64748b; font-size: 11px; text-transform: uppercase">Email</span><br />
-						<b style="font-size: 13.5px">#{studentBean.selectedStudent.email}</b>
-					</div>
-					<div style="grid-column: span 2">
-						<span
-							style="color: #64748b; font-size: 11px; text-transform: uppercase">Endereço</span><br />
-						<b style="font-size: 13.5px">#{studentBean.selectedStudent.address}</b>
-					</div>
-				</div>
-				<div
-					style="margin-top: 8px; background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
-					<div
-						style="font-size: 11px; font-weight: 700; color: #0a2540; margin-bottom: 10px; text-transform: uppercase">
-						<i class="pi pi-users" /> Encarregado
-					</div>
-					<h:panelGroup
-						rendered="#{studentBean.selectedStudent.guardian != null}">
-						<div
-							style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+				<p:commandButton id="btnSearch" value="Pesquisar"
+					styleClass="sl-btn sl-btn-primary" action="#{studentBean.search}"
+					update=":contentPanel" />
+				<p:commandButton value="Limpar"
+					styleClass="sl-btn ui-button-secondary ui-button-outlined"
+					action="#{studentBean.loadStudents}" update=":contentPanel"
+					process="@this">
+					<f:setPropertyActionListener value=""
+						target="#{studentBean.searchTerm}" />
+				</p:commandButton>
+				<span class="sl-total"><i class="pi pi-users" />
+					#{studentBean.students.size()} estudante(s)</span>
+			</div>
+
+			<div class="sl-table-wrap sl-table">
+				<p:dataTable value="#{studentBean.students}" var="s"
+					paginator="true" rows="8" paginatorPosition="bottom"
+					stripedRows="true" emptyMessage="Nenhum estudante registado"
+					rowsPerPageTemplate="8,15,30">
+					<p:column headerText="Código" width="85">
+						<span class="sl-code">#{s.code}</span>
+					</p:column>
+					<p:column headerText="Estudante" width="230">
+						<div class="sl-person">
+							<div class="sl-avatar">#{s.firstName != null ?
+								s.firstName.substring(0,1).toUpperCase() : '?'}</div>
 							<div>
-								<span style="color: #64748b; font-size: 10px">CÓDIGO</span><br />
-								<b>#{studentBean.selectedStudent.guardian.code}</b>
-							</div>
-							<div>
-								<span style="color: #64748b; font-size: 10px">NOME</span><br />
-								<b>#{studentBean.selectedStudent.guardian.firstName}
-									#{studentBean.selectedStudent.guardian.lastName}</b>
-							</div>
-							<div>
-								<span style="color: #64748b; font-size: 10px">PARENTESCO</span><br />
-								<span
-									style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px">#{studentBean.selectedStudent.guardian.relationship}</span>
-							</div>
-							<div>
-								<span style="color: #64748b; font-size: 10px">TELEFONE</span><br />
-								<b>#{studentBean.selectedStudent.guardian.phone}</b>
+								<b class="sl-name">#{s.firstName} #{s.lastName}</b><span
+									class="sl-sub">#{s.email}</span>
 							</div>
 						</div>
-					</h:panelGroup>
-					<h:panelGroup
-						rendered="#{studentBean.selectedStudent.guardian == null}">
-						<span style="color: #ef4444">Sem encarregado vinculado</span>
-					</h:panelGroup>
-				</div>
-				<div
-					style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px">
-					<div
-						style="font-size: 11px; font-weight: 700; color: #92400e; margin-bottom: 10px; text-transform: uppercase">
-						<i class="pi pi-calendar" /> Matrículas
-					</div>
-					<p:dataList value="#{studentBean.selectedStudent.enrollments}"
-						var="en" emptyMessage="Sem matrículas">
-						#{en.academicYear != null ? en.academicYear.year : 'N/A'} - #{en.school != null ? en.school.name : ''} - #{en.status}
-					</p:dataList>
-				</div>
-			</h:panelGroup>
-			<f:facet name="footer">
-				<p:commandButton value="Fechar" icon="pi pi-times"
-					onclick="PF('viewDialog').hide()" styleClass="ui-button-secondary" />
-			</f:facet>
-		</p:dialog>
+					</p:column>
+					<p:column headerText="Nº BI" width="145">
+						<h:panelGroup rendered="#{s.biNumber != null}">
+							<span class="sl-bi">#{s.biNumber}</span>
+						</h:panelGroup>
+						<h:panelGroup rendered="#{s.biNumber == null}">
+							<span class="sl-none">Sem BI</span>
+						</h:panelGroup>
+					</p:column>
+					<p:column headerText="Localização" width="180">
+						<h:panelGroup
+							rendered="#{s.province != null or s.district != null}">
+							<b style="font-size: 13px">#{s.province != null ?
+								s.province.label : ''}</b>
+							<br />
+							<span class="sl-sub">#{s.district != null ?
+								s.district.name : ''}</span>
+							<br />
+							<h:panelGroup rendered="#{s.district != null}">
+								<span class="sl-sub" style="font-size: 10px">#{s.district.category}</span>
+							</h:panelGroup>
+						</h:panelGroup>
+						<h:panelGroup
+							rendered="#{s.province == null and s.district == null}">
+							<span class="sl-none">Não definido</span>
+						</h:panelGroup>
+					</p:column>
+					<p:column headerText="Encarregado" width="170">
+						<h:panelGroup rendered="#{s.guardian != null}">
+							<b>#{s.guardian.firstName} #{s.guardian.lastName}</b>
+							<br />
+							<span class="sl-sub">#{s.guardian.relationship} |
+								#{s.guardian.phone}</span>
+						</h:panelGroup>
+						<h:panelGroup rendered="#{s.guardian == null}">
+							<span class="sl-warn">Sem encarregado</span>
+						</h:panelGroup>
+					</p:column>
+					<p:column headerText="Estado" width="110" style="text-align:center">
+						<p:tag value="#{s.status}"
+							severity="#{s.status.name() == 'ENROLLED' ? 'success' : s.status.name() == 'REGISTERED' ? 'info' : 'warning'}" />
+					</p:column>
+					<p:column headerText="Acções" width="115" style="text-align:center">
+						<p:commandButton icon="pi pi-eye"
+							styleClass="ui-button-rounded ui-button-text"
+							style="width:34px;height:34px" title="Visualizar"
+							action="#{studentBean.prepareView(s)}"
+							update=":formList:viewDialog"
+							oncomplete="PF('viewDialog').show()" />
+						<p:commandButton icon="pi pi-pencil"
+							styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+							style="width:34px;height:34px" title="Editar"
+							action="#{dashboardBean.navigate('student/student-include','estudantes')}"
+							update=":contentPanel">
+							<f:setPropertyActionListener value="#{s}"
+								target="#{studentBean.student}" />
+							<f:setPropertyActionListener value="#{true}"
+								target="#{studentBean.editing}" />
+							<f:setPropertyActionListener
+								value="#{s.guardian != null ? s.guardian.id : null}"
+								target="#{studentBean.selectedGuardianId}" />
+						</p:commandButton>
+						<p:commandButton icon="pi pi-trash"
+							styleClass="ui-button-rounded ui-button-text ui-button-danger"
+							style="width:34px;height:34px" title="Remover"
+							action="#{studentBean.prepareDelete(s)}"
+							update=":formList:confirmDialog"
+							oncomplete="PF('confirmDialog').show()" />
+					</p:column>
+				</p:dataTable>
+			</div>
 
-		<p:confirmDialog widgetVar="confirmDialog" id="confirmDialog"
-			header="Confirmar Remoção"
-			message="Remover #{studentBean.selectedStudent.firstName} #{studentBean.selectedStudent.lastName}?"
-			severity="warn">
-			<p:commandButton value="Sim, Remover" styleClass="ui-button-danger"
-				action="#{studentBean.delete}" update=":contentPanel"
-				oncomplete="PF('confirmDialog').hide()" />
-			<p:commandButton value="Cancelar"
-				styleClass="ui-button-secondary ui-button-outlined"
-				onclick="PF('confirmDialog').hide()" />
-		</p:confirmDialog>
+			<p:dialog widgetVar="viewDialog" id="viewDialog"
+				header="Detalhes do estudante" modal="true" width="720"
+				responsive="true" draggable="false" resizable="false">
+				<h:panelGroup layout="block" styleClass="sl"
+					rendered="#{studentBean.selectedStudent != null}">
+					<div class="sl-view-head">
+						<h:graphicImage value="#{studentBean.selectedPhotoSrc}"
+							rendered="#{studentBean.selectedPhotoSrc != null}"
+							styleClass="sl-view-photo" alt="Fotografia" />
+						<h:panelGroup layout="block" styleClass="sl-view-initial"
+							rendered="#{studentBean.selectedPhotoSrc == null}">#{studentBean.selectedStudent.firstName != null ? studentBean.selectedStudent.firstName.substring(0,1).toUpperCase() : '?'}</h:panelGroup>
+						<div>
+							<b class="sl-view-name">#{studentBean.selectedStudent.firstName}
+								#{studentBean.selectedStudent.lastName}</b>
+							<div class="sl-view-meta">
+								<span>#{studentBean.selectedStudent.code}</span>
+								<p:tag value="#{studentBean.selectedStudent.status}"
+									severity="#{studentBean.selectedStudent.status.name() == 'ENROLLED' ? 'success' : 'warning'}" />
+								<span class="sl-bi">#{studentBean.selectedStudent.biNumber}</span>
+							</div>
+						</div>
+					</div>
+
+					<div class="sl-box"
+						style="margin-top: 0; background: #eff6ff; border-color: #bfdbfe">
+						<div class="sl-box-title">
+							<i class="pi pi-id-card" /> Documento &amp; Localização
+						</div>
+						<div class="sl-info-grid">
+							<div>
+								<span class="sl-k">Nº BI (13 - último letra)</span><span
+									class="sl-v sl-bi" style="font-size: 14px">#{studentBean.selectedStudent.biNumber
+									!= null ? studentBean.selectedStudent.biNumber : 'Não
+									registado'}</span><br />
+								<span class="sl-sub">#{studentBean.selectedStudent.biFormatted}</span>
+							</div>
+							<div>
+								<span class="sl-k">Naturalidade</span><span class="sl-v">#{studentBean.selectedStudent.placeOfBirth
+									!= null ? studentBean.selectedStudent.placeOfBirth : '—'}</span>
+							</div>
+							<div>
+								<span class="sl-k">Província</span><span class="sl-v">#{studentBean.selectedStudent.province
+									!= null ? studentBean.selectedStudent.province.label : '—'}</span>
+							</div>
+							<div>
+								<span class="sl-k">Distrito Municipal</span> <span class="sl-v">#{studentBean.selectedStudent.district
+									!= null ? studentBean.selectedStudent.district.name : '—'}</span><br />
+								<h:panelGroup
+									rendered="#{studentBean.selectedStudent.district != null}">
+									<span class="sl-sub">#{studentBean.selectedStudent.district.category}
+										- #{studentBean.selectedStudent.district.neighborhoods}</span>
+								</h:panelGroup>
+							</div>
+						</div>
+					</div>
+
+					<div class="sl-info-grid" style="margin-top: 16px">
+						<div>
+							<span class="sl-k">Data nascimento</span><span class="sl-v"><h:outputText
+									value="#{studentBean.selectedStudent.birthDate}">
+									<f:convertDateTime pattern="dd/MM/yyyy" type="localDate" />
+								</h:outputText></span>
+						</div>
+						<div>
+							<span class="sl-k">Género</span><span class="sl-v">#{studentBean.selectedStudent.gender}</span>
+						</div>
+						<div>
+							<span class="sl-k">Telefone</span><span class="sl-v">#{studentBean.selectedStudent.phone}</span>
+						</div>
+						<div>
+							<span class="sl-k">Email</span><span class="sl-v">#{studentBean.selectedStudent.email}</span>
+						</div>
+						<div class="full">
+							<span class="sl-k">Endereço</span><span class="sl-v">#{studentBean.selectedStudent.address}</span>
+						</div>
+					</div>
+
+					<div class="sl-box">
+						<div class="sl-box-title">
+							<i class="pi pi-users" /> Encarregado
+						</div>
+						<h:panelGroup layout="block" styleClass="sl-info-grid"
+							rendered="#{studentBean.selectedStudent.guardian != null}">
+							<div>
+								<span class="sl-k">Código</span><span class="sl-v">#{studentBean.selectedStudent.guardian.code}</span>
+							</div>
+							<div>
+								<span class="sl-k">Nome</span><span class="sl-v">#{studentBean.selectedStudent.guardian.firstName}
+									#{studentBean.selectedStudent.guardian.lastName}</span>
+							</div>
+							<div>
+								<span class="sl-k">Parentesco</span><span class="sl-rel">#{studentBean.selectedStudent.guardian.relationship}</span>
+							</div>
+							<div>
+								<span class="sl-k">Telefone</span><span class="sl-v">#{studentBean.selectedStudent.guardian.phone}</span>
+							</div>
+						</h:panelGroup>
+						<h:panelGroup
+							rendered="#{studentBean.selectedStudent.guardian == null}">
+							<span class="sl-warn">Sem encarregado vinculado</span>
+						</h:panelGroup>
+					</div>
+
+					<div class="sl-box amber">
+						<div class="sl-box-title">
+							<i class="pi pi-calendar" /> Matrículas
+						</div>
+						<p:dataList styleClass="sl-enroll"
+							value="#{studentBean.selectedStudent.enrollments}" var="en"
+							emptyMessage="Sem matrículas">
+							<b>#{en.academicYear != null ? en.academicYear.year : 'N/D'}</b> | #{en.school != null ? en.school.name : ''} | #{en.status}</p:dataList>
+					</div>
+				</h:panelGroup>
+				<f:facet name="footer">
+					<p:commandButton value="Fechar" icon="pi pi-times" type="button"
+						onclick="PF('viewDialog').hide()"
+						styleClass="sl-btn ui-button-secondary" />
+				</f:facet>
+			</p:dialog>
+
+			<p:confirmDialog widgetVar="confirmDialog" id="confirmDialog"
+				header="Confirmar remoção"
+				message="Remover #{studentBean.selectedStudent.firstName} #{studentBean.selectedStudent.lastName}?"
+				severity="warn">
+				<p:commandButton value="Sim, remover"
+					styleClass="sl-btn ui-button-danger" action="#{studentBean.delete}"
+					update=":contentPanel" oncomplete="PF('confirmDialog').hide()" />
+				<p:commandButton value="Cancelar"
+					styleClass="sl-btn ui-button-secondary ui-button-outlined"
+					type="button" onclick="PF('confirmDialog').hide()" />
+			</p:confirmDialog>
+		</div>
 	</h:form>
 </ui:composition>

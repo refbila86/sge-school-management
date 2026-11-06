@@ -3,11 +3,9 @@ package mz.co.sge.service.impl;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import mz.co.sge.entity.GuardianEntity;
@@ -23,10 +21,8 @@ public class StudentServiceImpl implements IStudentService
 
 	@PersistenceContext
 	private EntityManager em;
-
 	@Autowired
 	private IStudentRepository studentRepository;
-
 	@Autowired
 	private IGuardianRepository guardianRepository;
 
@@ -34,51 +30,46 @@ public class StudentServiceImpl implements IStudentService
 	@Transactional
 	public StudentEntity createStudent(StudentEntity student)
 	{
-		if (student.getGuardian() == null || student.getGuardian().getId() == null)
-			throw new IllegalArgumentException("Guardian é obrigatório");
+		if (student.getGuardian() != null && student.getGuardian().getId() != null)
+		{
+			GuardianEntity guardian = guardianRepository.findById(student.getGuardian().getId())
+					.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado"));
+			student.setGuardian(guardian);
+		} else
+		{
+			student.setGuardian(null); // agora opcional
+		}
 
-		GuardianEntity guardian = guardianRepository.findById(student.getGuardian().getId())
-				.orElseThrow(() -> new IllegalArgumentException("Guardian não encontrado"));
-		student.setGuardian(guardian);
-
-		// GERAÇÃO AUTOMÁTICA STU-00001-2026
 		if (student.getCode() == null || student.getCode().isBlank())
 		{
 			int year = LocalDate.now().getYear();
-			String yearStr = String.valueOf(year);
-			String pattern = "STU-%-" + yearStr;
-
-			// Busca último código do ano
+			String pattern = "STU-%-" + year;
 			List<String> lastCodes = em.createQuery("SELECT s.code FROM StudentEntity s WHERE s.code LIKE :pattern ORDER BY s.code DESC", String.class)
 					.setParameter("pattern", pattern).setMaxResults(1).getResultList();
-
 			int nextSeq = 1;
 			if (!lastCodes.isEmpty())
 			{
 				try
 				{
-					// STU-00001-2026 -> extrai 00001
 					String last = lastCodes.get(0);
-					String seqPart = last.substring(4, 9); // 00001
+					String seqPart = last.substring(4, 9);
 					nextSeq = Integer.parseInt(seqPart) + 1;
 				} catch (Exception e)
 				{
 					nextSeq = 1;
 				}
 			}
-
-			String code = String.format("STU-%05d-%s", nextSeq, yearStr);
-			student.setCode(code);
+			student.setCode(String.format("STU-%05d-%s", nextSeq, year));
 		}
 
-		if (student.getDocumentNumber() != null)
+		if (student.getBiNumber() != null)
 		{
-			studentRepository.findByDocument(student.getDocumentNumber()).ifPresent(s ->
+			studentRepository.findByDocument(student.getBiNumber()).ifPresent(s ->
 			{
-				throw new IllegalStateException("Já existe aluno com BI " + student.getDocumentNumber());
+				if (!s.getId().equals(student.getId()))
+					throw new IllegalStateException("Já existe aluno com BI " + student.getBiNumber());
 			});
 		}
-
 		return studentRepository.save(student);
 	}
 
@@ -86,12 +77,14 @@ public class StudentServiceImpl implements IStudentService
 	@Transactional
 	public StudentEntity registerStudent(StudentEntity student, Long guardianId)
 	{
-		student.setGuardian(new GuardianEntity()
+		if (guardianId != null)
 		{
-			{
-				setId(guardianId);
-			}
-		});
+			GuardianEntity g = guardianRepository.findById(guardianId).orElse(null);
+			student.setGuardian(g);
+		} else
+		{
+			student.setGuardian(null);
+		}
 		return createStudent(student);
 	}
 
@@ -100,6 +93,7 @@ public class StudentServiceImpl implements IStudentService
 	public StudentEntity updateStudent(StudentEntity student)
 	{
 		StudentEntity existing = studentRepository.findById(student.getId()).orElseThrow(() -> new IllegalArgumentException("Estudante não encontrado"));
+
 		existing.setFirstName(student.getFirstName());
 		existing.setLastName(student.getLastName());
 		existing.setBirthDate(student.getBirthDate());
@@ -107,14 +101,27 @@ public class StudentServiceImpl implements IStudentService
 		existing.setPhone(student.getPhone());
 		existing.setEmail(student.getEmail());
 		existing.setAddress(student.getAddress());
-		existing.setDocumentNumber(student.getDocumentNumber());
+		existing.setBiNumber(student.getBiNumber()); // usa biNumber puro, não formatted
+		existing.setProvince(student.getProvince());
+		existing.setDistrict(student.getDistrict());
+		existing.setPlaceOfBirth(student.getPlaceOfBirth());
 		existing.setStatus(student.getStatus());
-		if (student.getGuardian() != null)
+
+		if (student.getPhoto() != null && student.getPhoto().length > 0)
+		{
+			existing.setPhoto(student.getPhoto());
+			existing.setPhotoContentType(student.getPhotoContentType());
+		}
+
+		if (student.getGuardian() != null && student.getGuardian().getId() != null)
 		{
 			GuardianEntity g = guardianRepository.findById(student.getGuardian().getId()).orElse(null);
-			if (g != null)
-				existing.setGuardian(g);
+			existing.setGuardian(g);
+		} else
+		{
+			existing.setGuardian(null);
 		}
+
 		return studentRepository.update(existing);
 	}
 

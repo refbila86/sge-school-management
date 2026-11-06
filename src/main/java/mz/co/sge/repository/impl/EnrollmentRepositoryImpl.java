@@ -136,7 +136,7 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 	@Override
 	public List<Long> findEnrolledStudentIdsByYear(Long yearId)
 	{
-		return em.createNamedQuery("Enrollment.findEnrolledStudentIdsByYear", Long.class).setParameter("yearId", yearId).getResultList();
+		return em.createNamedQuery("EnrollmentEntity.findEnrolledStudentIdsByYear", Long.class).setParameter("yearId", yearId).getResultList();
 	}
 
 	@Override
@@ -156,7 +156,15 @@ public class EnrollmentRepositoryImpl implements IEnrollmentRepository
 	@Override
 	public boolean existsByStudentAndYear(Long studentId, Long yearId)
 	{
-		return em.createNamedQuery("Enrollment.existsByStudentAndYear", Boolean.class).setParameter("studentId", studentId).setParameter("yearId", yearId)
+		return em.createNamedQuery("EnrollmentEntity.existsByStudentAndYear", Boolean.class).setParameter("studentId", studentId).setParameter("yearId", yearId)
 				.getSingleResult();
+	}
+	
+	@Override
+	public long countByClassroomAndYear(Long classroomId, Long yearId) {
+	    return em.createNamedQuery("EnrollmentEntity.countByClassroomAndYear", Long.class)
+	             .setParameter("classroomId", classroomId)
+	             .setParameter("yearId", yearId)
+	             .getSingleResult();
 	}
 }

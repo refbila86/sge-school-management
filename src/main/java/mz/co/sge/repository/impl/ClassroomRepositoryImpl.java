@@ -150,4 +150,16 @@ public class ClassroomRepositoryImpl implements IClassroomRepository
 			return findAll();
 		}
 	}
+
+	@Override
+	public List<ClassroomEntity> findByAcademicYearAndClassLevel(Long yearId, Long classLevelId) {
+	    try {
+	        return em.createNamedQuery("ClassroomEntity.findByAcademicYearAndClassLevel", ClassroomEntity.class)
+	                 .setParameter("yearId", yearId)
+	                 .setParameter("classLevelId", classLevelId)
+	                 .getResultList();
+	    } catch (Exception e) {
+	        return new ArrayList<>();
+	    }
+	}
 }

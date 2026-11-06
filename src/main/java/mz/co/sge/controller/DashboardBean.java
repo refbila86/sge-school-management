@@ -57,7 +57,6 @@ public class DashboardBean implements Serializable
 		this.activeMenu = menu != null ? menu : "dashboard";
 		this.pageTitle = toTitle(menu);
 
-		// ATUALIZA CONTADORES SEMPRE QUE NAVEGA
 		try
 		{
 			menuBean.refreshCounts();

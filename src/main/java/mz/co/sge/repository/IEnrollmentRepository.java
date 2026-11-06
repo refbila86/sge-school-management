@@ -44,4 +44,6 @@ public interface IEnrollmentRepository
 	Long findPreviousYearId(Long currentYearId);
 	
 	boolean existsByStudentAndYear(Long studentId, Long yearId);
+	
+	public long countByClassroomAndYear(Long classroomId, Long yearId);
 }

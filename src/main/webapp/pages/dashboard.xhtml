@@ -222,9 +222,9 @@
 </h:head>
 <h:body
 	style="margin:0;background:#f6f8fb;font-family:'Inter',sans-serif">
-	
-		<p:growl id="globalGrowl" showDetail="true" autoUpdate="true" />
-	
+
+	<p:growl id="globalGrowl" showDetail="true" autoUpdate="true" />
+
 	<div class="app">
 		<div
 			class="sidebar #{dashboardBean.sidebarCollapsed ? 'collapsed' : ''}"
@@ -408,7 +408,7 @@
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cPautas" widgetVar="navPautas"
 							style="display:none"
-							action="#{dashboardBean.navigate('evaluation/report-cards','pautas')}"
+							action="#{dashboardBean.navigate('annual-results/annual-result-list','pautas')}"
 							update=":contentPanel :topbarInfo" />
 						<p:commandButton id="cMens" widgetVar="navMens"
 							style="display:none"
@@ -438,6 +438,11 @@
 						<p:commandButton id="cSms" widgetVar="navSms" style="display:none"
 							action="#{dashboardBean.navigate('config/sms-email','sms')}"
 							update=":contentPanel :topbarInfo" />
+
+						<p:commandButton id="cAnnual" widgetVar="navSms" style="display:none"
+							action="#{dashboardBean.navigate('annual-results/annual-result-list','pauta')}"
+							update=":contentPanel :topbarInfo" />
+							
 						<p:commandButton id="cFeeItems" widgetVar="navFeeItems"
 							style="display:none"
 							action="#{dashboardBean.navigate('fee-items/fee-items-list','feeitems')}"

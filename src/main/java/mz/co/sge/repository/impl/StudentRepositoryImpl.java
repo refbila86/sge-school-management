@@ -96,7 +96,8 @@ public class StudentRepositoryImpl implements IStudentRepository
 	{
 		if (name == null || name.isBlank())
 			return findAll();
-		return em.createQuery("SELECT s FROM StudentEntity s WHERE LOWER(s.firstName) LIKE :term OR LOWER(s.lastName) LIKE :term OR LOWER(s.code) LIKE :term",
+		return em.createQuery(
+				"SELECT s FROM StudentEntity s WHERE LOWER(s.firstName) LIKE :term OR LOWER(s.lastName) LIKE :term OR LOWER(s.code) LIKE :term OR LOWER(s.biNumber) LIKE :term",
 				StudentEntity.class).setParameter("term", "%" + name.toLowerCase() + "%").getResultList();
 	}
 
@@ -149,15 +150,21 @@ public class StudentRepositoryImpl implements IStudentRepository
 	@Override
 	public List<StudentEntity> findAllWithDetails()
 	{
-		return em.createQuery("SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian LEFT JOIN FETCH s.enrollments ORDER BY s.firstName",
-				StudentEntity.class).getResultList();
+		return em
+				.createQuery(
+						"SELECT DISTINCT s FROM StudentEntity s " + "LEFT JOIN FETCH s.guardian " + "LEFT JOIN FETCH s.enrollments e "
+								+ "LEFT JOIN FETCH e.school " + "LEFT JOIN FETCH e.academicYear " + "LEFT JOIN FETCH e.classroom " + "ORDER BY s.firstName",
+						StudentEntity.class)
+				.getResultList();
 	}
 
 	@Override
 	public Optional<StudentEntity> findByIdWithDetails(Long id)
 	{
 		List<StudentEntity> list = em
-				.createQuery("SELECT DISTINCT s FROM StudentEntity s LEFT JOIN FETCH s.guardian LEFT JOIN FETCH s.enrollments WHERE s.id = :id",
+				.createQuery(
+						"SELECT DISTINCT s FROM StudentEntity s " + "LEFT JOIN FETCH s.guardian " + "LEFT JOIN FETCH s.enrollments e "
+								+ "LEFT JOIN FETCH e.school " + "LEFT JOIN FETCH e.academicYear " + "LEFT JOIN FETCH e.classroom " + "WHERE s.id = :id",
 						StudentEntity.class)
 				.setParameter("id", id).getResultList();
 		return list.stream().findFirst();
@@ -180,7 +187,7 @@ public class StudentRepositoryImpl implements IStudentRepository
 	@Override
 	public List<Long> findNewStudentIds()
 	{
-		return em.createNamedQuery("Student.findNewStudentIds", Long.class).getResultList();
+		return em.createNamedQuery("StudentEntity.findNewStudentIds", Long.class).getResultList();
 	}
 
 	@Override
@@ -188,7 +195,9 @@ public class StudentRepositoryImpl implements IStudentRepository
 	{
 		if (ids == null || ids.isEmpty())
 			return List.of();
-		return em.createNamedQuery("Student.findIdsWithPaidPaymentInYear", Long.class).setParameter("ids", ids).setParameter("yearId", yearId).getResultList();
+		return em.createQuery(
+				"SELECT DISTINCT s.id FROM StudentEntity s JOIN s.enrollments e WHERE s.id IN :ids AND e.academicYear.id = :yearId AND e.status = 'PAID'",
+				Long.class).setParameter("ids", ids).setParameter("yearId", yearId).getResultList();
 	}
 
 	@Override
@@ -196,22 +205,19 @@ public class StudentRepositoryImpl implements IStudentRepository
 	{
 		if (ids == null || ids.isEmpty())
 			return List.of();
-		return em.createNamedQuery("Student.findByIds", StudentEntity.class).setParameter("ids", ids).getResultList();
+		return em.createNamedQuery("StudentEntity.findByIds", StudentEntity.class).setParameter("ids", ids).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId)
 	{
-		return em.createNamedQuery("StudentEntity.findByClassroom", StudentEntity.class)
-				.setParameter("classroomId", classroomId)
+		return em.createNamedQuery("StudentEntity.findByClassroom", StudentEntity.class).setParameter("classroomId", classroomId)
 				.setParameter("yearId", academicYearId).getResultList();
 	}
 
 	@Override
 	public List<StudentEntity> findByClassroomId(Long classroomId)
 	{
-		return em.createNamedQuery("StudentEntity.findByClassroomId", 
-				StudentEntity.class).setParameter("classroomId", classroomId)
-				.getResultList();
+		return em.createNamedQuery("StudentEntity.findByClassroomId", StudentEntity.class).setParameter("classroomId", classroomId).getResultList();
 	}
 }

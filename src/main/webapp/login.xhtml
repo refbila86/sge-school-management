@@ -4,753 +4,776 @@
 	xmlns:f="jakarta.faces.core" xmlns:p="http://primefaces.org/ui"
 	xmlns:ui="jakarta.faces.facelets">
 <h:head>
-	<title>SGE - Acesso</title>
+	<title>SGE - Controlo Interno de Alunos</title>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link
-		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
 		rel="stylesheet" />
 	<style type="text/css">
 /*<![CDATA[*/
+:root {
+	--navy: #0a2540;
+	--blue: #15558a;
+	--blue-2: #1e7bc0;
+	--sky: #38bdf8;
+	--soft: #eaf3fb;
+	--text: #0f1f33;
+	--muted: #5b6b7e;
+	--line: #dbe6f1;
+}
+
 * {
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box
+	box-sizing: border-box;
 }
 
 body {
-	font-family: 'Poppins', sans-serif;
+	font-family: 'Inter', sans-serif;
+	font-size: 15px;
+	line-height: 1.5;
 	min-height: 100vh;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 20px;
-	overflow-x: hidden;
-	background: radial-gradient(circle at 15% 15%, rgba(94, 234, 212, .18),
-		transparent 25%),
-		radial-gradient(circle at 85% 85%, rgba(56, 189, 248, .18),
-		transparent 25%),
-		radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .06),
-		transparent 60%),
-		linear-gradient(135deg, #061a30 0%, #0b2d50 40%, #125a90 100%);
-}
-
-body::before {
-	content: "";
-	position: fixed;
-	inset: 0;
-	background-image: radial-gradient(rgba(255, 255, 255, .08) 1px,
-		transparent 1px);
-	background-size: 26px 26px;
-	opacity: .35;
-	pointer-events: none;
+	padding: 24px;
+	color: var(--text);
+	background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, .25),
+		transparent 30%),
+		radial-gradient(circle at 90% 90%, rgba(30, 123, 192, .25),
+		transparent 30%),
+		linear-gradient(135deg, #061a30 0%, #0a2a4d 50%, #14649f 100%);
 }
 
 .login-container {
-	position: relative;
-	z-index: 10;
 	width: 100%;
 	max-width: 1100px;
 	min-height: 680px;
 	display: grid;
-	grid-template-columns: 1.05fr 1fr;
-	background: rgba(255, 255, 255, .98);
-	border-radius: 28px;
+	grid-template-columns: 6fr 5fr;
+	background: #fff;
+	border-radius: 24px;
 	overflow: hidden;
-	box-shadow: 0 30px 90px rgba(0, 0, 0, .4), 0 0 0 1px
-		rgba(255, 255, 255, .2) inset;
-	animation: loginAppear .8s ease;
+	box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
 }
 
-@
-keyframes loginAppear {
-	from {opacity: 0;
-	transform: translateY(40px) scale(.97)
-}
-
-to {
-	opacity: 1;
-	transform: translateY(0) scale(1)
-}
-
-}
-
-/* LEFT */
+/* ---------- ESQUERDA (azul) ---------- */
 .login-left {
 	position: relative;
 	display: flex;
-	align-items: center;
+	flex-direction: column;
 	justify-content: center;
-	padding: 44px 46px;
+	padding: 56px 46px;
 	color: #fff;
 	overflow: hidden;
-	background: linear-gradient(145deg, #071d35 0%, #0c355d 48%, #17679e 100%);
+	background: linear-gradient(150deg, #071d35 0%, #0c3a68 50%, #1673b0 100%);
 }
 
 .login-left::before {
 	content: "";
 	position: absolute;
-	width: 520px;
-	height: 520px;
+	width: 460px;
+	height: 460px;
 	border-radius: 50%;
-	background: radial-gradient(circle, rgba(255, 255, 255, .14),
+	top: -170px;
+	right: -170px;
+	background: radial-gradient(circle, rgba(255, 255, 255, .16),
 		transparent 68%);
-	top: -200px;
-	right: -180px;
-	animation: float 6s ease-in-out infinite;
 }
 
 .login-left::after {
 	content: "";
 	position: absolute;
-	width: 380px;
-	height: 380px;
+	width: 340px;
+	height: 340px;
 	border-radius: 50%;
-	background: radial-gradient(circle, rgba(56, 189, 248, .18), transparent
-		70%);
 	bottom: -120px;
 	left: -120px;
+	background: radial-gradient(circle, rgba(56, 189, 248, .25), transparent
+		70%);
 }
 
-@
-keyframes float { 0%,100%{
-	transform: translateY(0)
+.login-left>* {
+	position: relative;
+	z-index: 2;
 }
 
-50
-
-
-%
-{
-transform
-
-
-:
-
-
-translateY
-(
-
-
--14px
-
-
-)
-
-
-}
-}
-.brand-top {
+.brand-row {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	margin-bottom: 18px;
-	opacity: .85
-}
-
-.brand-top i {
-	font-size: 14px
-}
-
-.brand-top span {
-	font-size: 10px;
-	letter-spacing: 1.4px;
-	text-transform: uppercase;
-	font-weight: 600
+	gap: 14px;
+	margin-bottom: 16px;
 }
 
 .brand-logo {
-	width: 108px;
-	height: 108px;
-	border-radius: 26px;
+	width: 56px;
+	height: 56px;
+	border-radius: 16px;
+	background: linear-gradient(145deg, #38bdf8, #2563eb);
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(145deg, rgba(255, 255, 255, .22),
-		rgba(255, 255, 255, .06));
-	border: 1px solid rgba(255, 255, 255, .22);
-	box-shadow: 0 12px 30px rgba(0, 0, 0, .25), inset 0 1px 0
-		rgba(255, 255, 255, .2);
-	margin-bottom: 18px;
-	position: relative;
-}
-
-.brand-logo::after {
-	content: "";
-	position: absolute;
-	inset: -6px;
-	border-radius: 30px;
-	border: 1px dashed rgba(255, 255, 255, .18)
+	box-shadow: 0 12px 28px rgba(14, 165, 233, .4);
 }
 
 .brand-logo i {
-	font-size: 52px;
-	color: #fff;
-	filter: drop-shadow(0 2px 10px rgba(255, 255, 255, .3))
+	font-size: 26px;
 }
 
 .brand-title {
-	font-size: 52px;
-	font-weight: 800;
-	letter-spacing: 8px;
-	line-height: 1;
-	margin-bottom: 4px
+	font-size: 40px;
+	font-weight: 700;
+	letter-spacing: 3px;
 }
 
 .brand-subtitle {
-	font-size: 13px;
-	font-weight: 300;
-	opacity: .88;
-	margin-bottom: 28px;
-	display: flex;
-	align-items: center;
-	gap: 8px
-}
-
-.brand-subtitle i {
-	font-size: 12px
+	font-size: 16px;
+	color: rgba(255, 255, 255, .82);
+	margin-bottom: 38px;
+	max-width: 320px;
 }
 
 .features-list {
 	display: flex;
 	flex-direction: column;
-	gap: 9px;
-	position: relative;
-	z-index: 2
+	gap: 12px;
 }
 
 .feature-item {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 11px 13px;
-	border-radius: 12px;
-	background: rgba(255, 255, 255, .07);
-	border: 1px solid rgba(255, 255, 255, .09);
-	transition: all .22s;
-	cursor: default;
-}
-
-.feature-item:hover {
-	background: rgba(255, 255, 255, .12);
-	transform: translateX(4px);
-	border-color: rgba(255, 255, 255, .18)
+	gap: 14px;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .12);
 }
 
 .feature-icon {
-	width: 38px;
-	height: 38px;
-	min-width: 38px;
+	width: 42px;
+	height: 42px;
+	min-width: 42px;
+	border-radius: 12px;
+	background: rgba(125, 211, 252, .18);
+	color: #7dd3fc;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 10px;
-	background: rgba(255, 255, 255, .13);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
 }
 
 .feature-icon i {
-	font-size: 16px
+	font-size: 18px;
 }
 
 .feature-text strong {
-	font-size: 11px;
-	font-weight: 600;
 	display: block;
-	letter-spacing: .2px
+	font-size: 15px;
+	font-weight: 600;
 }
 
 .feature-text span {
-	font-size: 10px;
-	opacity: .72
+	font-size: 13.5px;
+	color: rgba(255, 255, 255, .72);
 }
 
-.feature-badge {
-	margin-left: auto;
-	font-size: 8px;
+/* ---------- ESQUERDA: dois painéis ---------- */
+.login-left {
+	justify-content: stretch;
+	gap: 16px;
+	padding: 28px;
+}
+
+.panel {
+	border-radius: 20px;
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .14);
+	backdrop-filter: blur(6px);
+}
+
+.panel-brand {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	padding: 22px 24px;
+}
+
+.school-logo {
+	width: 92px;
+	height: 92px;
+	min-width: 92px;
+	filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .3));
+}
+
+.panel-brand .brand-title {
+	font-size: 34px;
 	font-weight: 700;
-	background: rgba(34, 197, 94, .18);
-	color: #86efac;
-	border: 1px solid rgba(34, 197, 94, .25);
-	padding: 3px 7px;
-	border-radius: 20px
+	letter-spacing: 4px;
+	line-height: 1.1;
 }
 
-.left-stats {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	gap: 10px;
-	margin-top: 22px;
-	position: relative;
-	z-index: 2
+.brand-name {
+	font-size: 15px;
+	font-weight: 600;
+	color: rgba(255, 255, 255, .92);
+	margin-top: 2px;
 }
 
-.stat-box {
+.brand-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 10px;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: 600;
+	background: rgba(125, 211, 252, .18);
+	color: #bae6fd;
+}
+
+.panel-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 26px 26px 20px;
+}
+
+.info-title {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.3;
+	margin-bottom: 8px;
+}
+
+.info-desc {
+	font-size: 14px;
+	line-height: 1.6;
+	color: rgba(255, 255, 255, .8);
+	margin-bottom: 18px;
+}
+
+.panel-info .features-list {
+	gap: 8px;
+}
+
+.panel-info .feature-item {
+	padding: 9px 12px;
 	background: rgba(255, 255, 255, .06);
-	border: 1px solid rgba(255, 255, 255, .08);
-	border-radius: 12px;
-	padding: 10px 12px;
-	text-align: center
 }
 
-.stat-box i {
+.panel-info .feature-icon {
+	width: 36px;
+	height: 36px;
+	min-width: 36px;
+	border-radius: 10px;
+}
+
+.panel-info .feature-icon i {
+	font-size: 16px;
+}
+
+.panel-info .feature-text strong {
 	font-size: 14px;
-	display: block;
-	margin-bottom: 4px;
-	opacity: .9
 }
 
-.stat-box strong {
-	font-size: 14px;
-	display: block
+.panel-info .feature-text span {
+	font-size: 12.5px;
 }
 
-.stat-box span {
-	font-size: 8px;
-	opacity: .7;
-	text-transform: uppercase;
-	letter-spacing: .6px
+.info-foot {
+	margin-top: auto;
+	padding-top: 16px;
+	font-size: 12.5px;
+	color: rgba(255, 255, 255, .7);
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
-/* RIGHT */
+/* ---------- DIREITA (branco com vida) ---------- */
 .login-right {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 28px 42px;
-	position: relative
+	padding: 48px 54px;
+	background: radial-gradient(circle at 100% 0%, rgba(56, 189, 248, .16),
+		transparent 35%),
+		radial-gradient(circle at 0% 100%, rgba(21, 85, 138, .08), transparent
+		35%), #fff;
+}
+
+.login-right::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 6px;
+	background: linear-gradient(90deg, var(--navy), var(--blue-2),
+		var(--sky));
 }
 
 .login-form-container {
 	width: 100%;
-	max-width: 400px
+	max-width: 390px;
 }
 
-.top-actions {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 14px
-}
-
-.top-actions .mini {
-	display: flex;
-	gap: 8px
-}
-
-.mini-icon {
-	width: 30px;
-	height: 30px;
-	border-radius: 8px;
-	border: 1px solid #e2e8f0;
-	background: #fff;
+.steps {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	color: #64748b;
-	font-size: 12px
+	gap: 10px;
+	margin-bottom: 30px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #8b99ab;
 }
 
-.step-indicator {
+.steps .step {
 	display: flex;
 	align-items: center;
-	gap: 0;
-	margin-bottom: 10px;
-	position: relative
+	gap: 8px;
 }
 
-.step-line {
-	flex: 1;
-	height: 2px;
-	background: #e2e8f0;
-	margin: 0 6px
+.steps .step.active {
+	color: var(--navy);
+	font-weight: 600;
 }
 
-.step-line.done {
-	background: #15558a
-}
-
-.step-circle {
+.steps .dot {
 	width: 28px;
 	height: 28px;
 	border-radius: 50%;
+	border: 1.5px solid currentColor;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 12px;
-	background: #e2e8f0;
-	color: #94a3b8;
-	border: 2px solid #e2e8f0;
-	transition: .2s
 }
 
-.step-circle.active {
-	background: #0a2540;
-	border-color: #0a2540;
+.steps .step.active .dot {
+	background: linear-gradient(135deg, var(--navy), var(--blue-2));
+	border-color: transparent;
 	color: #fff;
-	box-shadow: 0 6px 18px rgba(10, 37, 64, .25)
+	box-shadow: 0 6px 16px rgba(21, 85, 138, .35);
 }
 
-.step-labels {
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: 16px;
-	font-size: 9px;
+.steps .bar {
+	flex: 1;
+	height: 2px;
+	border-radius: 2px;
+	background: var(--line);
+}
+
+.steps .bar.done {
+	background: linear-gradient(90deg, var(--navy), var(--blue-2));
+}
+
+.form-title {
+	font-size: 30px;
 	font-weight: 700;
-	letter-spacing: .8px;
-	text-transform: uppercase;
-	color: #94a3b8
+	line-height: 1.2;
+	margin-bottom: 6px;
+	color: var(--navy);
 }
 
-.step-labels span.active {
-	color: #0a2540
+.form-sub {
+	font-size: 15px;
+	color: var(--muted);
+	margin-bottom: 26px;
 }
 
-.step-labels i {
-	margin-right: 4px
+.form-sub b {
+	color: var(--blue);
 }
 
 .input-group {
-	margin-bottom: 13px
+	margin-bottom: 18px;
 }
 
 .input-label {
 	display: flex;
 	align-items: center;
-	gap: 6px;
-	font-size: 11px;
+	font-size: 14px;
 	font-weight: 600;
-	color: #334155;
-	margin-bottom: 6px
+	margin-bottom: 8px;
+	color: var(--navy);
 }
 
-.input-label i {
-	font-size: 11px;
-	color: #5a7a9a
+.input-label .hint {
+	margin-left: auto;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--blue-2);
+	cursor: pointer;
 }
 
 .input-wrapper {
 	position: relative;
-	width: 100%
+	width: 100%;
 }
 
+/* ícone dentro de uma pastilha azul */
 .input-icon {
 	position: absolute;
 	z-index: 5;
-	left: 14px;
+	left: 8px;
 	top: 50%;
 	transform: translateY(-50%);
-	color: #5a7a9a;
-	font-size: 14px;
-	pointer-events: none
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--soft);
+	color: var(--blue);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
+	pointer-events: none;
 }
 
 .custom-input {
 	width: 100%;
-	height: 48px;
-	padding-left: 42px;
-	padding-right: 14px;
-	border-radius: 11px;
-	border: 1px solid #dce4ec;
-	background: #f8fafc;
-	color: #1e293b;
-	font-family: 'Poppins', sans-serif;
-	font-size: 12.5px;
+	height: 54px;
+	padding: 0 48px 0 56px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
+	color: var(--text);
+	font-family: 'Inter', sans-serif;
+	font-size: 15px;
 	outline: none;
-	transition: all .18s;
+	transition: border-color .15s, box-shadow .15s;
+}
+
+.custom-input::placeholder {
+	color: #a5b1c0;
 }
 
 .custom-input:focus {
-	border-color: #15558a;
-	background: #fff;
-	box-shadow: 0 0 0 4px rgba(21, 85, 138, .12)
+	border-color: var(--blue-2);
+	box-shadow: 0 0 0 4px rgba(30, 123, 192, .16);
 }
 
 .eye-btn {
 	position: absolute;
-	right: 12px;
+	right: 8px;
 	top: 50%;
 	transform: translateY(-50%);
-	background: none;
+	width: 36px;
+	height: 36px;
 	border: none;
-	color: #94a3b8;
+	border-radius: 10px;
+	background: none;
+	color: #8b99ab;
+	font-size: 16px;
 	cursor: pointer;
-	font-size: 14px
+}
+
+.eye-btn:hover {
+	background: var(--soft);
+	color: var(--blue);
 }
 
 /* PrimeFaces Select */
 .custom-select.ui-selectonemenu {
 	width: 100% !important;
-	height: 48px !important;
-	border-radius: 11px !important;
-	border: 1px solid #dce4ec !important;
-	background: #f8fafc !important;
+	height: 54px !important;
+	border-radius: 14px !important;
+	border: 1.5px solid var(--line) !important;
+	background: #fff !important;
 	display: flex !important;
 	align-items: center !important;
 	box-shadow: none !important;
-	transition: .18s !important
 }
 
 .custom-select.ui-selectonemenu.ui-state-focus {
-	border-color: #15558a !important;
-	background: #fff !important;
-	box-shadow: 0 0 0 4px rgba(21, 85, 138, .12) !important
+	border-color: var(--blue-2) !important;
+	box-shadow: 0 0 0 4px rgba(30, 123, 192, .16) !important;
 }
 
 .custom-select .ui-selectonemenu-label {
-	padding-left: 42px !important;
-	font-family: 'Poppins', sans-serif !important;
-	font-size: 12.5px !important;
-	color: #1e293b !important;
-	margin-top: 0 !important
+	padding-left: 56px !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 15px !important;
+	color: var(--text) !important;
+	margin-top: 0 !important;
 }
 
 .custom-select .ui-selectonemenu-trigger {
-	width: 38px !important;
+	width: 40px !important;
 	background: transparent !important;
 	border: none !important;
-	color: #5a7a9a !important
+	color: var(--blue) !important;
 }
 
+/* Perfis */
 .profiles-title {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	margin-top: 14px;
-	margin-bottom: 9px;
-	color: #64748b;
-	font-size: 9px;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	font-weight: 700
-}
-
-.profiles-title::before, .profiles-title::after {
-	content: "";
-	flex: 1;
-	height: 1px;
-	background: #e2e8f0
+	font-size: 14px;
+	font-weight: 600;
+	margin: 24px 0 10px;
+	color: var(--navy);
 }
 
 .profiles-select {
 	display: flex;
-	justify-content: center;
-	gap: 8px
+	gap: 10px;
 }
 
 .profile-opt {
-	cursor: pointer;
 	flex: 1;
-	padding: 11px 6px;
-	border-radius: 12px;
-	border: 1.5px solid #e2e8f0;
-	background: #f8fafc;
+	padding: 14px 6px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
 	text-align: center;
-	transition: all .2s;
-	position: relative;
-	overflow: hidden
+	cursor: pointer;
+	transition: border-color .15s, background .15s, transform .15s,
+		box-shadow .15s;
 }
 
 .profile-opt:hover {
-	border-color: #15558a;
+	border-color: var(--blue-2);
 	transform: translateY(-2px);
-	background: #fff;
-	box-shadow: 0 10px 20px rgba(0, 0, 0, .06)
+	box-shadow: 0 10px 22px rgba(10, 37, 64, .1);
 }
 
 .profile-opt i {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	margin: 0 auto 8px;
+	border-radius: 12px;
+	background: var(--soft);
+	color: var(--blue);
 	font-size: 18px;
-	display: block;
-	margin-bottom: 4px
+}
+
+.profile-opt .p-name {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.profile-opt .p-desc {
+	font-size: 12px;
+	color: var(--muted);
 }
 
 .profile-opt.active {
-	background: #0a2540 !important;
-	border-color: #0a2540 !important;
-	color: #fff !important;
-	box-shadow: 0 10px 24px rgba(10, 37, 64, .28)
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 12px 26px rgba(10, 37, 64, .3);
 }
 
-.profile-opt .check {
-	position: absolute;
-	top: 6px;
-	right: 6px;
-	font-size: 10px;
-	background: #fff;
-	color: #0a2540;
-	width: 16px;
-	height: 16px;
-	border-radius: 50%;
-	display: none;
-	align-items: center;
-	justify-content: center
+.profile-opt.active i {
+	background: rgba(255, 255, 255, .16);
+	color: #7dd3fc;
 }
 
-.profile-opt.active .check {
-	display: flex
+.profile-opt.active .p-desc {
+	color: rgba(255, 255, 255, .75);
+}
+
+/* Anos */
+.years-wrap {
+	max-height: 320px;
+	overflow-y: auto;
+	padding: 4px;
 }
 
 .year-card {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 14px 14px;
-	border-radius: 12px;
-	border: 1.5px solid #e2e8f0;
-	background: #f8fafc;
+	gap: 14px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
 	margin-bottom: 10px;
 	cursor: pointer;
-	transition: all .2s;
-	position: relative
+	transition: border-color .15s, transform .15s, box-shadow .15s;
 }
 
 .year-card:hover {
-	border-color: #15558a;
+	border-color: var(--blue-2);
 	transform: translateY(-2px);
-	background: #fff;
-	box-shadow: 0 8px 20px rgba(0, 0, 0, .06)
+	box-shadow: 0 10px 22px rgba(10, 37, 64, .1);
 }
 
 .year-card.selected {
-	background: #0a2540 !important;
-	border-color: #0a2540 !important;
-	color: #fff !important;
-	box-shadow: 0 12px 28px rgba(10, 37, 64, .3)
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 12px 26px rgba(10, 37, 64, .3);
 }
 
-.year-card .year-icon {
-	width: 44px;
-	height: 44px;
-	min-width: 44px;
+.year-info {
+	flex: 1;
+}
+
+.year-top {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	border-radius: 11px;
-	background: #e0f2fe;
-	color: #0284c7;
-	transition: .2s
+	gap: 10px;
 }
 
-.year-card.selected .year-icon {
-	background: rgba(255, 255, 255, .14) !important;
-	color: #fff !important
+.year-num {
+	font-size: 19px;
+	font-weight: 700;
 }
 
 .year-badge {
-	font-size: 8px;
-	font-weight: 700;
-	padding: 3px 7px;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 2px 10px;
 	border-radius: 20px;
-	background: #dcfce7;
-	color: #15803d;
-	border: 1px solid #bbf7d0
+	background: #e1f6e9;
+	color: #1d7a3e;
+}
+
+.year-badge.hist {
+	background: #eef1f5;
+	color: var(--muted);
 }
 
 .year-card.selected .year-badge {
-	background: rgba(34, 197, 94, .2);
+	background: rgba(74, 222, 128, .22);
 	color: #86efac;
-	border-color: rgba(34, 197, 94, .3)
+}
+
+.year-card.selected .year-badge.hist {
+	background: rgba(255, 255, 255, .16);
+	color: #dbe6f1;
 }
 
 .year-meta {
-	display: flex;
-	align-items: center;
-	gap: 6px;
+	font-size: 13px;
+	color: var(--muted);
 	margin-top: 2px;
-	font-size: 10px;
-	opacity: .75
 }
 
-/* BOTOES PRIMEFACES */
+.year-card.selected .year-meta {
+	color: rgba(255, 255, 255, .75);
+}
+
+.year-radio {
+	font-size: 20px;
+	color: #b4c0cf;
+}
+
+.year-card.selected .year-radio {
+	color: #7dd3fc;
+}
+
+.empty-years {
+	text-align: center;
+	padding: 28px 12px;
+	color: var(--muted);
+	font-size: 14px;
+	display: block;
+}
+
+.empty-years i {
+	display: block;
+	font-size: 28px;
+	margin-bottom: 8px;
+	color: var(--blue-2);
+}
+
+/* Botões */
 .ui-button.login-button {
 	width: 100% !important;
-	height: 50px !important;
+	height: 54px !important;
 	border: none !important;
-	border-radius: 11px !important;
-	background: linear-gradient(135deg, #092541 0%, #15558a 100%) !important;
+	border-radius: 14px !important;
+	background: linear-gradient(135deg, var(--navy) 0%, var(--blue-2) 100%)
+		!important;
 	color: #fff !important;
-	font-family: 'Poppins', sans-serif !important;
-	font-size: 13px !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 15px !important;
 	font-weight: 600 !important;
-	box-shadow: 0 10px 24px rgba(9, 37, 65, .28) !important;
-	margin-top: 14px;
-	position: relative;
-	overflow: hidden;
-	transition: .2s !important;
+	margin-top: 26px;
+	box-shadow: 0 14px 28px rgba(21, 85, 138, .35) !important;
+	transition: transform .15s, box-shadow .15s !important;
 }
 
 .ui-button.login-button:hover {
-	transform: translateY(-1px);
-	box-shadow: 0 14px 30px rgba(9, 37, 65, .32) !important
+	transform: translateY(-2px);
+	box-shadow: 0 18px 34px rgba(21, 85, 138, .4) !important;
 }
 
-.ui-button.login-button .ui-button-text {
+.ui-button.login-button .ui-button-text, .ui-button.login-button .ui-icon
+	{
 	color: #fff !important;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px
 }
 
 .ui-button.btn-secondary {
 	width: 100% !important;
-	height: 44px !important;
-	border-radius: 11px !important;
-	border: 1px solid #e2e8f0 !important;
+	height: 48px !important;
+	border-radius: 14px !important;
+	border: 1.5px solid var(--line) !important;
 	background: #fff !important;
-	color: #475569 !important;
-	font-family: 'Poppins', sans-serif !important;
-	font-size: 12px !important;
+	color: var(--blue) !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 14px !important;
 	font-weight: 600 !important;
-	margin-top: 10px
+	margin-top: 10px;
+	box-shadow: none !important;
 }
 
-.ui-button.btn-secondary .ui-button-text {
-	color: #475569 !important;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 6px
+.ui-button.btn-secondary:hover {
+	background: var(--soft) !important;
+}
+
+.ui-button.btn-secondary .ui-button-text, .ui-button.btn-secondary .ui-icon
+	{
+	color: var(--blue) !important;
+}
+
+.ui-button:focus-visible {
+	outline: 3px solid rgba(30, 123, 192, .4) !important;
+	outline-offset: 2px;
 }
 
 .alert-error {
-	background: #fde8e8;
-	border: 1px solid #f8b4b4;
-	color: #9b1c1c;
-	padding: 11px 14px;
-	border-radius: 10px;
-	font-size: 12px;
-	margin-bottom: 14px;
-	display: flex;
-	gap: 8px;
-	align-items: flex-start
+	background: #fdeeee;
+	border: 1px solid #f5c6c6;
+	color: #a61b1b;
+	padding: 12px 14px;
+	border-radius: 12px;
+	font-size: 14px;
+	margin-bottom: 18px;
 }
 
-.secure-foot {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 14px;
-	margin-top: 18px;
-	color: #a1acb9;
-	font-size: 9px
-}
-
-.secure-foot i {
-	font-size: 11px
+.form-foot {
+	text-align: center;
+	margin-top: 28px;
+	font-size: 13px;
+	color: #8b99ab;
 }
 
 @media ( max-width :900px) {
 	.login-container {
-		max-width: 520px;
-		grid-template-columns: 1fr
+		max-width: 480px;
+		grid-template-columns: 1fr;
+		min-height: 0;
 	}
 	.login-left {
-		display: none
+		display: none;
 	}
 	.login-right {
-		padding: 28px 24px
+		padding: 40px 24px;
+	}
+}
+
+@media ( prefers-reduced-motion : reduce) {
+	* {
+		transition: none !important;
 	}
 }
 /*]]>*/
@@ -760,68 +783,98 @@ translateY
 	<div class="login-container">
 		<!-- ESQUERDA -->
 		<div class="login-left">
-			<div style="position: relative; z-index: 2; width: 100%">
-				<div class="brand-top">
-					<i class="pi pi-shield"></i><span>Sistema Seguro • v3.2</span> <span
-						style="margin-left: auto; display: flex; align-items: center; gap: 6px"><i
-						class="pi pi-circle-fill" style="font-size: 8px; color: #22c55e"></i>
-						Online</span>
+			<!-- Painel 1: identidade -->
+			<div class="panel panel-brand">
+				<svg class="school-logo" viewBox="0 0 120 120" role="img"
+					aria-label="Logótipo da escola">
+					<defs>
+						<linearGradient id="lgBg" x1="0" y1="0" x2="1" y2="1">
+							<stop offset="0" stop-color="#38bdf8" />
+							<stop offset="1" stop-color="#1d4ed8" />
+						</linearGradient>
+					</defs>
+					<circle cx="60" cy="60" r="56" fill="url(#lgBg)" />
+					<circle cx="60" cy="60" r="56" fill="none"
+						stroke="rgba(255,255,255,.45)" stroke-width="2" />
+					<!-- bandeira -->
+					<line x1="60" y1="18" x2="60" y2="34" stroke="#fff"
+						stroke-width="2.5" stroke-linecap="round" />
+					<path d="M60 18 L76 22 L60 27 Z" fill="#fcd34d" />
+					<!-- telhado -->
+					<path d="M26 54 L60 32 L94 54 Z" fill="#fff" />
+					<!-- corpo -->
+					<rect x="32" y="54" width="56" height="30" fill="#fff"
+						opacity=".95" />
+					<!-- colunas -->
+					<rect x="38" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="50" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="64" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="76" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<!-- degraus -->
+					<rect x="28" y="84" width="64" height="5" rx="2" fill="#fff" />
+					<rect x="23" y="89" width="74" height="5" rx="2" fill="#bfdbfe" />
+					<!-- janela do frontão -->
+					<circle cx="60" cy="46" r="4.5" fill="#1d4ed8" />
+					<!-- livro -->
+					<path
+						d="M44 101 Q52 97 60 101 Q68 97 76 101 L76 108 Q68 104 60 108 Q52 104 44 108 Z"
+						fill="#fcd34d" />
+				</svg>
+				<div class="brand-text">
+					<div class="brand-title">SGE</div>
+					<div class="brand-name">Sistema de Gestão Escolar</div>
+					<div class="brand-tag">
+						<i class="pi pi-shield"></i> Controlo Interno de Alunos
+					</div>
 				</div>
-				<div class="brand-logo">
-					<i class="pi pi-graduation-cap"></i>
-				</div>
-				<h1 class="brand-title">SGE</h1>
-				<p class="brand-subtitle">
-					<i class="pi pi-sparkles"></i> Sistema de Gestão Escolar • Moderno
-					&amp; Seguro
-				</p>
+			</div>
+
+			<!-- Painel 2: o que o sistema faz -->
+			<div class="panel panel-info">
+				<h2 class="info-title">Tudo sobre os seus alunos, num só lugar</h2>
+				<p class="info-desc">O SGE organiza o dia a dia da escola:
+					regista matrículas, acompanha o percurso de cada aluno e mantém o
+					controlo interno de turmas, notas, assiduidade e pagamentos.</p>
 
 				<div class="features-list">
+					<div class="feature-item">
+						<div class="feature-icon">
+							<i class="pi pi-id-card"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Matrículas e fichas</strong><span>Inscrição,
+								renovação e dados de cada aluno</span>
+						</div>
+					</div>
 					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-users"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Alunos e Turmas</strong><span>Gestão académica
-								completa</span>
+							<strong>Turmas e classes</strong><span>Vagas e
+								distribuição por ano académico</span>
 						</div>
-						<span class="feature-badge"><i class="pi pi-check"></i>
-							Ativo</span>
 					</div>
 					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-book"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Notas e Frequência</strong><span>Boletins e
-								desempenho</span>
+							<strong>Notas e frequência</strong><span>Avaliações,
+								faltas e boletins</span>
 						</div>
-						<div class="feature-badge"
-							style="background: rgba(59, 130, 246, .15); color: #93c5fd; border-color: rgba(59, 130, 246, .25)">
-							<i class="pi pi-chart-bar"></i> Novo
-						</div>
-					</div>
-					<div class="feature-item">
-						<div class="feature-icon">
-							<i class="pi pi-calendar"></i>
-						</div>
-						<div class="feature-text">
-							<strong>Ano Académico</strong><span>Seleção inteligente
-								pós-login</span>
-						</div>
-						<span class="feature-badge"><i class="pi pi-star"></i> Core</span>
 					</div>
 					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-wallet"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Pagamentos &amp; Propinas</strong><span>Controle
-								financeiro</span>
-						</div>
-						<div class="feature-badge"
-							style="background: rgba(168, 85, 247, .15); color: #d8b4fe">
-							<i class="pi pi-lock"></i> Seguro
+							<strong>Pagamentos e propinas</strong><span>Controlo
+								financeiro por aluno</span>
 						</div>
 					</div>
 					<div class="feature-item">
@@ -829,34 +882,15 @@ translateY
 							<i class="pi pi-chart-bar"></i>
 						</div>
 						<div class="feature-text">
-							<strong>Relatórios &amp; BI</strong><span>Dashboards em
-								tempo real</span>
+							<strong>Relatórios</strong><span>Indicadores e listas
+								prontas a imprimir</span>
 						</div>
-						<span class="feature-badge"><i class="pi pi-bolt"></i> Fast</span>
-					</div>
-					<div class="feature-item">
-						<div class="feature-icon">
-							<i class="pi pi-shield"></i>
-						</div>
-						<div class="feature-text">
-							<strong>Segurança &amp; Auditoria</strong><span>Logs e
-								permissões por perfil</span>
-						</div>
-						<span class="feature-badge"><i class="pi pi-verified"></i>
-							LGPD</span>
 					</div>
 				</div>
 
-				<div class="left-stats">
-					<div class="stat-box">
-						<i class="pi pi-building"></i><strong>1.200+</strong><span>Escolas</span>
-					</div>
-					<div class="stat-box">
-						<i class="pi pi-users"></i><strong>50k+</strong><span>Alunos</span>
-					</div>
-					<div class="stat-box">
-						<i class="pi pi-heart"></i><strong>99.9%</strong><span>Uptime</span>
-					</div>
+				<div class="info-foot">
+					<i class="pi pi-lock"></i> Acesso por perfil: Admin, Professor e
+					Encarregado
 				</div>
 			</div>
 		</div>
@@ -868,60 +902,29 @@ translateY
 					<p:messages globalOnly="true" showDetail="true" closable="true"
 						styleClass="alert-error" />
 
-					<div class="top-actions">
-						<div
-							style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #94a3b8">
-							<i class="pi pi-lock" style="color: #22c55e"></i> Conexão
-							criptografada
+					<div class="steps">
+						<div class="step #{!loginBean.yearStep ? 'active' : ''}">
+							<span class="dot">1</span> Credenciais
 						</div>
-						<div class="mini">
-							<div class="mini-icon">
-								<i class="pi pi-question"></i>
-							</div>
-							<div class="mini-icon">
-								<i class="pi pi-globe"></i>
-							</div>
+						<div class="bar #{loginBean.yearStep ? 'done' : ''}"></div>
+						<div class="step #{loginBean.yearStep ? 'active' : ''}">
+							<span class="dot">2</span> Ano académico
 						</div>
-					</div>
-
-					<div class="step-indicator">
-						<div class="step-circle #{!loginBean.yearStep ? 'active' : ''}">
-							<i class="pi pi-user"></i>
-						</div>
-						<div class="step-line #{loginBean.yearStep ? 'done' : ''}"></div>
-						<div class="step-circle #{loginBean.yearStep ? 'active' : ''}">
-							<i class="pi pi-calendar"></i>
-						</div>
-					</div>
-					<div class="step-labels">
-						<span class="#{!loginBean.yearStep ? 'active' : ''}"><i
-							class="pi pi-id-card"></i> 1. Credenciais</span> <span
-							class="#{loginBean.yearStep ? 'active' : ''}"><i
-							class="pi pi-calendar-clock"></i> 2. Ano Académico</span>
 					</div>
 
 					<h:panelGroup rendered="#{!loginBean.yearStep}">
-						<h2
-							style="font-size: 22px; font-weight: 700; color: #0a2540; margin-bottom: 4px; display: flex; align-items: center; gap: 10px">
-							Bem-vindo(a)! <i class="pi pi-sparkles"
-								style="color: #15558a; font-size: 18px"></i>
-						</h2>
-						<p
-							style="font-size: 11px; color: #64748b; margin-bottom: 18px; display: flex; gap: 6px">
-							<i class="pi pi-info-circle"></i> Preencha seus dados para
-							continuar
-						</p>
+						<h2 class="form-title">Bem-vindo(a)</h2>
+						<p class="form-sub">Preencha os seus dados para continuar.</p>
 
 						<div class="input-group">
-							<label class="input-label"><i class="pi pi-building"></i>
-								Escola *</label>
+							<label class="input-label">Escola</label>
 							<div class="input-wrapper">
 								<i class="pi pi-building input-icon"></i>
 								<p:selectOneMenu value="#{loginBean.schoolId}"
 									styleClass="custom-select" required="true"
 									requiredMessage="Escolha escola">
-									<f:selectItem itemLabel="Selecione sua escola..." itemValue=""
-										noSelectionOption="true" />
+									<f:selectItem itemLabel="Selecione a sua escola..."
+										itemValue="" noSelectionOption="true" />
 									<f:selectItems value="#{loginBean.schools}" var="s"
 										itemLabel="#{s.name}" itemValue="#{s.id}" />
 								</p:selectOneMenu>
@@ -929,8 +932,7 @@ translateY
 						</div>
 
 						<div class="input-group">
-							<label class="input-label"><i class="pi pi-user"></i>
-								Utilizador *</label>
+							<label class="input-label">Utilizador</label>
 							<div class="input-wrapper">
 								<i class="pi pi-user input-icon"></i>
 								<h:inputText value="#{loginBean.username}"
@@ -940,16 +942,14 @@ translateY
 						</div>
 
 						<div class="input-group">
-							<label class="input-label"><i class="pi pi-lock"></i>
-								Senha * <span
-								style="margin-left: auto; font-weight: 400; font-size: 10px; color: #94a3b8"><i
-									class="pi pi-eye-slash"></i> Esqueceu?</span></label>
+							<label class="input-label">Senha <span class="hint">Esqueceu?</span></label>
 							<div class="input-wrapper">
 								<i class="pi pi-lock input-icon"></i>
 								<h:inputSecret id="pwd" value="#{loginBean.password}"
 									styleClass="custom-input" placeholder="••••••••"
 									required="true" />
-								<button type="button" class="eye-btn" onclick="togglePwd()">
+								<button type="button" class="eye-btn" onclick="togglePwd()"
+									aria-label="Mostrar ou ocultar senha">
 									<i id="eyeIcon" class="pi pi-eye"></i>
 								</button>
 							</div>
@@ -957,109 +957,79 @@ translateY
 
 						<h:inputHidden id="selectedProfile"
 							value="#{loginBean.selectedProfile}" />
-						<div class="profiles-title">
-							<i class="pi pi-users"></i> Perfil de acesso
-						</div>
+						<div class="profiles-title">Perfil de acesso</div>
 						<div class="profiles-select">
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'ADMIN' ? 'active' : ''}"
 								onclick="selectProfile('ADMIN',this)">
-								<span class="check"><i class="pi pi-check"></i></span><i
-									class="pi pi-cog"></i>
-								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Admin</div>
-								<div style="font-size: 8px; opacity: .7">Total</div>
+								<i class="pi pi-cog"></i>
+								<div class="p-name">Admin</div>
+								<div class="p-desc">Acesso total</div>
 							</div>
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'TEACHER' ? 'active' : ''}"
 								onclick="selectProfile('TEACHER',this)">
-								<span class="check"><i class="pi pi-check"></i></span><i
-									class="pi pi-book"></i>
-								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Professor</div>
-								<div style="font-size: 8px; opacity: .7">Turmas</div>
+								<i class="pi pi-book"></i>
+								<div class="p-name">Professor</div>
+								<div class="p-desc">Turmas</div>
 							</div>
 							<div
 								class="profile-opt #{loginBean.selectedProfile eq 'GUARDIAN' ? 'active' : ''}"
 								onclick="selectProfile('GUARDIAN',this)">
-								<span class="check"><i class="pi pi-check"></i></span><i
-									class="pi pi-heart"></i>
-								<div style="font-size: 10px; font-weight: 700; margin-top: 4px">Encarregado</div>
-								<div style="font-size: 8px; opacity: .7">Filhos</div>
+								<i class="pi pi-heart"></i>
+								<div class="p-name">Encarregado</div>
+								<div class="p-desc">Educandos</div>
 							</div>
 						</div>
 
-						<p:commandButton value="Próximo → Selecionar Ano"
-							icon="pi pi-arrow-right" iconPos="right"
-							action="#{loginBean.goToYearStep}" styleClass="login-button"
-							update="@form" process="@form" />
-						<div class="secure-foot">
-							<span><i class="pi pi-shield"></i> Seguro</span><span><i
-								class="pi pi-bolt"></i> Rápido</span><span><i
-								class="pi pi-verified"></i> Confiável</span>
-						</div>
+						<p:commandButton value="Seguinte" icon="pi pi-arrow-right"
+							iconPos="right" action="#{loginBean.goToYearStep}"
+							styleClass="login-button" update="@form" process="@form" />
 					</h:panelGroup>
 
 					<h:panelGroup rendered="#{loginBean.yearStep}">
-						<h2
-							style="font-size: 20px; font-weight: 700; color: #0a2540; margin-bottom: 4px; display: flex; align-items: center; gap: 8px">
-							<i class="pi pi-calendar" style="color: #15558a"></i> Selecione o
-							Ano
-						</h2>
-						<p
-							style="font-size: 11px; color: #64748b; margin-bottom: 14px; display: flex; align-items: center; gap: 6px">
-							<i class="pi pi-wave-pulse"></i> Olá <b>#{loginBean.username}</b>,
-							escolha o ano letivo
+						<h2 class="form-title">Ano académico</h2>
+						<p class="form-sub">
+							Olá <b>#{loginBean.username}</b>, escolha o ano lectivo.
 						</p>
 
-						<div
-							style="max-height: 320px; overflow-y: auto; padding-right: 4px">
+						<div class="years-wrap">
 							<ui:repeat value="#{loginBean.academicYears}" var="ay">
 								<div
 									class="year-card #{loginBean.academicYearId eq ay.id ? 'selected' : ''}"
 									onclick="selectYear(#{ay.id}, this)">
-									<div class="year-icon">
-										<i class="pi pi-calendar"></i>
-									</div>
-									<div style="flex: 1">
-										<div style="display: flex; align-items: center; gap: 8px">
-											<div style="font-weight: 700; font-size: 14px">#{ay.year}</div>
-											<span class="year-badge">#{ay.active ? 'ACTIVO' :
-												'Histórico'}</span>
+									<div class="year-info">
+										<div class="year-top">
+											<span class="year-num">#{ay.year}</span> <span
+												class="year-badge #{ay.active ? '' : 'hist'}">#{ay.active
+												? 'Activo' : 'Histórico'}</span>
 										</div>
 										<div class="year-meta">
-											<i class="pi #{ay.active ? 'pi-check-circle' : 'pi-clock'}"
-												style="font-size: 11px"></i>
 											<h:outputText
 												value="#{ay.active ? 'Ano actual em curso' : 'Ano lectivo encerrado'}" />
-											<span style="margin-left: auto"><i class="pi pi-users"
-												style="font-size: 10px"></i> 320 alunos</span>
 										</div>
 									</div>
 									<i
-										class="pi #{loginBean.academicYearId eq ay.id ? 'pi-check-circle' : 'pi-circle'}"
-										style="font-size: 18px"></i>
+										class="year-radio pi #{loginBean.academicYearId eq ay.id ? 'pi-check-circle' : 'pi-circle'}"></i>
 								</div>
 							</ui:repeat>
 							<h:panelGroup rendered="#{empty loginBean.academicYears}"
-								style="text-align:center; padding:20px; color:#64748b; font-size:12px; display:block">
-								<i class="pi pi-inbox"
-									style="font-size: 24px; display: block; margin-bottom: 8px"></i> Nenhum ano académico encontrado. Cadastre em Administração.
-                            </h:panelGroup>
+								styleClass="empty-years" layout="block">
+								<i class="pi pi-inbox"></i> Nenhum ano académico encontrado. Registe um em Administração.
+							</h:panelGroup>
 						</div>
 
 						<h:inputHidden id="yearId" value="#{loginBean.academicYearId}" />
-						<p:commandButton value="Entrar no Sistema → Dashboard"
-							icon="pi pi-sign-in" iconPos="right" action="#{loginBean.login}"
+						<p:commandButton value="Entrar no sistema" icon="pi pi-sign-in"
+							iconPos="right" action="#{loginBean.login}"
 							styleClass="login-button" update="@form" process="@form" />
-						<p:commandButton value="← Voltar para Credenciais"
+						<p:commandButton value="Voltar às credenciais"
 							icon="pi pi-arrow-left" action="#{loginBean.backToCredentials}"
 							styleClass="btn-secondary" immediate="true" update="@form"
 							process="@this" />
 					</h:panelGroup>
 
-					<div
-						style="text-align: center; margin-top: 16px; color: #a1acb9; font-size: 9px; display: flex; align-items: center; justify-content: center; gap: 6px">
-						<i class="pi pi-lock"></i> SGE © 2026 • Acesso seguro • Maputo
-					</div>
+					<div class="form-foot">SGE © 2026 • Maputo</div>
 				</h:form>
 			</div>
 		</div>
@@ -1076,12 +1046,12 @@ function selectYear(id, el){
     document.getElementById('loginForm:yearId').value=id;
     document.querySelectorAll('.year-card').forEach(c=>{
         c.classList.remove('selected');
-        var ic=c.querySelector('.pi-check-circle');
-        if(ic) ic.className='pi pi-circle';
+        var r=c.querySelector('.year-radio');
+        if(r) r.className='year-radio pi pi-circle';
     });
     el.classList.add('selected');
-    var icon=el.querySelector('.pi-circle, .pi-check-circle');
-    if(icon) icon.className='pi pi-check-circle';
+    var radio=el.querySelector('.year-radio');
+    if(radio) radio.className='year-radio pi pi-check-circle';
 }
 function togglePwd(){
     var input=document.getElementById('loginForm:pwd');

@@ -22,12 +22,14 @@ public interface IClassroomRepository
 	long countByAcademicYear(Long yearId);
 
 	void delete(Long id);
-	
+
 	public void incrementStudents(Long classroomId);
 
-	public void decrementStudents(Long classroomId) ;
-	
-    List<ClassroomEntity> findAllActive();
-    
-    //Optional<ClassroomEntity> findById(Long id);
+	public void decrementStudents(Long classroomId);
+
+	List<ClassroomEntity> findAllActive();
+
+	public List<ClassroomEntity> findByAcademicYearAndClassLevel(Long yearId, Long classLevelId);
+
+	// Optional<ClassroomEntity> findById(Long id);
 }

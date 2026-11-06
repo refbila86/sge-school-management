@@ -118,8 +118,6 @@ public class PaymentServiceImpl implements IPaymentService
 		return paymentRepository.findPaidByStudentAndYear(sid, y, s);
 	}
 
-	// ... mantém teus outros métodos getBySchoolAndYearId, delete etc iguais
-
 	private void handleMatriculaStatus(PaymentEntity payment)
 	{
 		boolean temMatricula = payment.getItems().stream().anyMatch(it -> it.getDescricao().toUpperCase().contains("MATRIC"));

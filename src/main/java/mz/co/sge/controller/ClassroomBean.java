@@ -3,6 +3,7 @@ package mz.co.sge.controller;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +59,14 @@ public class ClassroomBean implements Serializable
 	private Long selectedAcademicYearId;
 	private ClassroomEntity viewedClassroom;
 	private List<EnrollmentEntity> classroomStudents = new ArrayList<>();
+	private Long currentAcademicYearId;
+
+	private List<ClassroomEntity> selectedClassroomClassLeve = new ArrayList<>();
+
+	public List<ClassroomEntity> getTurmasDaClasseSelecionada()
+	{
+		return selectedClassroomClassLeve;
+	}
 
 	@PersistenceContext
 	private EntityManager em;
@@ -90,46 +99,59 @@ public class ClassroomBean implements Serializable
 		} catch (Exception e)
 		{
 		}
+		loadCurrentAcademicYearId();
 		loadClassrooms();
 	}
 
-	public void inits()
+	public void loadCurrentAcademicYearId()
 	{
-		loadAcademicYears();
-		loadClassLevels();
-		loadTeachers();
-		loadClassrooms();
+		try
+		{
+			Long y = null;
+			if (loginBean != null && loginBean.getAcademicYearId() != null)
+			{
+				y = loginBean.getAcademicYearId();
+			} else
+			{
+				Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
+				if (obj != null)
+					y = obj instanceof Long ? (Long) obj : Long.valueOf(obj.toString());
+			}
+			if (y == null)
+				y = selectedAcademicYearId;
+			this.currentAcademicYearId = y;
+			this.selectedAcademicYearId = y;
+			System.out.println(">>> currentAcademicYearId: " + y);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private Long getYearId()
+	{
+		if (selectedAcademicYearId != null)
+			return selectedAcademicYearId;
+		if (currentAcademicYearId != null)
+			return currentAcademicYearId;
+		if (loginBean != null && loginBean.getAcademicYearId() != null)
+			return loginBean.getAcademicYearId();
+		try
+		{
+			Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
+			if (obj != null)
+				return obj instanceof Long ? (Long) obj : Long.valueOf(obj.toString());
+		} catch (Exception ignored)
+		{
+		}
+		return null;
 	}
 
 	public void loadClassrooms()
 	{
 		try
 		{
-			classrooms = classroomService.findAll();
-			if (classrooms == null)
-				classrooms = new ArrayList<>();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			classrooms = new ArrayList<>();
-		}
-	}
-
-	public void loadClassrsoomss()
-	{
-		try
-		{
-			Long yearId = null;
-			try
-			{
-				if (loginBean != null)
-				{
-					yearId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
-				}
-			} catch (Exception ex)
-			{
-				yearId = selectedAcademicYearId;
-			}
+			Long yearId = getYearId();
 			System.out.println(">>> loadClassrooms yearId: " + yearId);
 			if (yearId != null)
 			{
@@ -151,32 +173,6 @@ public class ClassroomBean implements Serializable
 			{
 				classrooms = new ArrayList<>();
 			}
-			if (classrooms == null)
-				classrooms = new ArrayList<>();
-		}
-	}
-
-	public void loadClassroomss()
-	{
-		try
-		{
-			Long yearId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
-			System.out.println(">>> loadClassrooms yearId: " + yearId);
-			if (yearId != null)
-			{
-				classrooms = classroomService.findByAcademicYear(yearId);
-			} else
-			{
-				// FALLBACK: lista tudo se não tem ano logado
-				classrooms = classroomService.findAll();
-			}
-			System.out.println(">>> classrooms found: " + (classrooms != null ? classrooms.size() : 0));
-			if (classrooms == null)
-				classrooms = List.of();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-			classrooms = classroomService.findAll();
 		}
 	}
 
@@ -197,10 +193,53 @@ public class ClassroomBean implements Serializable
 	{
 		try
 		{
-			classLevels = classLevelService.findAll();
+			Long yearId = getYearId();
+			if (yearId != null)
+			{
+				try
+				{
+					classLevels = classLevelService.findByAcademicYear(yearId);
+				} catch (Exception e)
+				{
+					List<ClassroomEntity> classroomsOfYear = classroomService.findByAcademicYear(yearId);
+					List<Long> levelIds = classroomsOfYear.stream().filter(c -> c.getClassLevel() != null).map(c -> c.getClassLevel().getId()).distinct()
+							.collect(Collectors.toList());
+					if (!levelIds.isEmpty())
+					{
+						classLevels = classLevelService.findAll().stream().filter(cl -> levelIds.contains(cl.getId())).collect(Collectors.toList());
+					} else
+					{
+						classLevels = classLevelService.findAll();
+					}
+				}
+			} else
+			{
+				classLevels = classLevelService.findAll();
+			}
+			if (classLevels == null)
+				classLevels = new ArrayList<>();
 		} catch (Exception e)
 		{
-			classLevels = List.of();
+			e.printStackTrace();
+			classLevels = new ArrayList<>();
+		}
+	}
+
+	public void onClassLevelChange()
+	{
+		try
+		{
+			Long yearId = getYearId();
+			if (selectedClassLevelId == null || yearId == null)
+			{
+				selectedClassroomClassLeve = new ArrayList<>();
+				return;
+			}
+			selectedClassroomClassLeve = classroomService.findByAcademicYear(yearId).stream()
+					.filter(c -> c.getClassLevel() != null && c.getClassLevel().getId().equals(selectedClassLevelId)).collect(Collectors.toList());
+		} catch (Exception e)
+		{
+			selectedClassroomClassLeve = new ArrayList<>();
 		}
 	}
 
@@ -208,10 +247,25 @@ public class ClassroomBean implements Serializable
 	{
 		try
 		{
-			teachers = teacherService.findAll();
+			Long yearId = getYearId();
+			if (yearId != null)
+			{
+				try
+				{
+					teachers = teacherService.findByAcademicYear(yearId);
+				} catch (Exception e)
+				{
+					teachers = teacherService.findAll();
+				}
+			} else
+			{
+				teachers = teacherService.findAll();
+			}
+			if (teachers == null)
+				teachers = new ArrayList<>();
 		} catch (Exception e)
 		{
-			teachers = List.of();
+			teachers = new ArrayList<>();
 		}
 	}
 
@@ -222,8 +276,21 @@ public class ClassroomBean implements Serializable
 			loadClassrooms();
 			return;
 		}
-		Long yearId = loginBean.getAcademicYearId();
-		classrooms = classroomService.search(searchTerm);
+		try
+		{
+			Long yearId = getYearId();
+			List<ClassroomEntity> base = (yearId != null) ? classroomService.findByAcademicYear(yearId) : classroomService.findAll();
+			String t = searchTerm.toLowerCase().trim();
+			classrooms = base.stream()
+					.filter(c -> (c.getName() != null && c.getName().toLowerCase().contains(t))
+							|| (c.getClasseNome() != null && c.getClasseNome().toLowerCase().contains(t))
+							|| (c.getProfessorNome() != null && c.getProfessorNome().toLowerCase().contains(t)))
+					.collect(Collectors.toList());
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+			classrooms = classroomService.search(searchTerm);
+		}
 	}
 
 	public void cleanForm()
@@ -234,13 +301,7 @@ public class ClassroomBean implements Serializable
 		editing = false;
 		selectedTeacherId = null;
 		selectedClassLevelId = null;
-		try
-		{
-			selectedAcademicYearId = loginBean != null ? loginBean.getAcademicYearId() : null;
-		} catch (Exception e)
-		{
-			selectedAcademicYearId = null;
-		}
+		loadCurrentAcademicYearId();
 	}
 
 	public void save()
@@ -257,10 +318,10 @@ public class ClassroomBean implements Serializable
 			if (selectedClassLevelId != null)
 				classroom.setClassLevel(classLevelService.findById(selectedClassLevelId));
 
-			Long yId = selectedAcademicYearId != null ? selectedAcademicYearId : loginBean.getAcademicYearId();
+			Long yId = getYearId();
 			if (yId == null)
 			{
-				addMsg(FacesMessage.SEVERITY_ERROR, "Erro", "Academic year not selected");
+				addMsg(FacesMessage.SEVERITY_ERROR, "Erro", "Ano letivo não selecionado no login");
 				return;
 			}
 			AcademicYearEntity ay = academicYearService.findByYearId(yId);
@@ -269,7 +330,7 @@ public class ClassroomBean implements Serializable
 			classroom.setAcademicYear(ay);
 
 			classroomService.save(classroom);
-			addMsg(FacesMessage.SEVERITY_INFO, "Sucesso", "Classroom saved");
+			addMsg(FacesMessage.SEVERITY_INFO, "Sucesso", "Turma gravada");
 			loadClassrooms();
 			dashboardBean.navigate("classroom/classroom-list", "turmas");
 		} catch (Exception e)
@@ -294,10 +355,8 @@ public class ClassroomBean implements Serializable
 		viewedClassroom = t;
 		try
 		{
-			classroomStudents = em
-					.createQuery("SELECT e FROM EnrollmentEntity e JOIN FETCH e.student " + "WHERE e.classroom.id = :cid ORDER BY e.student.firstName",
-							EnrollmentEntity.class)
-					.setParameter("cid", t.getId()).getResultList();
+			classroomStudents = em.createQuery("SELECT e FROM EnrollmentEntity e JOIN FETCH e.student WHERE e.classroom.id = :cid ORDER BY e.student.firstName",
+					EnrollmentEntity.class).setParameter("cid", t.getId()).getResultList();
 		} catch (Exception ex)
 		{
 			classroomStudents = new ArrayList<>();
@@ -398,5 +457,10 @@ public class ClassroomBean implements Serializable
 	public List<EnrollmentEntity> getClassroomStudents()
 	{
 		return classroomStudents;
+	}
+
+	public Long getCurrentAcademicYearId()
+	{
+		return currentAcademicYearId;
 	}
 }

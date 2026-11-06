@@ -6,9 +6,12 @@ import java.io.Serializable;
 @Entity
 @Table(name = "classrooms")
 @NamedQueries(
-{ @NamedQuery(name = "Classroom.findAll", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher ORDER BY c.name"),
-		@NamedQuery(name = "Classroom.findByAcademicYear", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id = :yearId ORDER BY c.name"),
+{ @NamedQuery(name = "ClassroomEntity.findAll", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher ORDER BY c.name"),
+		@NamedQuery(name = "ClassroomEntity.findByAcademicYear", query = "SELECT DISTINCT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.academicYear LEFT JOIN FETCH c.responsibleTeacher WHERE c.academicYear.id = :yearId ORDER BY c.name"),
+
+		@NamedQuery(name = "ClassroomEntity.findByAcademicYearAndClassLevel", query = "SELECT c FROM ClassroomEntity c WHERE c.academicYear.id = :yearId AND c.classLevel.id = :classLevelId AND c.active = true ORDER BY c.name"),
 		@NamedQuery(name = "ClassroomEntity.findAllActive", query = "SELECT c FROM ClassroomEntity c WHERE c.active = true ORDER BY c.name") })
+
 public class ClassroomEntity implements Serializable
 {
 	@Id

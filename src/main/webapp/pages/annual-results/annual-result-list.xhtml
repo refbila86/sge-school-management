@@ -1,0 +1,208 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+	<style>
+.pauta-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 20px;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, .04)
+}
+
+.field-label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: .4px;
+	margin-bottom: 6px;
+	display: block
+}
+
+.aprovado {
+	color: #16a34a;
+	font-weight: 700
+}
+
+.risco {
+	color: #ea580c;
+	font-weight: 700
+}
+
+.reprovado {
+	color: #dc2626;
+	font-weight: 700
+}
+
+.sem {
+	color: #94a3b8
+}
+</style>
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+		<div style="display: flex; align-items: center; gap: 12px">
+			<div
+				style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+				<i class="pi pi-chart-bar" style="color: #2563eb" />
+			</div>
+			<div>
+				<div style="font-size: 20px; font-weight: 800; color: #0a2540">Pauta
+					Anual</div>
+				<div style="font-size: 12px; color: #64748b">Notas nos 3
+					trimestres - Ano #{pautaAnualBean.ano}</div>
+			</div>
+		</div>
+		<p:tag value="Ano #{pautaAnualBean.ano} - Bloqueado" severity="info"
+			style="font-size:11px;padding:6px 12px" />
+	</div>
+
+	<h:form id="formPauta">
+		<div class="pauta-card"
+			style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: end">
+			<div>
+				<span class="field-label">Aluno</span>
+				<p:inputText value="#{pautaAnualBean.filtroAluno}"
+					placeholder="Pesquisar aluno..." style="width:220px" />
+			</div>
+			<div>
+				<span class="field-label">Turma</span>
+				<p:inputText value="#{pautaAnualBean.filtroTurma}"
+					placeholder="Ex: Turma A" style="width:160px" />
+			</div>
+			<div>
+				<span class="field-label">Disciplina</span>
+				<p:inputText value="#{pautaAnualBean.filtroDisciplina}"
+					placeholder="Ex: Matematica" style="width:180px" />
+			</div>
+			<p:commandButton value="Filtrar" icon="pi pi-search"
+				action="#{pautaAnualBean.carregar}" update="tabela"
+				style="border-radius:12px;background:#0a2540;border:none" />
+			<p:commandButton value="Limpar" icon="pi pi-times"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:12px" action="#{pautaAnualBean.limpar}"
+				update="tabela @form" process="@this" />
+		</div>
+
+		<div class="pauta-card" style="overflow: auto">
+			<p:dataTable id="tabela" value="#{pautaAnualBean.pauta}" var="b"
+				paginator="true" rows="20" paginatorPosition="bottom"
+				emptyMessage="Sem notas neste ano." scrollable="true"
+				scrollWidth="100%">
+				<p:column headerText="Aluno" frozen="true" style="min-width:180px">
+					<h:outputText value="#{b.aluno}" />
+				</p:column>
+				<p:column headerText="Classe" style="min-width:90px">
+					<h:outputText value="#{b.classe}" />
+				</p:column>
+				<p:column headerText="Turma" style="min-width:90px">
+					<h:outputText value="#{b.turma}" />
+				</p:column>
+				<p:column headerText="Disciplina" style="min-width:130px">
+					<h:outputText value="#{b.disciplina}" />
+				</p:column>
+
+				<p:column headerText="I ACS1">
+					<h:outputText value="#{b.IAcs1}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="I ACSs">
+					<h:outputText value="#{b.IAcs2}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="I MACS">
+					<h:outputText value="#{b.IMacs}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="I AP">
+					<h:outputText value="#{b.IAp}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="I MTrim">
+					<b><h:outputText value="#{b.IMTrim}">
+							<f:convertNumber pattern="0.0" />
+						</h:outputText></b>
+				</p:column>
+				<p:column headerText="I Estado">
+					<h:outputText value="#{b.IEstado}"
+						styleClass="#{b.IEstado eq 'Aprovado' ? 'aprovado' : b.IEstado eq 'Em Risco' ? 'risco' : b.IEstado eq 'Reprovado' ? 'reprovado' : 'sem'}" />
+				</p:column>
+
+				<p:column headerText="II ACS1">
+					<h:outputText value="#{b.iiAcs1}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="II ACSs">
+					<h:outputText value="#{b.iiAcs2}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="II MACS">
+					<h:outputText value="#{b.iiMacs}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="II AP">
+					<h:outputText value="#{b.iiAp}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="II MTrim">
+					<b><h:outputText value="#{b.iiMTrim}">
+							<f:convertNumber pattern="0.0" />
+						</h:outputText></b>
+				</p:column>
+				<p:column headerText="II Estado">
+					<h:outputText value="#{b.iiEstado}"
+						styleClass="#{b.iiEstado eq 'Aprovado' ? 'aprovado' : b.iiEstado eq 'Em Risco' ? 'risco' : b.iiEstado eq 'Reprovado' ? 'reprovado' : 'sem'}" />
+				</p:column>
+
+				<p:column headerText="III ACS1">
+					<h:outputText value="#{b.iiiAcs1}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="III ACSs">
+					<h:outputText value="#{b.iiiAcs2}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="III MACS">
+					<h:outputText value="#{b.iiiMacs}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="III AP">
+					<h:outputText value="#{b.iiiAp}">
+						<f:convertNumber pattern="0.0" />
+					</h:outputText>
+				</p:column>
+				<p:column headerText="III MTrim">
+					<b><h:outputText value="#{b.iiiMTrim}">
+							<f:convertNumber pattern="0.0" />
+						</h:outputText></b>
+				</p:column>
+				<p:column headerText="III Estado">
+					<h:outputText value="#{b.iiiEstado}"
+						styleClass="#{b.iiiEstado eq 'Aprovado' ? 'aprovado' : b.iiiEstado eq 'Em Risco' ? 'risco' : b.iiiEstado eq 'Reprovado' ? 'reprovado' : 'sem'}" />
+				</p:column>
+
+				<p:column headerText="MFinal">
+					<b><h:outputText value="#{b.mFinal}">
+							<f:convertNumber pattern="0.0" />
+						</h:outputText></b>
+				</p:column>
+				<p:column headerText="Estado Final">
+					<h:outputText value="#{b.estadoFinal}"
+						styleClass="#{b.estadoFinal eq 'Aprovado' ? 'aprovado' : b.estadoFinal eq 'Em Risco' ? 'risco' : b.estadoFinal eq 'Reprovado' ? 'reprovado' : 'sem'}" />
+				</p:column>
+			</p:dataTable>
+		</div>
+	</h:form>
+</ui:composition>

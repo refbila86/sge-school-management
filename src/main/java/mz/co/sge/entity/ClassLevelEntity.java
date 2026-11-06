@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 { "name", "academic_year_id" }))
 @NamedQueries(
 { @NamedQuery(name = "ClassLevel.findAll", query = "SELECT c FROM ClassLevelEntity c ORDER BY c.name"),
-		@NamedQuery(name = "ClassLevel.findByAcademicYear", query = "SELECT c FROM ClassLevelEntity c WHERE c.academicYear.id = :yearId ORDER BY c.name"),
+		@NamedQuery(name = "ClassLevel.findByAcademicYear", query = "SELECT cl FROM ClassLevelEntity cl WHERE cl.academicYear.id = :yearId AND cl.active = true ORDER BY cl.name"),
 		@NamedQuery(name = "ClassLevel.countByNameAndYear", query = "SELECT COUNT(c) FROM ClassLevelEntity c WHERE LOWER(c.name) = :name AND c.academicYear.id = :yearId") })
 
 public class ClassLevelEntity implements java.io.Serializable

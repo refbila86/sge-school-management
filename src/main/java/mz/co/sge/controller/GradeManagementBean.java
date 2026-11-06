@@ -26,7 +26,7 @@ import mz.co.sge.service.ISubjectService;
 
 @Named
 @ViewScoped
-public class AttendanceBean implements Serializable
+public class GradeManagementBean implements Serializable
 {
 
 	private static final long serialVersionUID = 1L;

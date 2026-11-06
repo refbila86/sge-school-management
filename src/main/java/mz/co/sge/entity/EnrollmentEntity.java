@@ -35,13 +35,13 @@ import mz.co.sge.enumes.EnrollmentType;
 { @NamedQuery(name = "Enrollment.findAll", query = "SELECT e FROM EnrollmentEntity e LEFT JOIN FETCH e.classLevel LEFT JOIN FETCH e.academicYear LEFT JOIN FETCH e.student LEFT JOIN FETCH e.classroom ORDER BY e.id DESC"),
 		@NamedQuery(name = "EnrollmentEntity.findByYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId ORDER BY e.id DESC"),
 		@NamedQuery(name = "EnrollmentEntity.findByStudentAndYear", query = "SELECT e FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
-		@NamedQuery(name = "EnrollmentEntity.existsByStudentAndYear", query = "SELECT COUNT(e) > 0 FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
-		@NamedQuery(name = "EnrollmentEntity.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
+				@NamedQuery(name = "EnrollmentEntity.findByStatus", query = "SELECT e FROM EnrollmentEntity e WHERE e.status = :status ORDER BY e.id DESC"),
 		@NamedQuery(name = "EnrollmentEntity.countByYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
 		@NamedQuery(name = "EnrollmentEntity.countByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId"),
 		@NamedQuery(name = "EnrollmentEntity.findEnrolledStudentIdsByYear", query = "SELECT e.student.id FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
-		@NamedQuery(name = "Enrollment.findEnrolledStudentIdsByYear", query = "SELECT e.student.id FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId"),
-		@NamedQuery(name = "Enrollment.existsByStudentAndYear", query = "SELECT COUNT(e) > 0 FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
+		@NamedQuery(name = "EnrollmentEntity.existsByStudentAndYear", query = "SELECT COUNT(e) > 0 FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id = :yearId"),
+		@NamedQuery(name = "EnrollmentEntity.countByClassroomAndYear", query = "SELECT COUNT(e) FROM EnrollmentEntity e " + "WHERE e.classroom.id = :classroomId "
+				+ "AND e.academicYear.id = :yearId " + "AND e.status IN ('ENROLLED','PENDING ENROLLMENT')"),
 		@NamedQuery(name = "EnrollmentEntity.countPreviousByStudent", query = "SELECT COUNT(e) FROM EnrollmentEntity e WHERE e.student.id = :studentId AND e.academicYear.id <> :yearId") })
 
 public class EnrollmentEntity implements Serializable

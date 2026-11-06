@@ -134,14 +134,18 @@
 
 			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
 				<div>
-					<span class="field-label">Ano Académico *</span>
+					<span class="field-label">Ano Académico * (do login)</span>
+					<div
+						style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; padding: 10px 12px; font-weight: 700; color: #0a2540; display: flex; justify-content: space-between; align-items: center">
+						<span><i class="pi pi-lock" style="margin-right: 6px" />#{enrollmentBean.academicYearsCache.stream().filter(y
+							-> y.id ==
+							enrollmentBean.currentAcademicYearId).map(y->y.year).findFirst().orElse(enrollmentBean.currentAcademicYearId)}</span>
+						<p:tag value="Bloqueado" severity="info" style="font-size:10px" />
+					</div>
 					<p:selectOneMenu value="#{enrollmentBean.selectedAcademicYearId}"
-						style="width:100%">
-						<f:selectItem itemLabel="Selecione..." itemValue="#{null}" />
+						style="display:none">
 						<f:selectItems value="#{enrollmentBean.academicYearsCache}"
 							var="y" itemLabel="#{y.year}" itemValue="#{y.id}" />
-						<p:ajax listener="#{enrollmentBean.onAcademicYearChange}"
-							process="@this" update="@form" />
 					</p:selectOneMenu>
 				</div>
 				<div>
@@ -162,18 +166,31 @@
 					<span class="field-label">Classe *</span>
 					<p:selectOneMenu value="#{enrollmentBean.selectedClassLevelId}"
 						style="width:100%">
-						<f:selectItem itemLabel="Selecione classe..." itemValue="#{null}" />
+						<f:selectItem
+							itemLabel="#{empty enrollmentBean.availableClassLevels ? 'Nenhuma classe cadastrada neste ano' : 'Selecione classe...'}"
+							itemValue="#{null}" />
 						<f:selectItems value="#{enrollmentBean.availableClassLevels}"
 							var="cl" itemLabel="#{cl.name}" itemValue="#{cl.id}" />
 						<p:ajax listener="#{enrollmentBean.onClassLevelChange}"
 							process="@this" update="turmaSelect growl" />
 					</p:selectOneMenu>
+					<h:panelGroup
+						rendered="#{empty enrollmentBean.availableClassLevels}">
+						<small style="color: #ef4444; font-size: 11px"><i
+							class="pi pi-exclamation-triangle" /> Nenhuma classe cadastrada
+							no ano #{enrollmentBean.academicYearsCache.stream().filter(y ->
+							y.id ==
+							enrollmentBean.currentAcademicYearId).map(y->y.year).findFirst().orElse('')}.
+							Cadastre primeiro as classes.</small>
+					</h:panelGroup>
 				</div>
 				<div>
 					<span class="field-label">Turma * (com vaga)</span>
 					<p:selectOneMenu id="turmaSelect"
 						value="#{enrollmentBean.selectedClassroomId}" style="width:100%">
-						<f:selectItem itemLabel="Selecione turma..." itemValue="#{null}" />
+						<f:selectItem
+							itemLabel="#{empty enrollmentBean.availableClassroomsWithVacancy ? 'Nenhuma turma com vaga neste ano/classe' : 'Selecione turma...'}"
+							itemValue="#{null}" />
 						<f:selectItems
 							value="#{enrollmentBean.availableClassroomsWithVacancy}" var="c"
 							itemLabel="#{c.name} - #{c.shift} (#{c.currentStudents}/#{c.capacity}) - #{c.vacancy} vagas"

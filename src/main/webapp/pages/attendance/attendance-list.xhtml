@@ -354,6 +354,19 @@
 						update="@form" />
 				</p:selectOneMenu>
 			</div>
+
+			<p:outputPanel id="panelBotaoAnual" styleClass="ga-field"
+				autoUpdate="true">
+				<h:panelGroup rendered="#{academicManagementBean.anual}">
+					<label>&#160;</label>
+					<p:commandButton value="Gerar Excel" icon="pi pi-file-excel"
+						action="#{academicManagementBean.gerarPautaAnualExcel}"
+						ajax="false"
+						disabled="#{academicManagementBean.classroomId == null or academicManagementBean.subjectId == null}"
+						styleClass="btn-primary"
+						style="width:100%;height:38px;border-radius:10px" />
+				</h:panelGroup>
+			</p:outputPanel>
 		</div>
 
 		<div class="ga-stats">

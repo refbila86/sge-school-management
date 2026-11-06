@@ -36,47 +36,79 @@ public class ClassLevelBean implements Serializable
 	private boolean editing = false;
 	private String searchTerm;
 	private Long selectedAcademicYearId;
+	private Long currentAcademicYearId;
 	private List<AcademicYearEntity> academicYears = new ArrayList<>();
 
 	@PostConstruct
 	public void init()
 	{
-		try
-		{
-			if (loginBean != null)
-			{
-				selectedAcademicYearId = loginBean.getAcademicYearId();
-			}
-		} catch (Exception e)
-		{
-			selectedAcademicYearId = null;
-		}
+		loadCurrentAcademicYearId();
 		load();
 		loadAcademicYears();
+	}
+
+	// Igual ao ClassroomBean
+	public void loadCurrentAcademicYearId()
+	{
+		try
+		{
+			if (loginBean != null && loginBean.getAcademicYearId() != null)
+			{
+				currentAcademicYearId = loginBean.getAcademicYearId();
+			} else
+			{
+				Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
+				if (obj != null)
+					currentAcademicYearId = obj instanceof Long ? (Long) obj : Long.valueOf(obj.toString());
+			}
+		} catch (Exception ignored)
+		{
+		}
+		selectedAcademicYearId = currentAcademicYearId;
+	}
+
+	private Long getYearId()
+	{
+		if (currentAcademicYearId != null)
+			return currentAcademicYearId;
+		if (selectedAcademicYearId != null)
+			return selectedAcademicYearId;
+		if (loginBean != null && loginBean.getAcademicYearId() != null)
+			return loginBean.getAcademicYearId();
+		try
+		{
+			Object obj = FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("selectedAcademicYearId");
+			if (obj != null)
+				return obj instanceof Long ? (Long) obj : Long.valueOf(obj.toString());
+		} catch (Exception ignored)
+		{
+		}
+		return null;
+	}
+
+	public Long getCurrentAcademicYearId()
+	{
+		return currentAcademicYearId;
+	}
+
+	// Igual ao ClassroomBean: ignora a mudança e restaura o ano do login
+	public void onAcademicYearChange()
+	{
+		Long y = getYearId();
+		selectedAcademicYearId = y;
+		currentAcademicYearId = y;
+		load();
 	}
 
 	public void load()
 	{
 		try
 		{
-			Long yearId = selectedAcademicYearId;
-			if (yearId == null)
-			{
-				try
-				{
-					if (loginBean != null)
-						yearId = loginBean.getAcademicYearId();
-				} catch (Exception e)
-				{
-				}
-			}
+			Long yearId = getYearId();
 			if (yearId != null)
-			{
 				levels = classLevelService.findByAcademicYear(yearId);
-			} else
-			{
+			else
 				levels = classLevelService.findAll();
-			}
 			if (levels == null)
 				levels = new ArrayList<>();
 		} catch (Exception e)
@@ -103,35 +135,16 @@ public class ClassLevelBean implements Serializable
 	{
 		level = new ClassLevelEntity();
 		level.setActive(true);
-		level.setHasExam(false); // GARANTE EXAME DESLIGADO POR PADRÃO
+		level.setHasExam(false);
 		editing = false;
-		try
-		{
-			if (loginBean != null && loginBean.getAcademicYearId() != null)
-			{
-				selectedAcademicYearId = loginBean.getAcademicYearId();
-			}
-		} catch (Exception e)
-		{
-			selectedAcademicYearId = null;
-		}
+		loadCurrentAcademicYearId();
 	}
 
 	public void search()
 	{
 		try
 		{
-			Long yearId = selectedAcademicYearId;
-			if (yearId == null)
-			{
-				try
-				{
-					if (loginBean != null)
-						yearId = loginBean.getAcademicYearId();
-				} catch (Exception ex)
-				{
-				}
-			}
+			Long yearId = getYearId();
 			if (searchTerm == null || searchTerm.isBlank())
 			{
 				load();
@@ -151,28 +164,26 @@ public class ClassLevelBean implements Serializable
 	{
 		try
 		{
-			Long yearIdToUse = selectedAcademicYearId;
+			Long yearIdToUse = getYearId();
+			selectedAcademicYearId = yearIdToUse;
+			currentAcademicYearId = yearIdToUse;
+
 			if (yearIdToUse == null)
 			{
-				try
-				{
-					if (loginBean != null)
-						yearIdToUse = loginBean.getAcademicYearId();
-				} catch (Exception ex)
-				{
-				}
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Sem ano lectivo no login."));
+				return;
 			}
-			if (yearIdToUse != null)
+
+			AcademicYearEntity year = null;
+			try
 			{
-				try
-				{
-					AcademicYearEntity year = academicYearService.findByYearId(yearIdToUse);
-					level.setAcademicYear(year);
-				} catch (Exception ex)
-				{
-					academicYearService.getAcademicYearById(yearIdToUse).ifPresent(level::setAcademicYear);
-				}
+				year = academicYearService.findByYearId(yearIdToUse);
+			} catch (Exception ex)
+			{
+				year = academicYearService.getAcademicYearById(yearIdToUse).orElse(null);
 			}
+			if (year != null)
+				level.setAcademicYear(year);
 
 			if (level.getId() == null && classLevelService.existsByNameAndYear(level.getName(), yearIdToUse))
 			{

@@ -59,4 +59,5 @@ public interface IStudentRepository
 	List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId);
 
 	List<StudentEntity> findByClassroomId(Long classroomId);
+	
 }
