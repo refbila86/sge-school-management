@@ -1,0 +1,426 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px
+}
+
+.kpi-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	margin-bottom: 18px
+}
+
+.kpi-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-shadow: 0 2px 10px rgba(10, 37, 64, 0.04)
+}
+
+.kpi-icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px
+}
+
+.kpi-value {
+	font-size: 20px;
+	font-weight: 800;
+	color: #0a2540
+}
+
+.kpi-label {
+	font-size: 11px;
+	color: #64748b;
+	text-transform: uppercase;
+	font-weight: 700;
+	letter-spacing: .5px
+}
+
+.filter-bar {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px 16px;
+	display: flex;
+	gap: 12px;
+	align-items: end;
+	margin-bottom: 16px;
+	flex-wrap: wrap
+}
+
+.table-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 0;
+	overflow: hidden
+}
+
+.pago {
+	color: #16a34a;
+	font-weight: 700
+}
+
+.multa {
+	color: #dc2626;
+	font-weight: 700
+}
+</style>
+
+	<h:form id="formFees">
+		<div class="page-header">
+			<h:panelGroup id="title" layout="block"
+				style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center; gap: 10px">
+				<div
+					style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+					<i class="pi pi-wallet" style="color: #2563eb" />
+				</div>
+				Mensalidades -
+				#{empty monthlyFeeBean.filterMonth ? 'Todos os meses' : monthlyFeeBean.filterMonth}/#{monthlyFeeBean.filterYear}
+			</h:panelGroup>
+			<p:commandButton value="Novo Pagamento" icon="pi pi-plus"
+				style="border-radius:12px;background:#0a2540;border:none"
+				action="#{dashboardBean.navigate('monthly-fee/monthly-fee-include','mensalidades')}"
+				process="@this" update=":contentPanel" />
+		</div>
+
+		<h:panelGroup id="kpis" layout="block" styleClass="kpi-grid">
+			<div class="kpi-card">
+				<div>
+					<div class="kpi-label">Total Pago</div>
+					<div class="kpi-value pago">#{monthlyFeeBean.totalPago} MT</div>
+					<small>#{monthlyFeeBean.filteredFees.size()} refs</small>
+				</div>
+				<div class="kpi-icon" style="background: #dcfce7; color: #16a34a">
+					<i class="pi pi-check-circle" />
+				</div>
+			</div>
+			<div class="kpi-card">
+				<div>
+					<div class="kpi-label">Alunos Pagos</div>
+					<div class="kpi-value">#{monthlyFeeBean.totalAlunosPagos}</div>
+					<small>#{empty monthlyFeeBean.filterMonth ? 'todos os
+						meses' : 'mês '.concat(monthlyFeeBean.filterMonth)}</small>
+				</div>
+				<div class="kpi-icon" style="background: #dbeafe; color: #2563eb">
+					<i class="pi pi-users" />
+				</div>
+			</div>
+			<div class="kpi-card">
+				<div>
+					<div class="kpi-label">Total Multas</div>
+					<div class="kpi-value multa">#{monthlyFeeBean.totalMulta} MT</div>
+					<small>10% atraso</small>
+				</div>
+				<div class="kpi-icon" style="background: #fee2e2; color: #dc2626">
+					<i class="pi pi-exclamation-triangle" />
+				</div>
+			</div>
+			<div class="kpi-card">
+				<div>
+					<div class="kpi-label">Mês Filtrado</div>
+					<div class="kpi-value">#{empty monthlyFeeBean.filterMonth ?
+						'Todos' : monthlyFeeBean.filterMonth}</div>
+					<small>ano #{monthlyFeeBean.filterYear}</small>
+				</div>
+				<div class="kpi-icon" style="background: #fef3c7; color: #d97706">
+					<i class="pi pi-calendar" />
+				</div>
+			</div>
+		</h:panelGroup>
+
+		<div class="filter-bar">
+			<div>
+				<span
+					style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Mês</span><br />
+				<p:selectOneMenu value="#{monthlyFeeBean.filterMonth}"
+					style="width:180px">
+					<f:selectItem itemLabel="Todos" itemValue="#{null}" />
+					<f:selectItems value="#{monthlyFeeBean.months}" var="m"
+						itemLabel="#{m.label}" itemValue="#{m.value}" />
+					<p:ajax update=":formFees:table :formFees:kpis :formFees:title"
+						process="@this" />
+				</p:selectOneMenu>
+			</div>
+			<div>
+				<span
+					style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Ano
+					Lectivo</span><br />
+				<p:selectOneMenu value="#{monthlyFeeBean.filterYear}"
+					style="width:120px">
+					<f:selectItems value="#{monthlyFeeBean.academicYears}" var="ay"
+						itemLabel="#{ay.year}" itemValue="#{ay.year}" />
+					<p:ajax listener="#{monthlyFeeBean.loadAll}"
+						update=":formFees:table :formFees:kpis :formFees:title"
+						process="@this" />
+				</p:selectOneMenu>
+			</div>
+			<div style="flex: 1">
+				<span
+					style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Pesquisar</span><br />
+				<p:inputText value="#{monthlyFeeBean.searchStudent}"
+					placeholder="Cod. aluno, nome ou referência..." style="width:100%">
+					<p:ajax event="keyup" delay="500"
+						update=":formFees:table :formFees:kpis :formFees:title"
+						process="@this" />
+				</p:inputText>
+			</div>
+			<p:commandButton value="Limpar" icon="pi pi-filter-slash"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px" action="#{monthlyFeeBean.clearFilters}"
+				update=":formFees" process="@this" />
+		</div>
+
+		<div class="table-card">
+			<p:dataTable id="table" value="#{monthlyFeeBean.filteredFees}"
+				var="m" paginator="true" rows="15" rowsPerPageTemplate="15,30,50"
+				paginatorPosition="bottom" emptyMessage="Nenhuma mensalidade paga"
+				style="font-size:13px">
+				<p:column headerText="Cod. Aluno" width="110">
+					<strong style="color: #0a2540">#{m.student.code}</strong>
+					<br />
+					<small style="color: #64748b">#{m.student.fullName}</small>
+				</p:column>
+				<p:column headerText="Referência" width="150">
+					<span
+						style="font-family: monospace; font-size: 11px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px">#{m.reference}</span>
+				</p:column>
+				<p:column headerText="Mês" width="100" style="text-align:center">
+					<div
+						style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+						<span
+							style="background: #eff6ff; color: #0a2540; font-weight: 800; padding: 4px 10px; border-radius: 20px; font-size: 12px">#{m.monthLabel}</span><small
+							style="color: #64748b; font-weight: 700">#{m.month}/#{m.year}</small>
+					</div>
+				</p:column>
+				<p:column headerText="Turma / Classe" width="130">
+					<strong>#{m.enrollment.classroom.name}</strong>
+					<br />
+					<small style="color: #64748b">#{m.enrollment.classroom.classLevel.name}</small>
+				</p:column>
+				<p:column headerText="Valor" width="90" style="text-align:right">
+					<strong>#{m.amount} MT</strong>
+				</p:column>
+				<p:column headerText="Data Pag." width="100"
+					style="text-align:center">
+					<h:outputText value="#{m.paymentDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:outputText>
+					<br />
+					<small style="color: #64748b">Lim: <h:outputText
+							value="#{m.dueDate}">
+							<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+						</h:outputText></small>
+				</p:column>
+				<p:column headerText="Multa" width="80" style="text-align:right">
+					<span
+						style="#{m.fineAmount&gt;0 ? 'color:#dc2626;font-weight:700' : ''}">#{m.fineAmount}
+						MT</span>
+				</p:column>
+				<p:column headerText="Total Pago" width="100"
+					style="text-align:right">
+					<strong style="color: #16a34a">#{m.totalPaid} MT</strong>
+					<br />
+					<small>#{m.paymentMethod}</small>
+				</p:column>
+				<p:column headerText="Estado" width="80" style="text-align:center">
+					<p:tag value="#{m.status}" severity="success"
+						style="font-size:10px;font-weight:700" />
+				</p:column>
+				<p:column headerText="Ações" width="70" style="text-align:center">
+					<p:commandButton icon="pi pi-print" title="Recibo 2 vias"
+						styleClass="ui-button-secondary ui-button-rounded"
+						style="width:32px;height:32px"
+						action="#{monthlyFeeBean.preparePrint(m)}"
+						oncomplete="PF('printDlg').show()" update=":printForm"
+						process="@this" />
+				</p:column>
+				<p:columnGroup type="footer">
+					<p:row>
+						<p:column colspan="4" style="text-align:right"
+							footerText="TOTAIS (#{monthlyFeeBean.filteredFees.size()} refs)" />
+						<p:column style="text-align:right"
+							footerText="#{monthlyFeeBean.totalValor} MT" />
+						<p:column footerText="" />
+						<p:column style="text-align:right"
+							footerText="#{monthlyFeeBean.totalMulta} MT" />
+						<p:column style="text-align:right"
+							footerText="#{monthlyFeeBean.totalPago} MT" />
+						<p:column colspan="2" footerText="" />
+					</p:row>
+				</p:columnGroup>
+			</p:dataTable>
+		</div>
+	</h:form>
+
+	<p:dialog widgetVar="printDlg" header="Recibo - 2 Vias" modal="true"
+		width="750">
+		<h:form id="printForm">
+			<h:panelGroup id="printArea">
+				<div id="recibo"
+					style="font-family: Arial, sans-serif; color: #0a2540;">
+					<div
+						style="border: 1px solid #0a2540; border-radius: 12px; padding: 16px; margin-bottom: 16px">
+						<div
+							style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0a2540; padding-bottom: 8px; margin-bottom: 12px">
+							<div style="display: flex; gap: 8px; align-items: center">
+								<div
+									style="width: 42px; height: 42px; background: #0a2540; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800">SGE</div>
+								<div>
+									<h2 style="margin: 0; color: #0a2540; font-size: 15px">COMPLEXO
+										ESCOLAR SGE</h2>
+									<div style="font-size: 10px; line-height: 1.2">
+										Av. 25 de Setembro, 1234 - Maputo<br />Tel: +258 82 123 4567
+										| NUIT: 400123456<br />Email: secretaria@sge.co.mz
+									</div>
+								</div>
+							</div>
+							<div style="text-align: right">
+								<span
+									style="background: #0a2540; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800">VIA
+									ENCARREGADO</span><br /> <small style="font-family: monospace">#{monthlyFeeBean.printFee.reference}</small>
+							</div>
+						</div>
+						<h:panelGroup rendered="#{monthlyFeeBean.printFee != null}">
+							<div
+								style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px">
+								<div>
+									<strong>Cod Aluno:</strong>
+									#{monthlyFeeBean.printFee.student.code}
+								</div>
+								<div>
+									<strong>Data Pag.:</strong>
+									<h:outputText value="#{monthlyFeeBean.printFee.paymentDate}">
+										<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+									</h:outputText>
+								</div>
+								<div style="grid-column: 1/3">
+									<strong>Aluno:</strong>
+									#{monthlyFeeBean.printFee.student.fullName}
+								</div>
+								<div>
+									<strong>Turma:</strong>
+									#{monthlyFeeBean.printFee.enrollment.classroom.name}
+								</div>
+								<div>
+									<strong>Classe:</strong>
+									#{monthlyFeeBean.printFee.enrollment.classroom.classLevel.name}
+								</div>
+								<div>
+									<strong>Mes:</strong> #{monthlyFeeBean.printFee.monthLabel}
+									#{monthlyFeeBean.printFee.year}
+									(#{monthlyFeeBean.printFee.month}/#{monthlyFeeBean.printFee.year})
+								</div>
+								<div>
+									<strong>Vencimento:</strong>
+									<h:outputText value="#{monthlyFeeBean.printFee.dueDate}">
+										<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+									</h:outputText>
+								</div>
+								<div
+									style="grid-column: 1/3; margin-top: 6px; border: 1px solid #e6eaf0; border-radius: 8px; overflow: hidden">
+									<div
+										style="display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 12px; text-align: center">
+										<div style="padding: 8px; background: #f8fafc">
+											<div style="font-size: 10px; color: #64748b">VALOR BASE</div>
+											<strong>#{monthlyFeeBean.printFee.amount} MT</strong>
+										</div>
+										<div style="padding: 8px; background: #fef2f2">
+											<div style="font-size: 10px; color: #dc2626">MULTA</div>
+											<strong style="color: #dc2626">#{monthlyFeeBean.printFee.fineAmount}
+												MT</strong>
+										</div>
+										<div style="padding: 8px; background: #f0fdf4">
+											<div style="font-size: 10px; color: #16a34a">TOTAL PAGO</div>
+											<strong style="color: #16a34a">#{monthlyFeeBean.printFee.totalPaid}
+												MT</strong>
+										</div>
+									</div>
+								</div>
+								<div style="grid-column: 1/3; font-size: 11px">
+									<strong>Forma:</strong>
+									#{monthlyFeeBean.printFee.paymentMethod}
+									<h:panelGroup
+										rendered="#{monthlyFeeBean.printFee.bankName!=null}"> - #{monthlyFeeBean.printFee.bankName} - #{monthlyFeeBean.printFee.transactionNumber}</h:panelGroup>
+								</div>
+							</div>
+							<div
+								style="margin-top: 16px; display: flex; justify-content: space-between; font-size: 11px">
+								<div>Ass. Encarregado __________________</div>
+								<div>Ass. Tesouraria __________________</div>
+							</div>
+						</h:panelGroup>
+					</div>
+					<div
+						style="border-top: 1px dashed #94a3b8; margin: 12px 0; text-align: center">
+						<span
+							style="background: #fff; padding: 0 8px; font-size: 10px; color: #64748b">RECORTAR
+							AQUI</span>
+					</div>
+					<div
+						style="border: 1px solid #64748b; border-radius: 12px; padding: 16px; background: #f8fafc">
+						<div
+							style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #64748b; padding-bottom: 8px; margin-bottom: 12px">
+							<div>
+								<h3 style="margin: 0; font-size: 13px">ESCOLA SGE - ARQUIVO</h3>
+								<small>NUIT: 400123456 | Av. 25 de Setembro</small>
+							</div>
+							<div style="text-align: right">
+								<span
+									style="background: #64748b; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800">VIA
+									ESCOLA</span><br /> <small style="font-family: monospace">#{monthlyFeeBean.printFee.reference}</small>
+							</div>
+						</div>
+						<h:panelGroup rendered="#{monthlyFeeBean.printFee != null}">
+							<div
+								style="font-size: 11px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px">
+								<span><strong>Cod:</strong>
+									#{monthlyFeeBean.printFee.student.code}</span><span><strong>Aluno:</strong>
+									#{monthlyFeeBean.printFee.student.fullName}</span><span><strong>Mes:</strong>
+									#{monthlyFeeBean.printFee.monthLabel}/#{monthlyFeeBean.printFee.year}</span><span><strong>Data
+										Pag:</strong> <h:outputText
+										value="#{monthlyFeeBean.printFee.paymentDate}">
+										<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+									</h:outputText></span> <span><strong>Base:</strong>
+									#{monthlyFeeBean.printFee.amount} MT</span><span><strong>Multa:</strong>
+									#{monthlyFeeBean.printFee.fineAmount} MT</span><span><strong>Total:</strong>
+									#{monthlyFeeBean.printFee.totalPaid} MT</span><span><strong>Forma:</strong>
+									#{monthlyFeeBean.printFee.paymentMethod}</span>
+							</div>
+						</h:panelGroup>
+					</div>
+				</div>
+			</h:panelGroup>
+			<div
+				style="display: flex; justify-content: end; gap: 8px; margin-top: 12px">
+				<p:commandButton value="Imprimir 2 Vias" icon="pi pi-print"
+					type="button" onclick="printRecibo()"
+					style="border-radius:10px;background:#0a2540;border:none" />
+			</div>
+		</h:form>
+		<script type="text/javascript">
+function printRecibo(){
+    var c=document.getElementById('recibo').innerHTML;
+    var w=window.open('','','height=800,width=800');
+    w.document.write('<html><head><title>Recibo 2 Vias</title></head><body>'+c+'</body></html>');
+    w.document.close();
+    w.print();
+}
+		</script>
+	</p:dialog>
+</ui:composition>

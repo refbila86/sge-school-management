@@ -1,284 +1,319 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
-	xmlns:f="jakarta.faces.core" xmlns:p="http://primefaces.org/ui">
+	xmlns:f="jakarta.faces.core" xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="jakarta.faces.facelets">
 <h:head>
-
-	<title>SGE - Acesso ao Sistema</title>
-
+	<title>SGE - Controlo Interno de Alunos</title>
 	<meta charset="UTF-8" />
-
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 	<link
-		href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
 		rel="stylesheet" />
-
 	<style type="text/css">
 /*<![CDATA[*/
+:root {
+	--navy: #0a2540;
+	--blue: #15558a;
+	--blue-2: #1e7bc0;
+	--sky: #38bdf8;
+	--soft: #eaf3fb;
+	--text: #0f1f33;
+	--muted: #5b6b7e;
+	--line: #dbe6f1;
+}
 
-/* =========================================================
-           RESET & GLOBAL
-        ========================================================= */
 * {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
 }
 
-html, body {
-	width: 100%;
-	min-height: 100%;
-}
-
 body {
-	font-family: 'Poppins', sans-serif;
+	font-family: 'Inter', sans-serif;
+	font-size: 15px;
+	line-height: 1.5;
 	min-height: 100vh;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 30px;
-	overflow-x: hidden;
-	background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, .10),
-		transparent 28%),
-		radial-gradient(circle at 90% 90%, rgba(255, 255, 255, .08),
+	padding: 24px;
+	color: var(--text);
+	background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, .25),
 		transparent 30%),
-		linear-gradient(135deg, #061a30 0%, #0b2d50 45%, #15558a 100%);
+		radial-gradient(circle at 90% 90%, rgba(30, 123, 192, .25),
+		transparent 30%),
+		linear-gradient(135deg, #061a30 0%, #0a2a4d 50%, #14649f 100%);
 }
 
-.background-shape {
-	position: fixed;
-	border-radius: 50%;
-	pointer-events: none;
-	border: 1px solid rgba(255, 255, 255, .10);
-}
-
-.shape-one {
-	width: 500px;
-	height: 500px;
-	top: -280px;
-	left: -220px;
-	animation: rotateShape 20s linear infinite;
-}
-
-.shape-two {
-	width: 650px;
-	height: 650px;
-	bottom: -400px;
-	right: -300px;
-	animation: rotateShapeReverse 30s linear infinite;
-}
-
-@
-keyframes rotateShape {
-	from {transform: rotate(0deg);
-}
-
-to {
-	transform: rotate(360deg);
-}
-
-}
-@
-keyframes rotateShapeReverse {
-	from {transform: rotate(360deg);
-}
-
-to {
-	transform: rotate(0deg);
-}
-
-}
 .login-container {
-	position: relative;
-	z-index: 10;
 	width: 100%;
-	max-width: 1080px;
-	min-height: 650px;
+	max-width: 1100px;
+	min-height: 680px;
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	background: rgba(255, 255, 255, .98);
-	border-radius: 30px;
+	grid-template-columns: 6fr 5fr;
+	background: #fff;
+	border-radius: 24px;
 	overflow: hidden;
-	box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
-	animation: loginAppear .8s ease;
+	box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
 }
 
-@
-keyframes loginAppear {
-	from {opacity: 0;
-	transform: translateY(40px) scale(.97);
-}
-
-to {
-	opacity: 1;
-	transform: translateY(0) scale(1);
-}
-
-}
+/* ---------- ESQUERDA (azul) ---------- */
 .login-left {
 	position: relative;
 	display: flex;
-	align-items: center;
+	flex-direction: column;
 	justify-content: center;
-	padding: 55px;
-	color: white;
+	padding: 56px 46px;
+	color: #fff;
 	overflow: hidden;
-	background: linear-gradient(145deg, #071d35 0%, #0c355d 50%, #17679e 100%);
+	background: linear-gradient(150deg, #071d35 0%, #0c3a68 50%, #1673b0 100%);
 }
 
 .login-left::before {
 	content: "";
 	position: absolute;
-	width: 400px;
-	height: 400px;
+	width: 460px;
+	height: 460px;
 	border-radius: 50%;
-	background: radial-gradient(circle, rgba(255, 255, 255, .13),
-		transparent 70%);
-	top: -180px;
-	right: -150px;
+	top: -170px;
+	right: -170px;
+	background: radial-gradient(circle, rgba(255, 255, 255, .16),
+		transparent 68%);
 }
 
 .login-left::after {
 	content: "";
 	position: absolute;
-	width: 350px;
-	height: 350px;
+	width: 340px;
+	height: 340px;
 	border-radius: 50%;
-	background: radial-gradient(circle, rgba(255, 255, 255, .08),
-		transparent 70%);
-	bottom: -200px;
-	left: -150px;
+	bottom: -120px;
+	left: -120px;
+	background: radial-gradient(circle, rgba(56, 189, 248, .25), transparent
+		70%);
 }
 
-.left-content {
+.login-left>* {
 	position: relative;
-	z-index: 5;
-	width: 100%;
-	max-width: 390px;
-	text-align: center;
+	z-index: 2;
+}
+
+.brand-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 16px;
 }
 
 .brand-logo {
-	position: relative;
-	width: 125px;
-	height: 125px;
-	margin: 0 auto 25px;
-	border-radius: 32px;
+	width: 56px;
+	height: 56px;
+	border-radius: 16px;
+	background: linear-gradient(145deg, #38bdf8, #2563eb);
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: linear-gradient(145deg, rgba(255, 255, 255, .22),
-		rgba(255, 255, 255, .07));
-	border: 1px solid rgba(255, 255, 255, .25);
-	box-shadow: 0 20px 40px rgba(0, 0, 0, .20);
-	backdrop-filter: blur(12px);
-	animation: floating 4s ease-in-out infinite;
-}
-
-.brand-logo::before {
-	content: "";
-	position: absolute;
-	inset: 8px;
-	border-radius: 25px;
-	border: 1px solid rgba(255, 255, 255, .10);
+	box-shadow: 0 12px 28px rgba(14, 165, 233, .4);
 }
 
 .brand-logo i {
-	position: relative;
-	z-index: 2;
-	font-size: 58px;
-	color: #ffffff;
+	font-size: 26px;
 }
 
-@
-keyframes floating { 0%,100%{
-	transform: translateY(0);
-}
-
-50
-%
-{
-transform
-:
-translateY(
--10px
-);
-}
-}
 .brand-title {
-	font-size: 52px;
+	font-size: 40px;
 	font-weight: 700;
-	letter-spacing: 7px;
-	margin-bottom: 5px;
+	letter-spacing: 3px;
 }
 
 .brand-subtitle {
-	font-size: 15px;
-	font-weight: 300;
-	letter-spacing: .5px;
-	opacity: .88;
-	margin-bottom: 45px;
+	font-size: 16px;
+	color: rgba(255, 255, 255, .82);
+	margin-bottom: 38px;
+	max-width: 320px;
 }
 
 .features-list {
-	width: 100%;
-	text-align: left;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
 }
 
 .feature-item {
 	display: flex;
 	align-items: center;
-	gap: 15px;
-	padding: 13px 15px;
-	margin-bottom: 10px;
-	border-radius: 15px;
-	background: rgba(255, 255, 255, .07);
-	border: 1px solid rgba(255, 255, 255, .08);
-	transition: transform .25s ease, background .25s ease;
-}
-
-.feature-item:hover {
-	transform: translateX(5px);
-	background: rgba(255, 255, 255, .12);
+	gap: 14px;
+	padding: 12px 14px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .12);
 }
 
 .feature-icon {
-	width: 44px;
-	height: 44px;
-	min-width: 44px;
+	width: 42px;
+	height: 42px;
+	min-width: 42px;
+	border-radius: 12px;
+	background: rgba(125, 211, 252, .18);
+	color: #7dd3fc;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 13px;
-	background: rgba(255, 255, 255, .13);
 }
 
 .feature-icon i {
 	font-size: 18px;
 }
 
-.feature-text {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
 .feature-text strong {
-	font-size: 12px;
+	display: block;
+	font-size: 15px;
 	font-weight: 600;
 }
 
 .feature-text span {
-	font-size: 10px;
-	opacity: .70;
+	font-size: 13.5px;
+	color: rgba(255, 255, 255, .72);
 }
 
+/* ---------- ESQUERDA: dois painéis ---------- */
+.login-left {
+	justify-content: stretch;
+	gap: 16px;
+	padding: 28px;
+}
+
+.panel {
+	border-radius: 20px;
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .14);
+	backdrop-filter: blur(6px);
+}
+
+.panel-brand {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	padding: 22px 24px;
+}
+
+.school-logo {
+	width: 92px;
+	height: 92px;
+	min-width: 92px;
+	filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .3));
+}
+
+.panel-brand .brand-title {
+	font-size: 34px;
+	font-weight: 700;
+	letter-spacing: 4px;
+	line-height: 1.1;
+}
+
+.brand-name {
+	font-size: 15px;
+	font-weight: 600;
+	color: rgba(255, 255, 255, .92);
+	margin-top: 2px;
+}
+
+.brand-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 10px;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: 600;
+	background: rgba(125, 211, 252, .18);
+	color: #bae6fd;
+}
+
+.panel-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 26px 26px 20px;
+}
+
+.info-title {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.3;
+	margin-bottom: 8px;
+}
+
+.info-desc {
+	font-size: 14px;
+	line-height: 1.6;
+	color: rgba(255, 255, 255, .8);
+	margin-bottom: 18px;
+}
+
+.panel-info .features-list {
+	gap: 8px;
+}
+
+.panel-info .feature-item {
+	padding: 9px 12px;
+	background: rgba(255, 255, 255, .06);
+}
+
+.panel-info .feature-icon {
+	width: 36px;
+	height: 36px;
+	min-width: 36px;
+	border-radius: 10px;
+}
+
+.panel-info .feature-icon i {
+	font-size: 16px;
+}
+
+.panel-info .feature-text strong {
+	font-size: 14px;
+}
+
+.panel-info .feature-text span {
+	font-size: 12.5px;
+}
+
+.info-foot {
+	margin-top: auto;
+	padding-top: 16px;
+	font-size: 12.5px;
+	color: rgba(255, 255, 255, .7);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* ---------- DIREITA (branco com vida) ---------- */
 .login-right {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 55px;
+	padding: 48px 54px;
+	background: radial-gradient(circle at 100% 0%, rgba(56, 189, 248, .16),
+		transparent 35%),
+		radial-gradient(circle at 0% 100%, rgba(21, 85, 138, .08), transparent
+		35%), #fff;
+}
+
+.login-right::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 6px;
+	background: linear-gradient(90deg, var(--navy), var(--blue-2),
+		var(--sky));
 }
 
 .login-form-container {
@@ -286,49 +321,93 @@ translateY(
 	max-width: 390px;
 }
 
-.login-header {
-	margin-bottom: 25px;
+.steps {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 30px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #8b99ab;
 }
 
-.welcome-icon {
-	width: 52px;
-	height: 52px;
+.steps .step {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.steps .step.active {
+	color: var(--navy);
+	font-weight: 600;
+}
+
+.steps .dot {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 1.5px solid currentColor;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 15px;
-	margin-bottom: 18px;
-	background: #eef5fa;
-	color: #15558a;
-}
-
-.welcome-icon i {
-	font-size: 22px;
-}
-
-.login-title {
-	font-size: 29px;
-	font-weight: 700;
-	color: #0a2545;
-	margin-bottom: 7px;
-}
-
-.login-subtitle {
 	font-size: 12px;
-	line-height: 1.7;
-	color: #7a8796;
+}
+
+.steps .step.active .dot {
+	background: linear-gradient(135deg, var(--navy), var(--blue-2));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 6px 16px rgba(21, 85, 138, .35);
+}
+
+.steps .bar {
+	flex: 1;
+	height: 2px;
+	border-radius: 2px;
+	background: var(--line);
+}
+
+.steps .bar.done {
+	background: linear-gradient(90deg, var(--navy), var(--blue-2));
+}
+
+.form-title {
+	font-size: 30px;
+	font-weight: 700;
+	line-height: 1.2;
+	margin-bottom: 6px;
+	color: var(--navy);
+}
+
+.form-sub {
+	font-size: 15px;
+	color: var(--muted);
+	margin-bottom: 26px;
+}
+
+.form-sub b {
+	color: var(--blue);
 }
 
 .input-group {
-	margin-bottom: 21px;
+	margin-bottom: 18px;
 }
 
 .input-label {
-	display: block;
-	color: #344256;
-	font-size: 12px;
+	display: flex;
+	align-items: center;
+	font-size: 14px;
 	font-weight: 600;
 	margin-bottom: 8px;
+	color: var(--navy);
+}
+
+.input-label .hint {
+	margin-left: auto;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--blue-2);
+	cursor: pointer;
 }
 
 .input-wrapper {
@@ -336,510 +415,651 @@ translateY(
 	width: 100%;
 }
 
+/* ícone dentro de uma pastilha azul */
 .input-icon {
 	position: absolute;
 	z-index: 5;
-	left: 17px;
+	left: 8px;
 	top: 50%;
 	transform: translateY(-50%);
-	color: #47739d;
-	font-size: 16px;
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	background: var(--soft);
+	color: var(--blue);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 15px;
 	pointer-events: none;
 }
 
 .custom-input {
 	width: 100%;
 	height: 54px;
-	padding-left: 47px;
-	padding-right: 15px;
-	border-radius: 13px;
-	border: 1px solid #dce4ec;
-	background: #f8fafc;
-	color: #1e293b;
-	font-family: 'Poppins', sans-serif;
-	font-size: 12px;
+	padding: 0 48px 0 56px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
+	color: var(--text);
+	font-family: 'Inter', sans-serif;
+	font-size: 15px;
 	outline: none;
-	transition: border-color .25s ease, box-shadow .25s ease, background
-		.25s ease;
+	transition: border-color .15s, box-shadow .15s;
 }
 
-.custom-input:hover {
-	border-color: #aebfd0;
-	background: #ffffff;
+.custom-input::placeholder {
+	color: #a5b1c0;
 }
 
 .custom-input:focus {
-	border-color: #15558a;
-	background: #ffffff;
-	box-shadow: 0 0 0 4px rgba(21, 85, 138, .10);
+	border-color: var(--blue-2);
+	box-shadow: 0 0 0 4px rgba(30, 123, 192, .16);
 }
 
-/* Estilização PrimeFaces */
+.eye-btn {
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 36px;
+	height: 36px;
+	border: none;
+	border-radius: 10px;
+	background: none;
+	color: #8b99ab;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.eye-btn:hover {
+	background: var(--soft);
+	color: var(--blue);
+}
+
+/* PrimeFaces Select */
 .custom-select.ui-selectonemenu {
 	width: 100% !important;
 	height: 54px !important;
-	border-radius: 13px !important;
-	border: 1px solid #dce4ec !important;
-	background: #f8fafc !important;
+	border-radius: 14px !important;
+	border: 1.5px solid var(--line) !important;
+	background: #fff !important;
 	display: flex !important;
 	align-items: center !important;
 	box-shadow: none !important;
-	transition: border-color .25s ease, box-shadow .25s ease !important;
-}
-
-.custom-select.ui-selectonemenu:hover {
-	border-color: #aebfd0 !important;
-	background: #ffffff !important;
 }
 
 .custom-select.ui-selectonemenu.ui-state-focus {
-	border-color: #15558a !important;
-	background: #ffffff !important;
-	box-shadow: 0 0 0 4px rgba(21, 85, 138, .10) !important;
+	border-color: var(--blue-2) !important;
+	box-shadow: 0 0 0 4px rgba(30, 123, 192, .16) !important;
 }
 
 .custom-select .ui-selectonemenu-label {
-	padding-left: 47px !important;
-	font-family: 'Poppins', sans-serif !important;
-	font-size: 12px !important;
-	color: #1e293b !important;
-	display: flex !important;
-	align-items: center !important;
-	height: 100% !important;
+	padding-left: 56px !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 15px !important;
+	color: var(--text) !important;
+	margin-top: 0 !important;
 }
 
 .custom-select .ui-selectonemenu-trigger {
 	width: 40px !important;
 	background: transparent !important;
 	border: none !important;
-	display: flex !important;
-	align-items: center !important;
-	justify-content: center !important;
+	color: var(--blue) !important;
 }
 
-.remember-forgot {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-top: 4px;
-	margin-bottom: 25px;
-}
-
-.remember-me {
-	display: flex;
-	align-items: center;
-	gap: 7px;
-	color: #667587;
-	font-size: 11px;
-}
-
-.forgot-link {
-	color: #15558a;
-	font-size: 11px;
-	font-weight: 600;
-	text-decoration: none;
-}
-
-.forgot-link:hover {
-	color: #0a2545;
-	text-decoration: underline;
-}
-
-.login-button {
-	width: 100%;
-	height: 55px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	border: none;
-	border-radius: 13px;
-	background: linear-gradient(135deg, #092541 0%, #15558a 100%);
-	color: #ffffff;
-	font-family: 'Poppins', sans-serif;
-	font-size: 13px;
-	font-weight: 600;
-	letter-spacing: .3px;
-	cursor: pointer;
-	box-shadow: 0 9px 22px rgba(9, 37, 65, .25);
-	transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.login-button:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 13px 28px rgba(9, 37, 65, .32);
-}
-
+/* Perfis */
 .profiles-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 24px 0 10px;
+	color: var(--navy);
+}
+
+.profiles-select {
+	display: flex;
+	gap: 10px;
+}
+
+.profile-opt {
+	flex: 1;
+	padding: 14px 6px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
 	text-align: center;
-	margin-top: 28px;
-	margin-bottom: 15px;
-	color: #a0acba;
-	font-size: 9px;
-	text-transform: uppercase;
-	letter-spacing: 1px;
+	cursor: pointer;
+	transition: border-color .15s, background .15s, transform .15s,
+		box-shadow .15s;
 }
 
-.profiles {
-	display: flex;
-	justify-content: center;
-	gap: 25px;
+.profile-opt:hover {
+	border-color: var(--blue-2);
+	transform: translateY(-2px);
+	box-shadow: 0 10px 22px rgba(10, 37, 64, .1);
 }
 
-.profile {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-	min-width: 70px;
-	color: #8b98a7;
-	font-size: 9px;
-	font-weight: 500;
-}
-
-.profile-icon {
-	width: 38px;
-	height: 38px;
+.profile-opt i {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 11px;
-	background: #f1f5f8;
-	color: #47739d;
+	width: 40px;
+	height: 40px;
+	margin: 0 auto 8px;
+	border-radius: 12px;
+	background: var(--soft);
+	color: var(--blue);
+	font-size: 18px;
 }
 
-.login-footer {
-	text-align: center;
-	margin-top: 28px;
-	padding-top: 20px;
-	border-top: 1px solid #edf1f5;
-	color: #a1acb9;
-	font-size: 9px;
-	line-height: 1.8;
-}
-
-.login-footer strong {
-	color: #657384;
+.profile-opt .p-name {
+	font-size: 14px;
 	font-weight: 600;
 }
 
-/* Mensagens de erro/info */
-.alert-error {
-	background-color: #fde8e8;
-	border: 1px solid #f8b4b4;
-	color: #9b1c1c;
-	padding: 12px 16px;
-	border-radius: 12px;
+.profile-opt .p-desc {
 	font-size: 12px;
-	margin-bottom: 20px;
+	color: var(--muted);
+}
+
+.profile-opt.active {
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 12px 26px rgba(10, 37, 64, .3);
+}
+
+.profile-opt.active i {
+	background: rgba(255, 255, 255, .16);
+	color: #7dd3fc;
+}
+
+.profile-opt.active .p-desc {
+	color: rgba(255, 255, 255, .75);
+}
+
+/* Anos */
+.years-wrap {
+	max-height: 320px;
+	overflow-y: auto;
+	padding: 4px;
+}
+
+.year-card {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 16px;
+	border-radius: 14px;
+	border: 1.5px solid var(--line);
+	background: #fff;
+	margin-bottom: 10px;
+	cursor: pointer;
+	transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+
+.year-card:hover {
+	border-color: var(--blue-2);
+	transform: translateY(-2px);
+	box-shadow: 0 10px 22px rgba(10, 37, 64, .1);
+}
+
+.year-card.selected {
+	background: linear-gradient(135deg, var(--navy), var(--blue));
+	border-color: transparent;
+	color: #fff;
+	box-shadow: 0 12px 26px rgba(10, 37, 64, .3);
+}
+
+.year-info {
+	flex: 1;
+}
+
+.year-top {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-.alert-info {
-	background-color: #e8f4fd;
-	border: 1px solid #b4d8f8;
-	color: #1c4b9b;
-	padding: 12px 16px;
-	border-radius: 12px;
+.year-num {
+	font-size: 19px;
+	font-weight: 700;
+}
+
+.year-badge {
 	font-size: 12px;
-	margin-bottom: 20px;
+	font-weight: 600;
+	padding: 2px 10px;
+	border-radius: 20px;
+	background: #e1f6e9;
+	color: #1d7a3e;
 }
 
-.ui-messages-info, .ui-messages-error {
-	margin-bottom: 20px;
+.year-badge.hist {
+	background: #eef1f5;
+	color: var(--muted);
 }
 
-.field-error {
-	color: #9b1c1c;
-	font-size: 11px;
-	margin-top: 5px;
+.year-card.selected .year-badge {
+	background: rgba(74, 222, 128, .22);
+	color: #86efac;
 }
 
-@media ( max-width :850px) {
-	body {
-		padding: 20px;
-	}
+.year-card.selected .year-badge.hist {
+	background: rgba(255, 255, 255, .16);
+	color: #dbe6f1;
+}
+
+.year-meta {
+	font-size: 13px;
+	color: var(--muted);
+	margin-top: 2px;
+}
+
+.year-card.selected .year-meta {
+	color: rgba(255, 255, 255, .75);
+}
+
+.year-radio {
+	font-size: 20px;
+	color: #b4c0cf;
+}
+
+.year-card.selected .year-radio {
+	color: #7dd3fc;
+}
+
+.empty-years {
+	text-align: center;
+	padding: 28px 12px;
+	color: var(--muted);
+	font-size: 14px;
+	display: block;
+}
+
+.empty-years i {
+	display: block;
+	font-size: 28px;
+	margin-bottom: 8px;
+	color: var(--blue-2);
+}
+
+/* Botões */
+.ui-button.login-button {
+	width: 100% !important;
+	height: 54px !important;
+	border: none !important;
+	border-radius: 14px !important;
+	background: linear-gradient(135deg, var(--navy) 0%, var(--blue-2) 100%)
+		!important;
+	color: #fff !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 15px !important;
+	font-weight: 600 !important;
+	margin-top: 26px;
+	box-shadow: 0 14px 28px rgba(21, 85, 138, .35) !important;
+	transition: transform .15s, box-shadow .15s !important;
+}
+
+.ui-button.login-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 18px 34px rgba(21, 85, 138, .4) !important;
+}
+
+.ui-button.login-button .ui-button-text, .ui-button.login-button .ui-icon
+	{
+	color: #fff !important;
+}
+
+.ui-button.btn-secondary {
+	width: 100% !important;
+	height: 48px !important;
+	border-radius: 14px !important;
+	border: 1.5px solid var(--line) !important;
+	background: #fff !important;
+	color: var(--blue) !important;
+	font-family: 'Inter', sans-serif !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	margin-top: 10px;
+	box-shadow: none !important;
+}
+
+.ui-button.btn-secondary:hover {
+	background: var(--soft) !important;
+}
+
+.ui-button.btn-secondary .ui-button-text, .ui-button.btn-secondary .ui-icon
+	{
+	color: var(--blue) !important;
+}
+
+.ui-button:focus-visible {
+	outline: 3px solid rgba(30, 123, 192, .4) !important;
+	outline-offset: 2px;
+}
+
+.alert-error {
+	background: #fdeeee;
+	border: 1px solid #f5c6c6;
+	color: #a61b1b;
+	padding: 12px 14px;
+	border-radius: 12px;
+	font-size: 14px;
+	margin-bottom: 18px;
+}
+
+.form-foot {
+	text-align: center;
+	margin-top: 28px;
+	font-size: 13px;
+	color: #8b99ab;
+}
+
+@media ( max-width :900px) {
 	.login-container {
-		max-width: 520px;
+		max-width: 480px;
 		grid-template-columns: 1fr;
+		min-height: 0;
 	}
-	.features-list {
+	.login-left {
 		display: none;
 	}
 	.login-right {
-		padding: 40px 30px;
+		padding: 40px 24px;
 	}
 }
 
+@media ( prefers-reduced-motion : reduce) {
+	* {
+		transition: none !important;
+	}
+}
 /*]]>*/
 </style>
-
 </h:head>
-
 <h:body>
-
-	<div class="background-shape shape-one"></div>
-
-	<div class="background-shape shape-two"></div>
-
 	<div class="login-container">
-
-		<!-- PAINEL ESQUERDO -->
-
+		<!-- ESQUERDA -->
 		<div class="login-left">
-
-			<div class="left-content">
-
-				<div class="brand-logo">
-
-					<i class="pi pi-graduation-cap"></i>
-
+			<!-- Painel 1: identidade -->
+			<div class="panel panel-brand">
+				<svg class="school-logo" viewBox="0 0 120 120" role="img"
+					aria-label="Logótipo da escola">
+					<defs>
+						<linearGradient id="lgBg" x1="0" y1="0" x2="1" y2="1">
+							<stop offset="0" stop-color="#38bdf8" />
+							<stop offset="1" stop-color="#1d4ed8" />
+						</linearGradient>
+					</defs>
+					<circle cx="60" cy="60" r="56" fill="url(#lgBg)" />
+					<circle cx="60" cy="60" r="56" fill="none"
+						stroke="rgba(255,255,255,.45)" stroke-width="2" />
+					<!-- bandeira -->
+					<line x1="60" y1="18" x2="60" y2="34" stroke="#fff"
+						stroke-width="2.5" stroke-linecap="round" />
+					<path d="M60 18 L76 22 L60 27 Z" fill="#fcd34d" />
+					<!-- telhado -->
+					<path d="M26 54 L60 32 L94 54 Z" fill="#fff" />
+					<!-- corpo -->
+					<rect x="32" y="54" width="56" height="30" fill="#fff"
+						opacity=".95" />
+					<!-- colunas -->
+					<rect x="38" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="50" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="64" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<rect x="76" y="58" width="6" height="26" rx="2" fill="#1d4ed8"
+						opacity=".85" />
+					<!-- degraus -->
+					<rect x="28" y="84" width="64" height="5" rx="2" fill="#fff" />
+					<rect x="23" y="89" width="74" height="5" rx="2" fill="#bfdbfe" />
+					<!-- janela do frontão -->
+					<circle cx="60" cy="46" r="4.5" fill="#1d4ed8" />
+					<!-- livro -->
+					<path
+						d="M44 101 Q52 97 60 101 Q68 97 76 101 L76 108 Q68 104 60 108 Q52 104 44 108 Z"
+						fill="#fcd34d" />
+				</svg>
+				<div class="brand-text">
+					<div class="brand-title">SGE</div>
+					<div class="brand-name">Sistema de Gestão Escolar</div>
+					<div class="brand-tag">
+						<i class="pi pi-shield"></i> Controlo Interno de Alunos
+					</div>
 				</div>
+			</div>
 
-				<h1 class="brand-title">SGE</h1>
-
-				<p class="brand-subtitle">Sistema de Gestão Escolar</p>
+			<!-- Painel 2: o que o sistema faz -->
+			<div class="panel panel-info">
+				<h2 class="info-title">Tudo sobre os seus alunos, num só lugar</h2>
+				<p class="info-desc">O SGE organiza o dia a dia da escola:
+					regista matrículas, acompanha o percurso de cada aluno e mantém o
+					controlo interno de turmas, notas, assiduidade e pagamentos.</p>
 
 				<div class="features-list">
-
 					<div class="feature-item">
-
+						<div class="feature-icon">
+							<i class="pi pi-id-card"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Matrículas e fichas</strong><span>Inscrição,
+								renovação e dados de cada aluno</span>
+						</div>
+					</div>
+					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-users"></i>
 						</div>
-
 						<div class="feature-text">
-							<strong>Alunos e Turmas</strong><span>Gestão académica
-								simplificada</span>
+							<strong>Turmas e classes</strong><span>Vagas e
+								distribuição por ano académico</span>
 						</div>
-
 					</div>
-
 					<div class="feature-item">
-
 						<div class="feature-icon">
 							<i class="pi pi-book"></i>
 						</div>
-
 						<div class="feature-text">
-							<strong>Notas e Frequência</strong><span>Acompanhamento do
-								desempenho</span>
+							<strong>Notas e frequência</strong><span>Avaliações,
+								faltas e boletins</span>
 						</div>
-
 					</div>
-
 					<div class="feature-item">
-
+						<div class="feature-icon">
+							<i class="pi pi-wallet"></i>
+						</div>
+						<div class="feature-text">
+							<strong>Pagamentos e propinas</strong><span>Controlo
+								financeiro por aluno</span>
+						</div>
+					</div>
+					<div class="feature-item">
 						<div class="feature-icon">
 							<i class="pi pi-chart-bar"></i>
 						</div>
-
 						<div class="feature-text">
-							<strong>Relatórios Académicos</strong><span>Informação
-								clara e organizada</span>
+							<strong>Relatórios</strong><span>Indicadores e listas
+								prontas a imprimir</span>
 						</div>
-
 					</div>
-
-					<div class="feature-item">
-
-						<div class="feature-icon">
-							<i class="pi pi-shield"></i>
-						</div>
-
-						<div class="feature-text">
-							<strong>Ambiente Seguro</strong><span>Acesso protegido ao
-								sistema</span>
-						</div>
-
-					</div>
-
 				</div>
 
+				<div class="info-foot">
+					<i class="pi pi-lock"></i> Acesso por perfil: Admin, Professor e
+					Encarregado
+				</div>
 			</div>
-
 		</div>
 
-		<!-- PAINEL DIREITO -->
-
+		<!-- DIREITA -->
 		<div class="login-right">
-
 			<div class="login-form-container">
-
 				<h:form id="loginForm">
+					<p:messages globalOnly="true" showDetail="true" closable="true"
+						styleClass="alert-error" />
 
-					<div class="login-header">
-
-						<div class="welcome-icon">
-							<i class="pi pi-lock"></i>
+					<div class="steps">
+						<div class="step #{!loginBean.yearStep ? 'active' : ''}">
+							<span class="dot">1</span> Credenciais
 						</div>
-
-						<h2 class="login-title">Bem-vindo(a)!</h2>
-
-						<p class="login-subtitle">Entre com as suas credenciais para
-							aceder ao Sistema de Gestão Escolar.</p>
-
+						<div class="bar #{loginBean.yearStep ? 'done' : ''}"></div>
+						<div class="step #{loginBean.yearStep ? 'active' : ''}">
+							<span class="dot">2</span> Ano académico
+						</div>
 					</div>
 
-					<!-- Mensagens globais (erros e info) -->
+					<h:panelGroup rendered="#{!loginBean.yearStep}">
+						<h2 class="form-title">Bem-vindo(a)</h2>
+						<p class="form-sub">Preencha os seus dados para continuar.</p>
 
-					<h:messages globalOnly="true" styleClass="alert-error"
-						infoStyleClass="alert-info" errorStyleClass="alert-error"
-						showDetail="true" showSummary="false" />
-
-					<!-- ESCOLA -->
-
-					<div class="input-group">
-
-						<label class="input-label" for="schoolSelect">Escola</label>
-
-						<div class="input-wrapper">
-
-							<i class="pi pi-building input-icon"></i>
-
-							<p:selectOneMenu id="schoolSelect" value="#{loginBean.schoolId}"
-								styleClass="custom-select" required="true"
-								requiredMessage="Selecione uma escola.">
-
-								<f:selectItem itemLabel="Selecione a escola..." itemValue=""
-									noSelectionOption="true" />
-
-								<f:selectItems value="#{loginBean.schools}" var="s"
-									itemLabel="#{s.name}" itemValue="#{s.id}" />
-
-							</p:selectOneMenu>
-
-						</div>
-
-						<h:message for="schoolSelect" styleClass="field-error" />
-
-					</div>
-
-					<!-- UTILIZADOR -->
-
-					<div class="input-group">
-
-						<label class="input-label" for="username">Utilizador</label>
-
-						<div class="input-wrapper">
-
-							<i class="pi pi-user input-icon"></i>
-
-							<h:inputText id="username" value="#{loginBean.username}"
-								styleClass="custom-input" placeholder="Digite o seu utilizador"
-								required="true" requiredMessage="Informe o utilizador." />
-
-						</div>
-
-						<h:message for="username" styleClass="field-error" />
-
-					</div>
-
-					<!-- SENHA -->
-
-					<div class="input-group">
-
-						<label class="input-label" for="password">Senha</label>
-
-						<div class="input-wrapper">
-
-							<i class="pi pi-lock input-icon"></i>
-
-							<h:inputSecret id="password" value="#{loginBean.password}"
-								styleClass="custom-input" placeholder="Digite a sua senha"
-								required="true" requiredMessage="Informe a senha." />
-
-						</div>
-
-						<h:message for="password" styleClass="field-error" />
-
-					</div>
-
-					<div class="remember-forgot">
-
-						<div class="remember-me">
-
-							<h:selectBooleanCheckbox id="remember-me"
-								value="#{loginBean.rememberMe}" />
-
-							<label for="remember-me">Lembrar-me</label>
-
-						</div>
-
-						<a href="#" class="forgot-link" onclick="return false;">Esqueceu
-							a senha?</a>
-
-					</div>
-
-					<!-- Botão de login com JSF -->
-
-					<h:commandButton value="Entrar no Sistema"
-						action="#{loginBean.login}" styleClass="login-button">
-
-						<f:ajax execute="@form" render="@form" />
-
-					</h:commandButton>
-
-					<!-- Perfis -->
-
-					<div class="profiles-title">Tipos de acesso disponíveis</div>
-
-					<div class="profiles">
-
-						<div class="profile">
-
-							<div class="profile-icon">
-								<i class="pi pi-user"></i>
+						<div class="input-group">
+							<label class="input-label">Escola</label>
+							<div class="input-wrapper">
+								<i class="pi pi-building input-icon"></i>
+								<p:selectOneMenu value="#{loginBean.schoolId}"
+									styleClass="custom-select" required="true"
+									requiredMessage="Escolha escola">
+									<f:selectItem itemLabel="Selecione a sua escola..."
+										itemValue="" noSelectionOption="true" />
+									<f:selectItems value="#{loginBean.schools}" var="s"
+										itemLabel="#{s.name}" itemValue="#{s.id}" />
+								</p:selectOneMenu>
 							</div>
-
-							<span>Administração</span>
-
 						</div>
 
-						<div class="profile">
+						<div class="input-group">
+							<label class="input-label">Utilizador</label>
+							<div class="input-wrapper">
+								<i class="pi pi-user input-icon"></i>
+								<h:inputText value="#{loginBean.username}"
+									styleClass="custom-input" placeholder="ex: admin.escola"
+									required="true" />
+							</div>
+						</div>
 
-							<div class="profile-icon">
+						<div class="input-group">
+							<label class="input-label">Senha <span class="hint">Esqueceu?</span></label>
+							<div class="input-wrapper">
+								<i class="pi pi-lock input-icon"></i>
+								<h:inputSecret id="pwd" value="#{loginBean.password}"
+									styleClass="custom-input" placeholder="••••••••"
+									required="true" />
+								<button type="button" class="eye-btn" onclick="togglePwd()"
+									aria-label="Mostrar ou ocultar senha">
+									<i id="eyeIcon" class="pi pi-eye"></i>
+								</button>
+							</div>
+						</div>
+
+						<h:inputHidden id="selectedProfile"
+							value="#{loginBean.selectedProfile}" />
+						<div class="profiles-title">Perfil de acesso</div>
+						<div class="profiles-select">
+							<div
+								class="profile-opt #{loginBean.selectedProfile eq 'ADMIN' ? 'active' : ''}"
+								onclick="selectProfile('ADMIN',this)">
+								<i class="pi pi-cog"></i>
+								<div class="p-name">Admin</div>
+								<div class="p-desc">Acesso total</div>
+							</div>
+							<div
+								class="profile-opt #{loginBean.selectedProfile eq 'TEACHER' ? 'active' : ''}"
+								onclick="selectProfile('TEACHER',this)">
 								<i class="pi pi-book"></i>
+								<div class="p-name">Professor</div>
+								<div class="p-desc">Turmas</div>
 							</div>
-
-							<span>Professor</span>
-
+							<div
+								class="profile-opt #{loginBean.selectedProfile eq 'GUARDIAN' ? 'active' : ''}"
+								onclick="selectProfile('GUARDIAN',this)">
+								<i class="pi pi-heart"></i>
+								<div class="p-name">Encarregado</div>
+								<div class="p-desc">Educandos</div>
+							</div>
 						</div>
 
-						<div class="profile">
+						<p:commandButton value="Seguinte" icon="pi pi-arrow-right"
+							iconPos="right" action="#{loginBean.goToYearStep}"
+							styleClass="login-button" update="@form" process="@form" />
+					</h:panelGroup>
 
-							<div class="profile-icon">
-								<i class="pi pi-users"></i>
-							</div>
-
-							<span>Encarregado</span>
-
-						</div>
-
-					</div>
-
-					<!-- Rodapé -->
-
-					<div class="login-footer">
-
-						<p>
-							<strong>SGE</strong> — Sistema de Gestão Escolar
+					<h:panelGroup rendered="#{loginBean.yearStep}">
+						<h2 class="form-title">Ano académico</h2>
+						<p class="form-sub">
+							Olá <b>#{loginBean.username}</b>, escolha o ano lectivo.
 						</p>
 
-						<p>© 2026 • Acesso seguro e gerido pela escola</p>
+						<div class="years-wrap">
+							<ui:repeat value="#{loginBean.academicYears}" var="ay">
+								<div
+									class="year-card #{loginBean.academicYearId eq ay.id ? 'selected' : ''}"
+									onclick="selectYear(#{ay.id}, this)">
+									<div class="year-info">
+										<div class="year-top">
+											<span class="year-num">#{ay.year}</span> <span
+												class="year-badge #{ay.active ? '' : 'hist'}">#{ay.active
+												? 'Activo' : 'Histórico'}</span>
+										</div>
+										<div class="year-meta">
+											<h:outputText
+												value="#{ay.active ? 'Ano actual em curso' : 'Ano lectivo encerrado'}" />
+										</div>
+									</div>
+									<i
+										class="year-radio pi #{loginBean.academicYearId eq ay.id ? 'pi-check-circle' : 'pi-circle'}"></i>
+								</div>
+							</ui:repeat>
+							<h:panelGroup rendered="#{empty loginBean.academicYears}"
+								styleClass="empty-years" layout="block">
+								<i class="pi pi-inbox"></i> Nenhum ano académico encontrado. Registe um em Administração.
+							</h:panelGroup>
+						</div>
 
-					</div>
+						<h:inputHidden id="yearId" value="#{loginBean.academicYearId}" />
+						<p:commandButton value="Entrar no sistema" icon="pi pi-sign-in"
+							iconPos="right" action="#{loginBean.login}"
+							styleClass="login-button" update="@form" process="@form" />
+						<p:commandButton value="Voltar às credenciais"
+							icon="pi pi-arrow-left" action="#{loginBean.backToCredentials}"
+							styleClass="btn-secondary" immediate="true" update="@form"
+							process="@this" />
+					</h:panelGroup>
 
+					<div class="form-foot">SGE © 2026 • Maputo</div>
 				</h:form>
-
 			</div>
-
 		</div>
-
 	</div>
 
+	<script>
+//<![CDATA[
+function selectProfile(p, el){
+    document.getElementById('loginForm:selectedProfile').value=p;
+    document.querySelectorAll('.profile-opt').forEach(o=>o.classList.remove('active'));
+    el.classList.add('active');
+}
+function selectYear(id, el){
+    document.getElementById('loginForm:yearId').value=id;
+    document.querySelectorAll('.year-card').forEach(c=>{
+        c.classList.remove('selected');
+        var r=c.querySelector('.year-radio');
+        if(r) r.className='year-radio pi pi-circle';
+    });
+    el.classList.add('selected');
+    var radio=el.querySelector('.year-radio');
+    if(radio) radio.className='year-radio pi pi-check-circle';
+}
+function togglePwd(){
+    var input=document.getElementById('loginForm:pwd');
+    var icon=document.getElementById('eyeIcon');
+    if(input.type==='password'){ input.type='text'; icon.className='pi pi-eye-slash'; }
+    else { input.type='password'; icon.className='pi pi-eye'; }
+}
+//]]>
+</script>
 </h:body>
-
 </html>

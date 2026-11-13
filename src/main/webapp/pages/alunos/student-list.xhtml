@@ -1,0 +1,87 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px
+}
+
+.page-title {
+	font-size: 18px;
+	font-weight: 700;
+	color: #0a2545
+}
+
+.filter-bar {
+	background: white;
+	border-radius: 14px;
+	padding: 14px;
+	border: 1px solid #e9eef3;
+	display: flex;
+	gap: 12px;
+	margin-bottom: 16px;
+	flex-wrap: wrap
+}
+</style>
+
+	<div class="page-header">
+		<div class="page-title">
+			<i class="pi pi-users" style="margin-right: 8px; color: #15558a" />
+			Gestão de Alunos
+		</div>
+		<p:commandButton value="Novo Aluno" icon="pi pi-plus"
+			style="border-radius:10px;background:#0b2d50;border:none" />
+	</div>
+
+	<div class="filter-bar">
+		<p:inputText placeholder="Pesquisar por nome ou código..."
+			style="width:280px" />
+		<p:selectOneMenu style="width:160px">
+			<f:selectItem itemLabel="Todas Turmas" itemValue="" />
+			<f:selectItem itemLabel="10ª A" itemValue="10A" />
+			<f:selectItem itemLabel="9ª B" itemValue="9B" />
+		</p:selectOneMenu>
+		<p:selectOneMenu style="width:150px">
+			<f:selectItem itemLabel="Todos Estados" itemValue="" />
+			<f:selectItem itemLabel="Ativa" itemValue="Ativa" />
+			<f:selectItem itemLabel="Pendente" itemValue="Pendente" />
+		</p:selectOneMenu>
+		<p:commandButton icon="pi pi-search" styleClass="ui-button-secondary"
+			style="border-radius:10px" />
+	</div>
+
+	<div
+		style="background: white; border-radius: 16px; padding: 4px; border: 1px solid #e9eef3">
+		<p:dataTable value="#{welcomeBean.ultimasMatriculas}" var="a"
+			paginator="true" rows="10" paginatorPosition="bottom"
+			stripedRows="true" style="font-size:12px"
+			emptyMessage="Nenhum aluno encontrado">
+			<p:column headerText="Código" width="100" sortBy="#{a.codigo}">
+				<b style="color: #0b2d50">#{a.codigo}</b>
+			</p:column>
+			<p:column headerText="Nome Completo" sortBy="#{a.nome}">
+				<p:avatar label="#{a.nome.substring(0,1)}" style="margin-right:8px"
+					size="small" /> #{a.nome}</p:column>
+			<p:column headerText="Turma" width="110">#{a.turma}</p:column>
+			<p:column headerText="Data Matrícula" width="120">#{a.data}</p:column>
+			<p:column headerText="Estado" width="110">
+				<span class="status-badge status-#{a.estado}"
+					style="padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:#{a.estado eq 'Ativa' ? '#dcfce7' : '#fef9c3'};color:#{a.estado eq 'Ativa' ? '#166534' : '#854d0e'}">#{a.estado}</span>
+			</p:column>
+			<p:column headerText="Ações" width="120">
+				<p:commandButton icon="pi pi-eye"
+					styleClass="ui-button-rounded ui-button-text" title="Ver" />
+				<p:commandButton icon="pi pi-pencil"
+					styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+					title="Editar" />
+				<p:commandButton icon="pi pi-trash"
+					styleClass="ui-button-rounded ui-button-text ui-button-danger"
+					title="Remover" />
+			</p:column>
+		</p:dataTable>
+	</div>
+</ui:composition>

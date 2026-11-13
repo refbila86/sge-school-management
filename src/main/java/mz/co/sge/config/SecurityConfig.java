@@ -16,25 +16,14 @@ public class SecurityConfig
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
 	{
-		http
-				// Desativa CSRF para requisições AJAX do PrimeFaces/JSF
-				.csrf(csrf -> csrf.disable())
-
-				// Configuração de permissões de acesso
-				.authorizeHttpRequests(auth -> auth
-						// Libera recursos estáticos do PrimeFaces / JSF
-						.requestMatchers("/jakarta.faces.resource/**", "/javax.faces.resource/**").permitAll()
-						// Libera a página de login
-						.requestMatchers("/login.xhtml").permitAll()
-						// Qualquer outra página exige autenticação
-						.anyRequest().authenticated())
-
-				// Formulário de Login adaptado ao JSF/PrimeFaces
-				.formLogin(form -> form.loginPage("/login.xhtml").loginProcessingUrl("/login").defaultSuccessUrl("/index.xhtml", true)
-						.failureUrl("/login.xhtml?error=true").permitAll())
-
-				// Configuração de Logout
-				.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login.xhtml?logout=true").deleteCookies("JSESSIONID").permitAll());
+		http.csrf(csrf -> csrf.disable())
+				.authorizeHttpRequests(
+						auth -> auth.requestMatchers("/login.xhtml", "/jakarta.faces.resource/**", "/javax.faces.resource/**", "/resources/**", "/public/**")
+								.permitAll().anyRequest().authenticated())
+				// IMPORTANTE: desativa formLogin porque tu já fazes login no LoginBean
+				.formLogin(form -> form.disable()).logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login.xhtml?faces-redirect=true")
+						.deleteCookies("JSESSIONID").invalidateHttpSession(true))
+				.sessionManagement(sess -> sess.sessionFixation().migrateSession());
 
 		return http.build();
 	}
@@ -42,6 +31,6 @@ public class SecurityConfig
 	@Bean
 	public PasswordEncoder passwordEncoder()
 	{
-		return new BCryptPasswordEncoder();
+		return new BCryptPasswordEncoder(12); // força 12 rounds, gera $2a$
 	}
 }

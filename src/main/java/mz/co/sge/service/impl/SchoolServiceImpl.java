@@ -63,18 +63,80 @@ public class SchoolServiceImpl implements ISchoolService
 		return schoolRepository.findAllActiveOrderByNameAsc();
 	}
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public List<SchoolEntity> search(String term)
+//    {
+//        if (term == null || term.trim().isEmpty())
+//        {
+//            return findAll();
+//        }
+//        return schoolRepository.searchByTerm(term.trim());
+//    }
+
 	@Override
 	@Transactional(readOnly = true)
 	public boolean codeExists(String code)
 	{
 		return schoolRepository.existsByCode(code);
 	}
-	
-	
+
+//    @Override
+//    @Transactional(readOnly = true)
+//    public boolean licenseExists(Long licenseId)
+//    {
+//        return schoolRepository.existsByLicenseId(licenseId);
+//    }
 
 	@Override
 	public void delete(Long id)
 	{
 		schoolRepository.deleteById(id);
+	}
+
+	@Override
+	public void toggleActive(Long id)
+	{
+		var opt = schoolRepository.findById(id);
+		if (opt.isPresent())
+		{
+			SchoolEntity school = opt.get();
+			school.setActive(!school.getActive());
+			schoolRepository.save(school);
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<SchoolEntity> search(String term)
+	{
+		if (term == null || term.trim().isEmpty())
+		{
+			return findAll();
+		}
+		return schoolRepository.searchByTerm(term.trim());
+	}
+
+	@Override
+	public boolean licenseExists(Long licenseId)
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public SchoolEntity getSchool()
+	{
+		return schoolRepository.findActiveSchool().orElseGet(() ->
+		{
+			SchoolEntity s = new SchoolEntity();
+			s.setName("ESCOLA NÃO CADASTRADA");
+			s.setCode("SGE");
+			s.setNuit("-");
+			s.setAddress("-");
+			s.setPhone("-");
+			s.setEmail("-");
+			s.setActive(true);
+			return s;
+		});
 	}
 }

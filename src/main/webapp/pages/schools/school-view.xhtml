@@ -1,0 +1,63 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div style="font-size:18px;font-weight:700;color:#0a2540"><i class="pi pi-eye" style="margin-right:8px;color:#2563eb"/> Visualizar Escola</div>
+        <div style="display:flex;gap:8px">
+            <p:commandButton value="Editar" icon="pi pi-pencil" style="border-radius:10px;background:#0a2540;border:none;font-size:12px"
+                             action="#{dashboardBean.navigate('schools/school-include','escolas')}" update=":contentPanel">
+                <f:setPropertyActionListener value="#{schoolBean.selectedSchool}" target="#{schoolBean.school}"/>
+            </p:commandButton>
+            <p:commandButton value="Voltar" icon="pi pi-arrow-left" styleClass="ui-button-secondary ui-button-outlined" style="border-radius:10px;font-size:12px"
+                             action="#{dashboardBean.navigate('schools/school-list','escolas')}" update=":contentPanel"/>
+        </div>
+    </div>
+
+    <h:panelGroup rendered="#{schoolBean.selectedSchool != null}">
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+            <!-- DETALHES -->
+            <div style="background:white;border:1px solid #e6eaf0;border-radius:16px;padding:22px">
+                <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px">
+                    <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#0a2540,#2563eb);color:white;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800">#{schoolBean.selectedSchool.name.substring(0,1)}</div>
+                    <div>
+                        <b style="font-size:18px;color:#0a2540">#{schoolBean.selectedSchool.name}</b><br/>
+                        <span style="font-size:12px;color:#64748b">Código #{schoolBean.selectedSchool.code} • NUIT #{schoolBean.selectedSchool.nuit}</span><br/>
+                        <p:tag value="#{schoolBean.selectedSchool.active ? 'Ativa' : 'Inativa'}" severity="#{schoolBean.selectedSchool.active ? 'success' : 'danger'}" style="margin-top:6px;font-size:10px"/>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px">
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">Endereço Completo</span><br/><b>#{schoolBean.selectedSchool.address}</b></div>
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">Telefone</span><br/><b>#{schoolBean.selectedSchool.phone}</b></div>
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">Email</span><br/><b>#{schoolBean.selectedSchool.email}</b></div>
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">License ID</span><br/><b>#{schoolBean.selectedSchool.licenseId}</b></div>
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">Criado em</span><br/><b><h:outputText value="#{schoolBean.selectedSchool.createdAt}"><f:convertDateTime pattern="dd/MM/yyyy HH:mm"/></h:outputText></b></div>
+                    <div><span style="font-size:10px;color:#64748b;text-transform:uppercase">ID Sistema</span><br/><b>#{schoolBean.selectedSchool.id}</b></div>
+                </div>
+            </div>
+
+            <!-- CARDS LATERAIS -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="background:linear-gradient(135deg,#0a2540,#1e40af);border-radius:16px;padding:18px;color:white">
+                    <div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px">Estatísticas</div>
+                    <div style="margin-top:12px;display:grid;gap:10px">
+                        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;opacity:.8">Alunos</span><b>342</b></div>
+                        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;opacity:.8">Turmas</span><b>12</b></div>
+                        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;opacity:.8">Professores</span><b>18</b></div>
+                    </div>
+                </div>
+                <div style="background:white;border:1px solid #e6eaf0;border-radius:16px;padding:16px">
+                    <b style="font-size:12px">Ações Rápidas</b>
+                    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+                        <p:commandButton value="Ver Alunos desta Escola" icon="pi pi-users" styleClass="ui-button-outlined" style="width:100%;font-size:11px;border-radius:10px"/>
+                        <p:commandButton value="Ver Turmas" icon="pi pi-building" styleClass="ui-button-outlined" style="width:100%;font-size:11px;border-radius:10px"/>
+                        <p:commandButton value="Gerar Relatório" icon="pi pi-chart-bar" styleClass="ui-button-outlined" style="width:100%;font-size:11px;border-radius:10px"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </h:panelGroup>
+</ui:composition>

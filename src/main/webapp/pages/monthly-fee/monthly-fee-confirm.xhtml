@@ -1,0 +1,165 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+	<style>
+.form-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px
+}
+
+.step {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 12px
+}
+
+.step-num {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #0a2540;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800
+}
+
+.ro-field {
+	width: 100%;
+	padding: 8px;
+	border-radius: 8px;
+	border: 1px solid #e6eaf0;
+	background: #f1f5f9;
+	color: #0a2540;
+	font-weight: 700;
+	box-sizing: border-box
+}
+</style>
+
+	<h:form id="formConfirm">
+		<p:growl id="growl" showDetail="true" />
+
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
+			<div
+				style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center; gap: 10px">
+				<p:commandButton icon="pi pi-arrow-left"
+					styleClass="ui-button-text ui-button-rounded"
+					style="width:36px;height:36px"
+					action="#{dashboardBean.navigate('monthly-fee/monthly-fee-include','mensalidades')}"
+					process="@this" update=":contentPanel" />
+				Confirmar Pagamento
+			</div>
+			<p:tag value="Somente leitura" severity="warning"
+				style="font-weight:700" />
+		</div>
+
+		<div class="form-card">
+			<div class="step">
+				<div class="step-num">1</div>
+				<b>Estudante</b>
+			</div>
+			<div
+				style="background: #f8fafc; border-radius: 12px; padding: 12px; display: flex; gap: 12px; align-items: center">
+				<div
+					style="width: 48px; height: 48px; border-radius: 50%; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800">#{monthlyFeeBean.foundStudent.firstName.substring(0,1)}</div>
+				<div>
+					<b>#{monthlyFeeBean.foundStudent.fullName}</b> -
+					#{monthlyFeeBean.foundStudent.code}<br /> <small>#{monthlyFeeBean.selectedFees.size()}
+						referência(s) selecionada(s)</small>
+				</div>
+			</div>
+
+			<div class="step">
+				<div class="step-num">2</div>
+				<b>Referências selecionadas</b>
+			</div>
+			<p:dataTable id="tableRefs" value="#{monthlyFeeBean.selectedFees}"
+				var="r" paginator="false"
+				emptyMessage="Nenhuma referência selecionada">
+				<p:column headerText="Referência">
+					<b>#{r.reference}</b>
+					<br />
+					<small>#{r.monthLabel} #{r.year}</small>
+				</p:column>
+				<p:column headerText="Turma">#{r.enrollment.classroom.name}</p:column>
+				<p:column headerText="Valor" style="text-align:right">
+					<b>#{r.amount} MT</b>
+				</p:column>
+				<p:column headerText="Multa" style="text-align:right;color:#dc2626">
+					<b>#{monthlyFeeBean.calcMulta(r)} MT</b>
+				</p:column>
+				<p:column headerText="Total" style="text-align:right">
+					<b>#{monthlyFeeBean.calcTotalPagoComMulta(r)} MT</b>
+				</p:column>
+			</p:dataTable>
+
+			<div class="step">
+				<div class="step-num">3</div>
+				<b>Forma de pagamento</b>
+			</div>
+
+			<div
+				style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; align-items: end">
+				<div>
+					<span
+						style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Forma
+						Pagamento</span><br />
+					<h:inputText styleClass="ro-field" disabled="true"
+						value="#{monthlyFeeBean.paymentMethod == 'TRANSFERENCIA_BANCARIA' ? 'TRANSFERÊNCIA BANCÁRIA' : 'NUMERÁRIO'}" />
+				</div>
+				<div>
+					<span
+						style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Banco</span><br />
+					<h:inputText styleClass="ro-field" disabled="true"
+						value="#{empty monthlyFeeBean.bankName ? '-' : monthlyFeeBean.bankName}" />
+				</div>
+				<div>
+					<span
+						style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Nº
+						Transação</span><br />
+					<h:inputText styleClass="ro-field" disabled="true"
+						value="#{empty monthlyFeeBean.transactionNumber ? '-' : monthlyFeeBean.transactionNumber}" />
+				</div>
+				<div>
+					<span
+						style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Data
+						pagamento</span><br />
+					<h:inputText styleClass="ro-field" disabled="true"
+						value="#{monthlyFeeBean.paymentDate}">
+						<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+					</h:inputText>
+				</div>
+			</div>
+
+			<div
+				style="background: #0a2540; color: #fff; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center">
+				<div>
+					<div style="font-size: 12px; opacity: .7">TOTAL A PAGAR</div>
+					<div style="font-size: 24px; font-weight: 800">#{monthlyFeeBean.totalSelecionado}
+						MT</div>
+					<small>#{monthlyFeeBean.selectedFees.size()} referência(s)
+						| Multa #{monthlyFeeBean.multaSelecionada} MT</small>
+				</div>
+				<div style="display: flex; gap: 10px">
+					<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:12px"
+						action="#{dashboardBean.navigate('monthly-fee/monthly-fee-include','mensalidades')}"
+						process="@this" update=":contentPanel" />
+					<p:commandButton value="Confirmar Pagamento" icon="pi pi-check"
+						action="#{monthlyFeeBean.confirmPaymentAndRedirect}"
+						process="@this" update=":contentPanel"
+						style="border-radius:12px;background:#16a34a;border:none;font-weight:700;height:48px" />
+				</div>
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

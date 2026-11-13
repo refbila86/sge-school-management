@@ -1,0 +1,229 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	padding: 18px
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1.2fr 0.8fr;
+	gap: 14px
+}
+
+@media ( max-width :900px) {
+	.form-grid {
+		grid-template-columns: 1fr
+	}
+}
+
+.label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	margin-bottom: 6px;
+	display: block
+}
+
+.ui-autocomplete {
+	width: 100% !important;
+	display: block
+}
+
+.ui-autocomplete-input {
+	width: 100% !important
+}
+
+.ui-autocomplete-panel {
+	min-width: 500px !important;
+	max-width: 700px !important
+}
+
+.ui-autocomplete-item {
+	white-space: normal !important;
+	padding: 10px !important;
+	font-size: 13px
+}
+</style>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" />
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
+			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
+				<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb" />Novo
+				Pagamento - #{loginBean.loggedAcademicYear.year}
+			</div>
+			<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px"
+				action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"
+				update=":contentPanel" immediate="true" process="@this" />
+		</div>
+		<p:messages id="msgs" showDetail="true" closable="true" />
+
+		<div class="form-grid">
+			<div class="form-card">
+				<span class="label">Aluno * (só do ano logado) - digite nome
+					ou código</span>
+				<p:autoComplete id="acAluno"
+					value="#{paymentBean.selectedStudentEntity}"
+					completeMethod="#{paymentBean.completeStudent}" var="s"
+					itemLabel="#{s.fullName} - #{s.code}" itemValue="#{s}"
+					converter="#{studentConverter}" forceSelection="true"
+					dropdown="true" minQueryLength="2" queryDelay="300"
+					placeholder="Digite nome ou código..." panelStyle="width:650px"
+					inputStyle="width:100%;height:42px;font-size:14px"
+					style="width:100%;margin-bottom:8px">
+					<p:column style="width:80%">
+						<h:outputText value="#{s.fullName}"
+							style="font-weight:600;display:block" />
+						<h:outputText value="#{s.code}"
+							style="font-size:11px;color:#6b7280" />
+					</p:column>
+					<p:ajax event="itemSelect"
+						listener="#{paymentBean.onStudentSelect}" process="@this"
+						update="@form" />
+					<p:ajax event="clear" listener="#{paymentBean.prepareNew}"
+						process="@this" update="@form" />
+				</p:autoComplete>
+
+				<h:panelGroup id="paymentStatus">
+					<div
+						style="margin: 0 0 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center"
+						rendered="#{paymentBean.selectedStudentEntity != null}">
+						<p:tag value="#{paymentBean.currentEnrollmentType}"
+							severity="info" style="font-weight:800" />
+						<h:panelGroup rendered="#{paymentBean.firstEnrollment}"
+							style="display:flex;gap:8px;flex-wrap:wrap">
+							<p:tag
+								value="Inscrição #{paymentBean.hasPaidEnrollment ? 'PAGA' : 'PENDENTE'}"
+								severity="#{paymentBean.hasPaidEnrollment ? 'success' : 'danger'}"
+								icon="pi #{paymentBean.hasPaidEnrollment ? 'pi-check' : 'pi-times'}" />
+							<p:tag
+								value="Matrícula #{paymentBean.hasPaidRegistration ? 'PAGA' : 'PENDENTE'}"
+								severity="#{paymentBean.hasPaidRegistration ? 'success' : 'danger'}"
+								icon="pi #{paymentBean.hasPaidRegistration ? 'pi-check' : 'pi-times'}" />
+						</h:panelGroup>
+						<h:panelGroup rendered="#{paymentBean.renewalEnrollment}"
+							style="display:flex;gap:8px;flex-wrap:wrap">
+							<p:tag
+								value="Renovação #{paymentBean.hasPaidRenewal ? 'PAGA' : 'PENDENTE'}"
+								severity="#{paymentBean.hasPaidRenewal ? 'success' : 'danger'}"
+								icon="pi #{paymentBean.hasPaidRenewal ? 'pi-check' : 'pi-times'}" />
+						</h:panelGroup>
+						<p:tag value="Pronto p/ matrícula" severity="success"
+							icon="pi pi-verified"
+							rendered="#{paymentBean.readyForEnrollment}" />
+					</div>
+					<div style="font-size: 11px; color: #64748b; margin-bottom: 10px"
+						rendered="#{paymentBean.selectedStudentEntity != null}">
+						<h:outputText
+							value="Primeiro ano: precisa pagar Inscrição + Matrícula"
+							rendered="#{paymentBean.firstEnrollment}" />
+						<h:outputText value="Renovação: precisa pagar apenas Renovação"
+							rendered="#{paymentBean.renewalEnrollment}" />
+					</div>
+				</h:panelGroup>
+
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px">
+					<div>
+						<span class="label">Método *</span>
+						<p:selectOneMenu value="#{paymentBean.paymentMethod}"
+							style="width:100%">
+							<f:selectItems value="#{paymentBean.methods}" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<span class="label">Referência</span>
+						<p:inputText value="#{paymentBean.reference}"
+							placeholder="Mpesa / Banco" style="width:100%" />
+					</div>
+				</div>
+
+				<p:separator />
+				<span class="label">Adicionar Item</span>
+				<div
+					style="display: grid; grid-template-columns: 1.2fr 1fr 140px; gap: 8px; margin-bottom: 10px">
+					<p:selectOneMenu id="cmbFee"
+						value="#{paymentBean.selectedFeeItemId}" style="width:100%">
+						<f:selectItem itemLabel="Selecione taxa..." itemValue="#{null}" />
+						<f:selectItems value="#{paymentBean.feeItems}" var="fi"
+							itemLabel="#{fi.descricao} - MT #{fi.valor}" itemValue="#{fi.id}" />
+						<p:ajax listener="#{paymentBean.onFeeItemSelect}"
+							update="desc val" />
+					</p:selectOneMenu>
+					<p:inputText id="desc" value="#{paymentBean.customDescricao}"
+						placeholder="Descrição" style="width:100%" />
+					<p:inputNumber id="val" value="#{paymentBean.customValor}"
+						symbol="MT " decimalSeparator="," thousandSeparator="."
+						decimalPlaces="2" style="width:100%" />
+				</div>
+				<!-- BOTÃO + EMBAIXO -->
+				<div style="display: flex; gap: 8px; margin-bottom: 12px">
+					<p:commandButton value="Adicionar ao Carrinho" icon="pi pi-plus"
+						action="#{paymentBean.addItem}" process="cmbFee desc val @this"
+						update="@form" styleClass="ui-button-success"
+						style="border-radius:10px;width:100%;height:42px;font-weight:700" />
+					<p:commandButton value="Taxa Personalizada" icon="pi pi-pencil"
+						action="#{paymentBean.enableOutro}" process="@this"
+						update="desc val cmbFee"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px;height:42px;white-space:nowrap"
+						rendered="#{!paymentBean.outroMode}" />
+				</div>
+			</div>
+
+			<div class="form-card">
+				<div style="font-weight: 700; color: #0a2540; margin-bottom: 10px">
+					<i class="pi pi-shopping-cart" style="margin-right: 6px" />Carrinho
+				</div>
+				<p:dataTable id="tableCart" value="#{paymentBean.cart}" var="it"
+					emptyMessage="Carrinho vazio" style="font-size:13px">
+					<p:column headerText="Descrição">#{it.descricao}</p:column>
+					<p:column headerText="Valor" width="110"
+						style="text-align:right;font-weight:700">MT #{it.valor}</p:column>
+					<p:column width="40" style="text-align:center">
+						<p:commandButton icon="pi pi-times"
+							action="#{paymentBean.removeItem(it)}" process="@this"
+							update="@form"
+							styleClass="ui-button-rounded ui-button-danger ui-button-text" />
+					</p:column>
+				</p:dataTable>
+				<div
+					style="background: #f8fafc; border: 1px dashed #d1d5db; border-radius: 12px; padding: 12px; margin-top: 12px; text-align: right">
+					<div
+						style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: 700">Total
+						a pagar</div>
+					<h:panelGroup id="totalBoxInner">
+						<div style="font-size: 22px; font-weight: 800; color: #0a2540">MT
+							#{paymentBean.cartTotal}</div>
+					</h:panelGroup>
+				</div>
+				<div
+					style="margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end">
+					<p:commandButton value="Cancelar"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px"
+						action="#{dashboardBean.navigate('payments/payment-list','pagamentos')}"
+						update=":contentPanel" immediate="true" process="@this" />
+					<h:panelGroup id="btnConfirm">
+						<p:commandButton value="Confirmar Pagamento" icon="pi pi-check"
+							style="border-radius:10px;background:#0a2540;border:none"
+							action="#{paymentBean.goToConfirm}" process="@form"
+							update=":contentPanel :formInclude:msgs"
+							disabled="#{empty paymentBean.cart}" />
+					</h:panelGroup>
+				</div>
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

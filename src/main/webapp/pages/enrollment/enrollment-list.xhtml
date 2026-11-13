@@ -1,0 +1,345 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 19px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.filter-bar {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 12px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 14px;
+	flex-wrap: wrap
+}
+
+.compact-table .ui-datatable-data td {
+	padding: 12px 8px !important;
+	font-size: 13.5px !important
+}
+
+.compact-table .ui-datatable-thead th {
+	padding: 12px 8px !important;
+	font-size: 11px !important;
+	font-weight: 700;
+	color: #0a2540;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	background: #f8fafc !important
+}
+
+.turma-badge {
+	background: #eff6ff;
+	color: #1d4ed8;
+	border: 1px solid #bfdbfe;
+	padding: 4px 10px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 700
+}
+
+.classe-badge {
+	background: #fef3c7;
+	color: #92400e;
+	border: 1px solid #fde68a;
+	padding: 4px 10px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 700
+}
+
+.action-btn {
+	width: 32px !important;
+	height: 32px !important;
+	border-radius: 10px !important
+}
+
+@media print {
+	body * {
+		visibility: hidden
+	}
+	#printListSheet, #printListSheet * {
+		visibility: visible;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact
+	}
+	#printListSheet {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		padding: 20px;
+		display: block !important
+	}
+}
+
+#printListSheet {
+	font-family: 'Segoe UI', Arial, sans-serif;
+	color: #0f172a
+}
+
+.ps-banner {
+	background: #0a2540;
+	color: #fff;
+	border-radius: 14px;
+	padding: 18px 22px
+}
+
+.ps-school {
+	font-size: 18px;
+	font-weight: 800
+}
+
+.ps-school-sub {
+	font-size: 11px;
+	opacity: .9;
+	margin-top: 4px;
+	line-height: 1.5
+}
+
+.ps-student {
+	margin: 16px 0;
+	border: 1px solid #dbeafe;
+	background: #eff6ff;
+	border-radius: 14px;
+	padding: 14px 18px;
+	display: flex;
+	gap: 16px
+}
+
+.ps-avatar {
+	width: 52px;
+	height: 52px;
+	border-radius: 14px;
+	background: #0a2540;
+	color: #fff;
+	font-size: 22px;
+	font-weight: 800;
+	text-align: center;
+	line-height: 52px
+}
+
+.ps-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	overflow: hidden
+}
+
+.ps-table th {
+	background: #0a2540;
+	color: #fff;
+	text-align: left;
+	padding: 10px 12px;
+	font-size: 10.5px;
+	text-transform: uppercase
+}
+
+.ps-table td {
+	padding: 9px 12px;
+	border-top: 1px solid #e2e8f0
+}
+
+.ps-ref {
+	font-family: monospace;
+	font-weight: 700;
+	font-size: 11px;
+	background: #eff6ff;
+	color: #1e3a8a;
+	padding: 3px 8px;
+	border-radius: 6px
+}
+</style>
+
+	<h:form id="formList">
+		<p:growl id="growl" showDetail="true" />
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-id-card" style="margin-right: 8px; color: #2563eb" />Matrículas
+			</div>
+			<div style="display: flex; gap: 8px">
+				<p:commandButton value="Nova Matrícula" icon="pi pi-verified"
+					style="border-radius:10px;background:#0a2540;border:none;font-size:13px;font-weight:700"
+					actionListener="#{enrollmentBean.prepareNew}"
+					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
+					update=":contentPanel" process="@this" />
+			</div>
+		</div>
+
+		<div class="filter-bar">
+			<p:inputText value="#{enrollmentBean.searchTerm}"
+				placeholder="Pesquisar aluno..." style="width:280px;font-size:13px" />
+			<p:commandButton icon="pi pi-search" value="Buscar"
+				style="border-radius:10px;font-size:13px"
+				action="#{enrollmentBean.filter}" update=":contentPanel" />
+			<span style="margin-left: auto; font-size: 13px; color: #64748b">Total:
+				<b>#{enrollmentBean.enrollments.size()}</b>
+			</span>
+		</div>
+
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
+			class="compact-table">
+			<p:dataTable value="#{enrollmentBean.enrollments}" var="e"
+				paginator="true" rows="10" paginatorPosition="bottom"
+				stripedRows="true" emptyMessage="Nenhuma matrícula">
+				<p:column headerText="ALUNO" width="250">
+					<div style="display: flex; align-items: center; gap: 10px">
+						<div
+							style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700">#{e.student.firstName.substring(0,1).toUpperCase()}</div>
+						<div>
+							<b style="font-size: 14px; display: block">#{e.student.fullName}</b><span
+								style="font-size: 11px; color: #64748b">#{e.student.code}</span>
+						</div>
+					</div>
+				</p:column>
+				<p:column headerText="CLASSE" width="110" style="text-align:center">
+					<span class="classe-badge">#{e.classroom.classeNome}</span>
+				</p:column>
+				<p:column headerText="TURMA" width="150">
+					<span class="turma-badge">#{e.classroom.name} •
+						#{e.classroom.shift}</span>
+				</p:column>
+				<p:column headerText="ANO" width="70">
+					<p:tag value="#{e.academicYear.year}" style="font-size:11px" />
+				</p:column>
+				<p:column headerText="ESTADO" width="90" style="text-align:center">
+					<p:tag value="#{e.status}"
+						severity="#{e.status eq 'ENROLLED' ? 'success' : 'warning'}"
+						style="font-size:11px" />
+				</p:column>
+				<p:column headerText="AÇÕES" width="160" style="text-align:center">
+					<div style="display: flex; gap: 5px; justify-content: center">
+						<p:commandButton icon="pi pi-eye"
+							styleClass="ui-button-rounded ui-button-outlined action-btn"
+							title="Ver" action="#{enrollmentBean.viewEnrollment(e)}"
+							update=":contentPanel" process="@this" />
+						<p:commandButton icon="pi pi-print"
+							styleClass="ui-button-rounded ui-button-outlined action-btn"
+							title="Imprimir ficha"
+							actionListener="#{enrollmentBean.preparePrint(e)}"
+							update=":formList:printDialog"
+							oncomplete="PF('printDialog').show()" />
+						<p:commandButton icon="pi pi-pencil"
+							styleClass="ui-button-rounded ui-button-outlined action-btn"
+							style="color:#2563eb;border-color:#bfdbfe" title="Editar"
+							actionListener="#{enrollmentBean.prepareEdit(e)}"
+							action="#{dashboardBean.navigate('enrollment/enrollment-include','editar')}"
+							update=":contentPanel" process="@this" />
+						<p:commandButton icon="pi pi-trash"
+							styleClass="ui-button-rounded ui-button-outlined action-btn"
+							style="color:#ef4444;border-color:#fecaca" title="Apagar"
+							action="#{enrollmentBean.delete(e)}"
+							update=":contentPanel :formList:growl">
+							<p:confirm header="Apagar"
+								message="Apagar matrícula de #{e.student.fullName}?"
+								icon="pi pi-exclamation-triangle" />
+						</p:commandButton>
+					</div>
+				</p:column>
+			</p:dataTable>
+		</div>
+
+		<p:dialog widgetVar="printDialog" id="printDialog"
+			header="Ficha do Aluno" modal="true" width="850" responsive="true">
+			<h:panelGroup id="printWrapper">
+				<div id="printListSheet">
+					<div class="ps-banner">
+						<div class="ps-school">#{loginBean.loggedSchool.name}</div>
+						<div class="ps-school-sub">#{loginBean.loggedSchool.address}
+							• NUIT: #{loginBean.loggedSchool.nuit} • Tel:
+							#{loginBean.loggedSchool.phone}</div>
+						<div style="margin-top: 8px; font-size: 12px">Ficha de
+							Matrícula - Ano Lectivo
+							#{enrollmentBean.selected.academicYear.year}</div>
+					</div>
+					<div class="ps-student">
+						<div class="ps-avatar">#{enrollmentBean.selected.student.firstName.substring(0,1).toUpperCase()}</div>
+						<div>
+							<div style="font-size: 16px; font-weight: 800">#{enrollmentBean.selected.student.fullName}</div>
+							<div style="font-size: 11.5px; color: #475569">
+								Código: <b>#{enrollmentBean.selected.student.code}</b> •
+								Matrícula: <b>##{enrollmentBean.selected.id}</b><br />Classe: <b>#{enrollmentBean.selected.classroom.classeNome}</b>
+								• Turma: <b>#{enrollmentBean.selected.classroom.name} -
+									#{enrollmentBean.selected.classroom.shift}</b> • Ano: <b>#{enrollmentBean.selected.academicYear.year}</b>
+							</div>
+						</div>
+					</div>
+					<h:panelGroup rendered="#{not empty enrollmentBean.printFees}">
+						<table class="ps-table">
+							<thead>
+								<tr>
+									<th>Mês</th>
+									<th>Referência</th>
+									<th>Valor</th>
+									<th>Vencimento</th>
+									<th>Estado</th>
+								</tr>
+							</thead>
+							<tbody>
+								<ui:repeat value="#{enrollmentBean.printFees}" var="fee">
+									<tr>
+										<td><b>#{fee.monthLabel}</b></td>
+										<td><span class="ps-ref">#{fee.reference}</span></td>
+										<td>#{fee.amount} MT</td>
+										<td><h:outputText value="#{fee.dueDate}">
+												<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+											</h:outputText></td>
+										<td>#{fee.status}</td>
+									</tr>
+								</ui:repeat>
+							</tbody>
+						</table>
+					</h:panelGroup>
+					<h:panelGroup rendered="#{empty enrollmentBean.printFees}">
+						<div style="padding: 20px; text-align: center; color: #64748b">Sem
+							referências gravadas ainda.</div>
+					</h:panelGroup>
+					<div
+						style="margin-top: 30px; display: flex; justify-content: space-between">
+						<div
+							style="border-top: 1px solid #000; width: 200px; text-align: center; font-size: 11px; padding-top: 5px">Encarregado</div>
+						<div
+							style="border-top: 1px solid #000; width: 200px; text-align: center; font-size: 11px; padding-top: 5px">Secretaria</div>
+					</div>
+				</div>
+			</h:panelGroup>
+			<f:facet name="footer">
+				<p:commandButton value="Imprimir" icon="pi pi-print" type="button"
+					onclick="window.print(); return false;"
+					styleClass="ui-button-secondary" style="border-radius:10px" />
+				<p:commandButton value="Fechar" type="button"
+					onclick="PF('printDialog').hide(); return false;"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px" />
+			</f:facet>
+		</p:dialog>
+
+		<p:confirmDialog global="true" width="400">
+			<p:commandButton value="Não" type="button"
+				styleClass="ui-confirmdialog-no ui-button-flat" />
+			<p:commandButton value="Sim" type="button"
+				styleClass="ui-confirmdialog-yes" />
+		</p:confirmDialog>
+	</h:form>
+</ui:composition>

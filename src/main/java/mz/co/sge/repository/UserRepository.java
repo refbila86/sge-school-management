@@ -4,20 +4,26 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import mz.co.sge.entity.UserEntity;
+import mz.co.sge.enumes.Role;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long>
 {
 
-	@Query("SELECT u FROM UserEntity u WHERE u.username = :username AND u.schoolId = :schoolId")
-	Optional<UserEntity> findByUsernameAndSchoolId(@Param("username") String username, @Param("schoolId") Long schoolId);
-	
-	List<UserEntity> findBySchoolIdOrderByNameAsc(@Param("schoolId") Long schoolId);
+	Optional<UserEntity> findByUsername(String username);
 
-	boolean existsByUsernameAndSchoolId(@Param("username") String username, @Param("schoolId") Long schoolId);
+	boolean existsByUsername(String username);
+
+	boolean existsByUsernameAndIdNot(String username, Long id);
+	
+	List<UserEntity> findAllByOrderByNameAsc();
+
+	Optional<UserEntity> findByEmail(String email);
+
+	List<UserEntity> findAllByActiveTrueOrderByNameAsc();
+
+	List<UserEntity> findByRoleOrderByNameAsc(Role role);
 }

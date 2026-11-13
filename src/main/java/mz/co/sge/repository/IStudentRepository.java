@@ -1,0 +1,63 @@
+package mz.co.sge.repository;
+
+import mz.co.sge.entity.StudentEntity;
+import mz.co.sge.enumes.StudentStatus;
+import java.util.List;
+import java.util.Optional;
+
+public interface IStudentRepository
+{
+
+	StudentEntity save(StudentEntity student);
+
+	StudentEntity update(StudentEntity student);
+
+	void delete(Long id);
+
+	Optional<StudentEntity> findById(Long id);
+
+	Optional<StudentEntity> findByCode(String code);
+
+	Optional<StudentEntity> findByDocument(String documentNumber);
+
+	Optional<StudentEntity> findByIdWithDetails(Long id);
+
+	List<StudentEntity> findAll();
+
+	List<StudentEntity> findAllWithDetails();
+
+	List<StudentEntity> findByStatus(StudentStatus status);
+
+	List<StudentEntity> findByGuardianId(Long guardianId);
+
+	List<StudentEntity> findByName(String name);
+
+	List<StudentEntity> findBySchoolId(Long schoolId);
+
+	List<StudentEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+
+	List<StudentEntity> findByAcademicYearId(Long academicYearId);
+
+	long countAll();
+
+	long countByGuardianId(Long guardianId);
+
+	long countBySchoolId(Long schoolId);
+
+	long countBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+
+	long countByAcademicYearId(Long academicYearId);
+
+	Optional<StudentEntity> findByIdAndSchoolIdAndAcademicYearId(Long id, Long schoolId, Long yearId);
+
+	List<Long> findNewStudentIds();
+
+	List<Long> findIdsWithPaidPaymentInYear(List<Long> ids, Long yearId);
+
+	List<StudentEntity> findByIds(List<Long> ids);
+
+	List<StudentEntity> findByClassroom(Long classroomId, Long academicYearId);
+
+	List<StudentEntity> findByClassroomId(Long classroomId);
+	
+}

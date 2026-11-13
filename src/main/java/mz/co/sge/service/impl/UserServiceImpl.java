@@ -26,43 +26,29 @@ public class UserServiceImpl implements IUserService
 		this.passwordEncoder = passwordEncoder;
 	}
 
+	// NOVO - sem schoolId
 	@Override
-	public UserEntity authenticate(String username, String rawPassword, Long schoolId)
+	public UserEntity authenticate(String username, String rawPassword)
 	{
-		// LOG 1: Verificar os parâmetros que chegaram
-		System.out.println("=== DEPURANDO LOGIN ===");
-		System.out.println("Username recebido: [" + username + "]");
-		System.out.println("SchoolId recebido: [" + schoolId + "]");
-
-		Optional<UserEntity> found = userRepository.findByUsernameAndSchoolId(username, schoolId);
-
+		Optional<UserEntity> found = userRepository.findByUsername(username);
 		if (found.isEmpty())
-		{
-			System.out.println("--> FALHA: Utilizador não encontrado para este Username e SchoolId no BD.");
 			return null;
-		}
 
 		UserEntity user = found.get();
-		System.out.println("Utilizador encontrado no BD: ID=" + user.getId() + ", Active=" + user.getActive());
-
 		if (!Boolean.TRUE.equals(user.getActive()))
-		{
-			System.out.println("--> FALHA: O campo 'active' está como FALSE ou NULL no BD.");
 			return null;
-		}
-
-		boolean passwordMatches = passwordEncoder.matches(rawPassword, user.getPassword());
-		System.out.println("Validação da Senha BCrypt: " + passwordMatches);
-
-		if (!passwordMatches)
-		{
-			System.out.println("--> FALHA: A senha fornecida não corresponde à Hash BCrypt do BD.");
-			System.out.println("Hash no BD: " + user.getPassword());
+		if (!passwordEncoder.matches(rawPassword.trim(), user.getPassword()))
 			return null;
-		}
 
 		user.setLastLogin(LocalDateTime.now());
 		return userRepository.save(user);
+	}
+
+	// LEGADO - mantido pra não quebrar LoginBean que ainda passa schoolId
+	@Override
+	public UserEntity authenticate(String username, String rawPassword, Long schoolId)
+	{
+		return authenticate(username, rawPassword);
 	}
 
 	@Override
@@ -76,7 +62,15 @@ public class UserServiceImpl implements IUserService
 	@Transactional(readOnly = true)
 	public List<UserEntity> findBySchoolId(Long schoolId)
 	{
-		return userRepository.findBySchoolIdOrderByNameAsc(schoolId);
+		// agora retorna todos, escola é global
+		return userRepository.findAllByOrderByNameAsc();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<UserEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId)
+	{
+		return userRepository.findAllByOrderByNameAsc();
 	}
 
 	@Override
@@ -85,37 +79,19 @@ public class UserServiceImpl implements IUserService
 	{
 		return userRepository.findById(id);
 	}
-	
-	@Transactional(readOnly = true)
-	public List<UserEntity> findAllBySchool(Long schoolId)
-	{
-		return userRepository.findBySchoolIdOrderByNameAsc(schoolId);
-	}
-	
-	@Transactional(readOnly = true)
-	public boolean usernameExists(String username, Long schoolId)
-	{
-		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
-	}
-
 
 	@Override
 	public UserEntity save(UserEntity user)
 	{
-		// Se for um novo usuário e a senha estiver em texto puro, criptografa com
-		// BCrypt
 		if (user.getCreatedAt() == null)
-		{
 			user.setCreatedAt(LocalDateTime.now());
-		}
 		if (user.getActive() == null)
-		{
 			user.setActive(true);
-		}
 
-		if (user.getId() == null || !user.getPassword().startsWith("$2a$"))
+		String pwd = user.getPassword();
+		if (pwd != null && !pwd.matches("^\\$2[aby]?\\$\\d+\\$.*"))
 		{
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
+			user.setPassword(passwordEncoder.encode(pwd.trim()));
 		}
 		return userRepository.save(user);
 	}
@@ -130,6 +106,20 @@ public class UserServiceImpl implements IUserService
 	@Transactional(readOnly = true)
 	public boolean existsByUsernameAndSchoolId(String username, Long schoolId)
 	{
-		return userRepository.existsByUsernameAndSchoolId(username, schoolId);
+		return userRepository.existsByUsername(username);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean existsByUsernameAndSchoolIdAndIdNot(String username, Long schoolId, Long id)
+	{
+		return userRepository.existsByUsernameAndIdNot(username, id);
+	}
+
+	// NOVOS métodos limpos
+	@Transactional(readOnly = true)
+	public boolean existsByUsername(String username)
+	{
+		return userRepository.existsByUsername(username);
 	}
 }

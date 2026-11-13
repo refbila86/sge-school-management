@@ -13,6 +13,8 @@ public interface IUserService
 
 	List<UserEntity> findBySchoolId(Long schoolId);
 
+	List<UserEntity> findBySchoolIdAndAcademicYearId(Long schoolId, Long academicYearId);
+
 	Optional<UserEntity> findById(Long id);
 
 	UserEntity save(UserEntity user);
@@ -20,4 +22,8 @@ public interface IUserService
 	void delete(Long id);
 
 	boolean existsByUsernameAndSchoolId(String username, Long schoolId);
+
+	boolean existsByUsernameAndSchoolIdAndIdNot(String username, Long schoolId, Long id);
+
+	UserEntity authenticate(String username, String rawPassword);
 }

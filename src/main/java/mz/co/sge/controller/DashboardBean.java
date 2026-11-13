@@ -1,230 +1,318 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import jakarta.faces.context.FacesContext;
+import jakarta.annotation.PostConstruct;
+import mz.co.sge.entity.ClassroomEntity;
 
-
-@Component("dashboardBean") // Expõe o bean para o JSF como #{loginBean}
-@Scope("session")       // Mantém o bean vivo durante toda a sessão do utilizador
+@Component("dashboardBean")
+@Scope("session")
 public class DashboardBean implements Serializable
 {
-
 	private static final long serialVersionUID = 1L;
+	private boolean sidebarCollapsed = false;
+	private String currentPage = "/pages/welcome.xhtml";
+	private String activeMenu = "dashboard";
+	private String pageTitle = "Dashboard";
 
-	// Página inicial padrão (Welcome)
-	private String currentPage = "/pages/dashboard/welcome.xhtml";
-	
-	private boolean sidebarVisible = true;
-
-	// Injeção do LoginBean para obter dados do utilizador se necessário
-	@Autowired // Substitui o @Inject
+	@Autowired
 	private LoginBean loginBean;
 
-	// =========================================================
-	// NAVEGAÇÃO GENÉRICA
-	// =========================================================
+	@Autowired
+	private mz.co.sge.service.IStudentService studentService;
 
-	/**
-	 * Método genérico para carregar qualquer página pelo nome. Ex:
-	 * loadPage("students") carrega "/pages/dashboard/students.xhtml"
-	 */
-	
-	public Date getCurrentDate() {
-	    return new Date();
-	}
-	public void loadPage(String page)
-	{
-		this.currentPage = "/pages/dashboard/" + page + ".xhtml";
-	}
+	@Autowired
+	private MenuBean menuBean;
 
-	public void goHome()
+	@Autowired
+	private mz.co.sge.service.IClassroomService classroomService;
+
+	@Autowired
+	private mz.co.sge.service.ITeacherService teacherService;
+
+	@PostConstruct
+	public void init()
 	{
-		this.currentPage = "/pages/dashboard/welcome.xhtml";
+		try
+		{
+			menuBean.refreshCounts();
+		} catch (Exception e)
+		{
+		}
 	}
 
 	public void toggleSidebar()
 	{
-		this.sidebarVisible = !this.sidebarVisible;
+		sidebarCollapsed = !sidebarCollapsed;
 	}
 
-	public String logout()
+	public void navigate(String page, String menu)
 	{
-		// Delega o logout ao LoginBean para garantir que a sessão seja limpa
-		// corretamente
-		return loginBean.logout();
+		if (page == null || page.isBlank())
+			return;
+
+		// PROFESSOR: só dashboard, turmas, notas, pautas
+		if (loginBean != null && "TEACHER".equals(loginBean.getSelectedProfile()))
+		{
+			boolean permitido = menu == null || menu.equals("dashboard") || menu.equals("turmas") || menu.equals("notas") || menu.equals("pautas")
+					|| menu.equals("pauta");
+			if (!permitido)
+				return;
+		}
+
+		String normalized = page.trim();
+		if (normalized.startsWith("/pages/"))
+			normalized = normalized.substring(7);
+		if (normalized.endsWith(".xhtml"))
+			normalized = normalized.substring(0, normalized.length() - 6);
+		if (normalized.isBlank())
+			return;
+
+		this.currentPage = "/pages/" + normalized + ".xhtml";
+		this.activeMenu = menu != null ? menu : "dashboard";
+		this.pageTitle = toTitle(menu);
+
+		try
+		{
+			menuBean.refreshCounts();
+		} catch (Exception e)
+		{
+		}
 	}
 
-
-	// **************PRODUTO*************************************************************
-//	public void loadProduct() {
-//		FacesContext context = FacesContext.getCurrentInstance();
-//		ProductBean productBean = context.getApplication().evaluateExpressionGet(context, "#{productBean}",
-//				ProductBean.class);
-//		productBean.getListProduct();
-//		this.setCurrentPage("/pages/product.xhtml");
-//	}
-	
-	// =========================================================
-	// ALUNOS
-	// =========================================================
-	public void loadStudents()
+	public void goToStudents()
 	{
-		FacesContext context = FacesContext.getCurrentInstance();
-		this.currentPage = "/pages/dashboard/students.xhtml";
+		navigate("student/student-list", "alunos");
 	}
 
-	public void loadStudentInclude()
+	public void goToGuardians()
 	{
-		this.currentPage = "/pages/dashboard/student-include.xhtml";
+		navigate("guardians/guardian-list", "encarregados");
 	}
 
-	public void backStudentInclude()
+	public void goToSchools()
 	{
-		this.currentPage = "/pages/dashboard/students.xhtml";
+		navigate("schools/school-list", "escolas");
 	}
 
-	public void cancelStudentInclude()
+	public void goToDashboard()
 	{
-		this.currentPage = "/pages/dashboard/students.xhtml";
+		navigate("welcome", "dashboard");
 	}
 
-	// =========================================================
-	// PROFESSORES
-	// =========================================================
-	public void loadTeachers()
+	private String toTitle(String menu)
 	{
-		this.currentPage = "/pages/dashboard/teachers.xhtml";
+		if (menu == null)
+			return "Dashboard";
+		return switch (menu)
+		{
+		case "alunos" -> "Gestão de Alunos";
+		case "estudantes" -> "Gestão de Alunos";
+		case "encarregados" -> "Gestão de Encarregados";
+		case "professores" -> "Professores";
+		case "pagamentos" -> "Pagamentos";
+		case "feeitems" -> "Items de Pagamento - " + loginBean.getLoggedAcademicYear().getYear() + " - " + loginBean.getLoggedSchool().getName();
+		case "turmas" -> "Turmas";
+		case "classes" -> "Classes";
+		case "disciplinas" -> "Disciplinas";
+		case "notas" -> "Lançamento de Notas";
+		case "pautas" -> "Pautas";
+		case "pauta" -> "Pautas";
+		case "mensalidades" -> "Mensalidades";
+		case "matriculas" -> "Matrículas";
+		case "users" -> "Utilizadores";
+		case "backups" -> "Backups";
+		case "licencas" -> "Licenças";
+		case "escolas" -> "Escolas";
+		case "ano" -> "Ano Académico";
+		case "sms" -> "SMS / Emails";
+		default -> "Dashboard";
+		};
 	}
 
-	public void loadTeacherInclude()
+	public boolean isActive(String menu)
 	{
-		this.currentPage = "/pages/dashboard/teacher-include.xhtml";
+		return activeMenu.equals(menu);
 	}
 
-	public void backTeacherInclude()
+	private Long getCurrentSchoolId()
 	{
-		this.currentPage = "/pages/dashboard/teachers.xhtml";
+		if (loginBean == null)
+			return null;
+		try
+		{
+			if (loginBean.getLoggedSchool() != null && loginBean.getLoggedSchool().getId() != null)
+				return loginBean.getLoggedSchool().getId();
+			return loginBean.getSchoolId();
+		} catch (Exception e)
+		{
+			return null;
+		}
 	}
 
-	public void cancelTeacherInclude()
+	private Long getCurrentAcademicYearId()
 	{
-		this.currentPage = "/pages/dashboard/teachers.xhtml";
+		if (loginBean == null)
+			return null;
+		try
+		{
+			return loginBean.getAcademicYearId();
+		} catch (Exception e)
+		{
+			return null;
+		}
 	}
 
-	// =========================================================
-	// TURMAS E DISCIPLINAS
-	// =========================================================
-	public void loadClasses()
+	public int getTotalAlunos()
 	{
-		this.currentPage = "/pages/dashboard/classes.xhtml";
+		try
+		{
+			Long schoolId = getCurrentSchoolId();
+			Long yearId = getCurrentAcademicYearId();
+			if (schoolId != null && yearId != null && studentService != null)
+				return (int) studentService.countBySchoolIdAndAcademicYearId(schoolId, yearId);
+			if (schoolId != null && studentService != null)
+				return (int) studentService.countBySchoolId(schoolId);
+			if (yearId != null && studentService != null)
+				return (int) studentService.countByAcademicYearId(yearId);
+			if (studentService != null)
+				return (int) studentService.countStudents();
+		} catch (Exception e)
+		{
+		}
+		return 0;
 	}
 
-	public void loadClassInclude()
+	public List<ClassroomEntity> getMinhasTurmas()
 	{
-		this.currentPage = "/pages/dashboard/class-include.xhtml";
+		if (!isProfessor())
+			return new java.util.ArrayList<>();
+		try
+		{
+			Long tid = loginBean.getTeacherId();
+			if (tid == null)
+				return new java.util.ArrayList<>();
+			return classroomService.findAllActive().stream().filter(c -> c.getResponsibleTeacher() != null && tid.equals(c.getResponsibleTeacher().getId()))
+					.filter(c -> loginBean.getAcademicYearId() == null
+							|| (c.getAcademicYear() != null && loginBean.getAcademicYearId().equals(c.getAcademicYear().getId())))
+					.collect(java.util.stream.Collectors.toList());
+		} catch (Exception e)
+		{
+			return new java.util.ArrayList<>();
+		}
 	}
 
-	public void backClassInclude()
+	public boolean isProfessor()
 	{
-		this.currentPage = "/pages/dashboard/classes.xhtml";
+		return loginBean != null && "TEACHER".equals(loginBean.getSelectedProfile());
 	}
 
-	// =========================================================
-	// FINANCEIRO / MENSALIDADES
-	// =========================================================
-	public void loadFees()
+ 
+
+	public int getTotalMinhasTurmas()
 	{
-		this.currentPage = "/pages/dashboard/fees.xhtml";
+		return getMinhasTurmas().size();
 	}
 
-	public void loadFeeInclude()
+	public int getTotalMeusAlunos()
 	{
-		this.currentPage = "/pages/dashboard/fee-include.xhtml";
+		return getMinhasTurmas().stream().mapToInt(c -> c.getCurrentStudents() != null ? c.getCurrentStudents() : 0).sum();
 	}
 
-	public void backFeeInclude()
+	public int getTotalMinhasDisciplinas()
 	{
-		this.currentPage = "/pages/dashboard/fees.xhtml";
+		if (!isProfessor())
+			return 0;
+		try
+		{
+			var t = teacherService.findById(loginBean.getTeacherId());
+			return t != null && t.getSubjects() != null ? t.getSubjects().size() : 0;
+		} catch (Exception e)
+		{
+			return 0;
+		}
 	}
 
-	public void cancelFeeInclude()
+	public String getTotalAlunosFormatted()
 	{
-		this.currentPage = "/pages/dashboard/fees.xhtml";
+		int total = getTotalAlunos();
+		if (total >= 1000)
+			return String.format("%.1fk", total / 1000.0).replace(",", ".");
+		return String.valueOf(total);
 	}
 
-	// =========================================================
-	// MATRÍCULAS
-	// =========================================================
-	public void loadEnrollments()
+	public int getTotalAlunosCount()
 	{
-		this.currentPage = "/pages/dashboard/enrollments.xhtml";
+		return getTotalAlunos();
 	}
 
-	public void loadEnrollmentInclude()
+	public long getTotalStudentsInCurrentYear()
 	{
-		this.currentPage = "/pages/dashboard/enrollment-include.xhtml";
+		return getTotalAlunos();
 	}
 
-	public void backEnrollmentInclude()
+	public String getTotalStudentsInCurrentYearFormatted()
 	{
-		this.currentPage = "/pages/dashboard/enrollments.xhtml";
+		return getTotalAlunosFormatted();
 	}
 
-	// =========================================================
-	// UTILIZADORES DO SISTEMA
-	// =========================================================
-	public void loadUsers()
+	public long getTotalStudents()
 	{
-		this.currentPage = "/pages/dashboard/users.xhtml";
+		return getTotalAlunos();
 	}
 
-	public void loadUserInclude()
+	public String getTotalStudentsFormatted()
 	{
-		this.currentPage = "/pages/dashboard/user-include.xhtml";
+		return getTotalAlunosFormatted();
 	}
 
-	public void backUserInclude()
+	public boolean isSidebarCollapsed()
 	{
-		this.currentPage = "/pages/dashboard/users.xhtml";
+		return sidebarCollapsed;
 	}
 
-	// =========================================================
-	// GETTERS E SETTERS
-	// =========================================================
+	public boolean getSidebarCollapsed()
+	{
+		return sidebarCollapsed;
+	}
+
+	public void setSidebarCollapsed(boolean b)
+	{
+		this.sidebarCollapsed = b;
+	}
 
 	public String getCurrentPage()
 	{
 		return currentPage;
 	}
 
-	public void setCurrentPage(String currentPage)
+	public void setCurrentPage(String s)
 	{
-		this.currentPage = currentPage;
+		this.currentPage = s;
 	}
 
-	public boolean isSidebarVisible()
+	public String getActiveMenu()
 	{
-		return sidebarVisible;
+		return activeMenu;
 	}
 
-	public void setSidebarVisible(boolean sidebarVisible)
+	public void setActiveMenu(String s)
 	{
-		this.sidebarVisible = sidebarVisible;
+		this.activeMenu = s;
 	}
 
-	public LoginBean getLoginBean()
+	public String getPageTitle()
 	{
-		return loginBean;
+		return pageTitle;
 	}
 
-	public void setLoginBean(LoginBean loginBean)
+	public void setPageTitle(String s)
 	{
-		this.loginBean = loginBean;
+		this.pageTitle = s;
 	}
 }

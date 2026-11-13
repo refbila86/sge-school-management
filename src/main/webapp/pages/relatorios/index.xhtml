@@ -1,0 +1,69 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<div
+		style="font-size: 18px; font-weight: 700; color: #0a2545; margin-bottom: 18px">
+		<i class="pi pi-chart-bar" style="margin-right: 8px; color: #15558a" />
+		Relatórios Académicos
+	</div>
+
+	<div
+		style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px">
+		<div
+			style="background: white; border-radius: 16px; padding: 18px; border: 1px solid #e9eef3; cursor: pointer">
+			<i class="pi pi-file-excel" style="font-size: 28px; color: #10b981" />
+			<div style="margin-top: 10px">
+				<b style="font-size: 13px">Pauta Final por Turma</b><br />
+				<span style="font-size: 11px; color: #7a8a9d">Exporta notas
+					finais em Excel/PDF</span>
+			</div>
+			<p:commandButton value="Gerar" styleClass="ui-button-outlined"
+				style="margin-top:12px;width:100%;font-size:11px" />
+		</div>
+		<div
+			style="background: white; border-radius: 16px; padding: 18px; border: 1px solid #e9eef3; cursor: pointer">
+			<i class="pi pi-chart-pie" style="font-size: 28px; color: #15558a" />
+			<div style="margin-top: 10px">
+				<b style="font-size: 13px">Desempenho por Disciplina</b><br />
+				<span style="font-size: 11px; color: #7a8a9d">Gráfico de
+					médias e aprovação</span>
+			</div>
+			<p:commandButton value="Gerar" styleClass="ui-button-outlined"
+				style="margin-top:12px;width:100%;font-size:11px" />
+		</div>
+		<div
+			style="background: white; border-radius: 16px; padding: 18px; border: 1px solid #e9eef3; cursor: pointer">
+			<i class="pi pi-users" style="font-size: 28px; color: #f59e0b" />
+			<div style="margin-top: 10px">
+				<b style="font-size: 13px">Lista de Frequência</b><br />
+				<span style="font-size: 11px; color: #7a8a9d">Presenças por
+					mês/turma</span>
+			</div>
+			<p:commandButton value="Gerar" styleClass="ui-button-outlined"
+				style="margin-top:12px;width:100%;font-size:11px" />
+		</div>
+	</div>
+
+	<div
+		style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9eef3">
+		<b style="font-size: 13px; color: #0a2545">Filtros de Relatório</b>
+		<div
+			style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; margin-top: 14px">
+			<p:selectOneMenu placeholder="Ano Lectivo">
+				<f:selectItem itemLabel="2026" itemValue="2026" />
+				<f:selectItem itemLabel="2025" itemValue="2025" />
+			</p:selectOneMenu>
+			<p:selectOneMenu placeholder="Turma">
+				<f:selectItem itemLabel="10ª A" itemValue="10A" />
+				<f:selectItem itemLabel="9ª B" itemValue="9B" />
+			</p:selectOneMenu>
+			<p:selectOneMenu placeholder="Trimestre">
+				<f:selectItem itemLabel="1º Trimestre" itemValue="1" />
+				<f:selectItem itemLabel="2º Trimestre" itemValue="2" />
+			</p:selectOneMenu>
+			<p:commandButton value="Aplicar" icon="pi pi-filter"
+				style="background:#0b2d50;border:none" />
+		</div>
+	</div>
+</ui:composition>

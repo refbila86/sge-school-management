@@ -1,0 +1,18 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <div style="max-width:500px;margin:60px auto;background:white;border:1px solid #e6eaf0;border-radius:20px;padding:30px;text-align:center">
+        <div style="width:70px;height:70px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 18px auto"><i class="pi pi-exclamation-triangle"/></div>
+        <h3 style="color:#0a2540;margin-bottom:8px">Confirmar Exclusão</h3>
+        <p style="font-size:13px;color:#64748b">Tem certeza que deseja remover a escola <b>#{schoolBean.selectedSchool.name}</b> (#{schoolBean.selectedSchool.code})? <br/>Esta ação não pode ser desfeita e afetará todos os dados vinculados.</p>
+
+        <h:form style="margin-top:22px;display:flex;gap:10px;justify-content:center">
+            <p:commandButton value="Cancelar" icon="pi pi-times" styleClass="ui-button-secondary ui-button-outlined" style="border-radius:10px"
+                             action="#{dashboardBean.navigate('schools/school-list','escolas')}" update=":contentPanel"/>
+            <p:commandButton value="Sim, Remover Definitivamente" icon="pi pi-trash" styleClass="ui-button-danger" style="border-radius:10px"
+                             action="#{schoolBean.delete}" update=":contentPanel"/>
+        </h:form>
+    </div>
+</ui:composition>

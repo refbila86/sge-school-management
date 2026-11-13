@@ -1,0 +1,443 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+
+	<style>
+.sms-page {
+	max-width: 1100px;
+	margin: 0
+}
+
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 12px
+}
+
+.page-title {
+	font-size: 22px;
+	font-weight: 800;
+	color: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 10px
+}
+
+.page-title i {
+	width: 38px;
+	height: 38px;
+	background: #0a2540;
+	color: #fff;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center
+}
+
+.card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+	margin-bottom: 16px
+}
+
+.card-header {
+	padding: 16px 20px;
+	border-bottom: 1px solid #eef2f7;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #fbfdff
+}
+
+.card-title {
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: .6px;
+	text-transform: uppercase;
+	color: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 8px
+}
+
+.tab-switch {
+	display: flex;
+	background: #f1f5f9;
+	border-radius: 10px;
+	padding: 3px;
+	gap: 3px
+}
+
+.tab-btn {
+	padding: 7px 14px;
+	border-radius: 8px;
+	border: none;
+	background: transparent;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	color: #64748b
+}
+
+.tab-btn.active {
+	background: #fff;
+	color: #0a2540;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .08)
+}
+
+.field label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: #344054;
+	margin-bottom: 6px
+}
+
+.hint {
+	font-size: 11px;
+	color: #98a2b3;
+	margin-top: 4px
+}
+
+.btn-primary {
+	background: #0a2540 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	height: 40px !important;
+	font-weight: 600 !important
+}
+
+.btn-ghost {
+	border-radius: 10px !important;
+	height: 40px !important
+}
+
+.var-chip {
+	display: inline-flex;
+	background: #eef2ff;
+	color: #4338ca;
+	padding: 3px 8px;
+	border-radius: 20px;
+	font-size: 11px;
+	font-weight: 600;
+	margin: 2px;
+	border: 1px solid #e0e7ff
+}
+
+.preview-box {
+	background: #f8fafc;
+	border: 1px dashed #d0d5dd;
+	border-radius: 12px;
+	padding: 14px;
+	font-size: 13px;
+	white-space: pre-wrap;
+	line-height: 1.5
+}
+
+.email-preview {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 12px;
+	padding: 0;
+	overflow: hidden
+}
+
+.email-preview-header {
+	background: #f8fafc;
+	padding: 12px 16px;
+	border-bottom: 1px solid #eef2f7;
+	font-size: 12px
+}
+
+.topic-badge {
+	background: #0a2540;
+	color: #fff;
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	margin-right: 6px
+}
+</style>
+
+	<div class="sms-page">
+		<div class="page-header">
+			<div class="page-title">
+				<i class="pi pi-envelope"></i> SMS / Emails Bulk
+			</div>
+			<div class="tab-switch">
+				<button class="tab-btn active" onclick="switchTab('sms')">
+					<i class="pi pi-comment" style="margin-right: 6px"></i> SMS em
+					Massa
+				</button>
+				<button class="tab-btn" onclick="switchTab('email')">
+					<i class="pi pi-at" style="margin-right: 6px"></i> Emails em Massa
+				</button>
+				<button class="tab-btn" onclick="switchTab('bulk')">
+					<i class="pi pi-send" style="margin-right: 6px"></i> Disparo
+				</button>
+			</div>
+		</div>
+
+		<h:form id="formBulk">
+			<!-- SMS COM TOPICOS -->
+			<div id="tab-sms">
+				<div
+					style="display: grid; grid-template-columns: 360px 1fr; gap: 16px">
+					<div class="card">
+						<div class="card-header">
+							<div class="card-title">Templates SMS</div>
+						</div>
+						<div style="padding: 8px">
+							<div
+								style="padding: 12px; background: #eef2ff; border-radius: 10px; border: 1px solid #c7d2fe">
+								<b style="font-size: 13px; color: #4338ca">Reunião - Tópicos
+									Gerais</b>
+								<div style="font-size: 11px; color: #6366f1; margin-top: 4px">Contém
+									Tópico 1, Tópico 2, Mensagens em Massa</div>
+								<div style="margin-top: 6px">
+									<span class="topic-badge">T1</span><span class="topic-badge">T2</span><span
+										class="topic-badge">BULK</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-header">
+							<div class="card-title">
+								<i class="pi pi-pencil"></i> Template SMS - Reunião com Tópicos
+							</div>
+						</div>
+						<div style="padding: 18px; display: grid; gap: 14px">
+							<div class="field">
+								<label>Mensagem SMS (com tópicos)</label>
+								<p:inputTextarea rows="6" style="width:100%" autoResize="false"
+									value="REUNIAO ESCOLAR - {{escola}} - Caros Encarregados da {{turma}}, Convidamos para reuniao no dia {{data}} as {{hora}}. A reuniao contem os seguintes topicos: Topico 1: {{topico1}} - Topico 2: {{topico2}} - Topico - Mensagens em Massa: {{topico_bulk}} - Local: {{sala}} - Obrigatorio. SGE." />
+								<div class="hint">98/160 caracteres por SMS - Variáveis
+									dinâmicas</div>
+								<div style="margin-top: 8px">
+									<span class="var-chip">topico1</span> <span class="var-chip">topico2</span>
+									<span class="var-chip">topico_bulk</span> <span
+										class="var-chip">turma</span> <span class="var-chip">data</span>
+									<span class="var-chip">escola</span>
+								</div>
+							</div>
+							<div
+								style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 12px">
+								<b style="font-size: 11px; color: #166534">PREVIEW REAL:</b>
+								<div class="preview-box"
+									style="background: #fff; margin-top: 6px">REUNIAO ESCOLAR
+									- Escola Sec. Matola Convidamos para reuniao no dia 28/05/2026
+									as 08:00. A reuniao contem os seguintes topicos: - Topico 1:
+									Aproveitamento Pedagogico - Topico 2: Disciplina e
+									Comportamento - Topico - Mensagens em Massa: Novo Sistema SGE</div>
+							</div>
+							<div style="display: flex; justify-content: flex-end; gap: 8px">
+								<p:commandButton value="Salvar Template SMS" icon="pi pi-check"
+									styleClass="btn-primary" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- EMAIL EM MASSA COM ESTRUTURA -->
+			<div id="tab-email" style="display: none">
+				<div class="card">
+					<div class="card-header">
+						<div class="card-title">
+							<i class="pi pi-at"></i> Estrutura de Email em Massa - Reunião
+							com Tópicos
+						</div>
+						<p:tag value="HTML + Variáveis" severity="info"
+							style="font-size:10px" />
+					</div>
+					<div
+						style="padding: 18px; display: grid; grid-template-columns: 1fr 380px; gap: 18px">
+						<div style="display: grid; gap: 14px">
+							<div class="field">
+								<label>Assunto do Email (Bulk)</label>
+								<p:inputText style="width:100%"
+									value="[CONVOCATORIA] Reuniao - {{turma}} - Topicos: {{topico1}}, {{topico2}}, Mensagens em Massa" />
+							</div>
+							<div class="field">
+								<label>Corpo do Email - Estrutura Profissional (HTML
+									será gerado no Bean)</label>
+								<p:inputTextarea rows="14"
+									style="width:100%;font-family:monospace;font-size:12px"
+									value="Convocatoria de Reuniao - {{escola}}
+
+Caros Encarregados da {{turma}} - {{classe}},
+
+Vimos por este meio convocar para uma reuniao que contem os seguintes topicos:
+
+Topico 1: {{topico1}}
+Topico 2: {{topico2}}
+Topico - Mensagens em Massa: {{topico_bulk}}
+
+Data: {{data}} as {{hora}}
+Local: {{sala}}
+Turma: {{turma}}
+
+Presenca obrigatoria. Confirme recepcao deste email.
+
+Atenciosamente,
+Direccao da {{escola}}" />
+							</div>
+							<div style="display: flex; justify-content: flex-end">
+								<p:commandButton value="Salvar Template Email"
+									icon="pi pi-check" styleClass="btn-primary" />
+							</div>
+						</div>
+						<div>
+							<div class="field">
+								<label>Preview Email em Massa</label>
+							</div>
+							<div class="email-preview">
+								<div class="email-preview-header">
+									<b>De:</b> secretaria@esmat.edu.mz<br />
+									<b>Para:</b> 124 encarregados<br />
+									<b>Assunto:</b> [CONVOCATORIA] Reuniao...
+								</div>
+								<div style="padding: 16px; font-size: 13px">
+									<h3 style="margin: 0 0 10px; color: #0a2540">Convocatória
+										de Reunião</h3>
+									<p>
+										Caros Encarregados da <b>10ª A - 10ª Classe</b>,
+									</p>
+									<p>Vimos convocar para reunião que contém os seguintes
+										tópicos:</p>
+									<div
+										style="border: 1px solid #e6eaf0; border-radius: 8px; overflow: hidden; margin: 12px 0">
+										<div
+											style="padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e6eaf0; display: flex; justify-content: space-between">
+											<b>Tópico 1</b><span>Aproveitamento Pedagógico</span>
+										</div>
+										<div
+											style="padding: 8px 12px; border-bottom: 1px solid #e6eaf0; display: flex; justify-content: space-between">
+											<b>Tópico 2</b><span>Disciplina e Comportamento</span>
+										</div>
+										<div
+											style="padding: 8px 12px; background: #eef2ff; display: flex; justify-content: space-between">
+											<b>Tópico - Mensagens em Massa</b><span>Novo Sistema
+												SGE</span>
+										</div>
+									</div>
+									<p style="font-size: 12px; color: #64748b">
+										<b>Data:</b> 28/05/2026 às 08:00<br />
+										<b>Local:</b> Sala de Reuniões
+									</p>
+								</div>
+							</div>
+							<div
+								style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap">
+								<span class="var-chip">topico1</span><span class="var-chip">topico2</span><span
+									class="var-chip">topico_bulk</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- DISPARO EM MASSA -->
+			<div id="tab-bulk" style="display: none">
+				<div class="card">
+					<div class="card-header">
+						<div class="card-title">
+							<i class="pi pi-send"></i> Disparo em Massa - SMS e Email
+						</div>
+					</div>
+					<div
+						style="padding: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px">
+						<div style="display: grid; gap: 12px">
+							<div class="field">
+								<label>Tipo de Disparo</label>
+								<p:selectOneMenu style="width:100%">
+									<f:selectItem itemLabel="SMS + Email (Recomendado)"
+										itemValue="BOTH" />
+									<f:selectItem itemLabel="Apenas SMS" itemValue="SMS" />
+									<f:selectItem itemLabel="Apenas Email em Massa"
+										itemValue="EMAIL" />
+								</p:selectOneMenu>
+							</div>
+							<div
+								style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+								<div class="field">
+									<label>Classe</label>
+									<p:selectOneMenu style="width:100%">
+										<f:selectItem itemLabel="Todas" itemValue="" />
+										<f:selectItem itemLabel="10ª Classe" itemValue="10" />
+									</p:selectOneMenu>
+								</div>
+								<div class="field">
+									<label>Turma</label>
+									<p:selectOneMenu style="width:100%">
+										<f:selectItem itemLabel="Todas" itemValue="" />
+										<f:selectItem itemLabel="10ª A" itemValue="A" />
+									</p:selectOneMenu>
+								</div>
+							</div>
+							<div class="field">
+								<label>Tópico 1</label>
+								<p:inputText style="width:100%"
+									value="Aproveitamento Pedagógico" />
+							</div>
+							<div class="field">
+								<label>Tópico 2</label>
+								<p:inputText style="width:100%"
+									value="Disciplina e Comportamento" />
+							</div>
+							<div class="field">
+								<label>Tópico - Mensagens em Massa</label>
+								<p:inputText style="width:100%"
+									value="Novo Sistema SGE de SMS/Email" />
+							</div>
+						</div>
+						<div>
+							<div
+								style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
+								<div
+									style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #0a2540; margin-bottom: 8px">Resumo
+									do Disparo</div>
+								<div style="font-size: 13px; display: grid; gap: 6px">
+									<div>📱 SMS: 124 encarregados</div>
+									<div>📧 Email em Massa: 98 emails</div>
+									<div>📋 Tópicos: 3 (Tópico 1, Tópico 2, Mensagens em
+										Massa)</div>
+								</div>
+								<p:commandButton value="Disparar em Massa Agora"
+									icon="pi pi-send" styleClass="btn-primary"
+									style="width:100%;margin-top:14px;background:#16a34a!important" />
+							</div>
+							<div
+								style="margin-top: 12px; background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 10px; padding: 10px; font-size: 11px; color: #92400e">Estático:
+								quando ligar ao backend, vai enviar SMS via Twilio e Email via
+								SMTP para todos filtrados.</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</h:form>
+	</div>
+
+	<script>
+//<![CDATA[
+function switchTab(t){
+  document.getElementById('tab-sms').style.display = t==='sms'? 'block' : 'none';
+  document.getElementById('tab-email').style.display = t==='email'? 'block' : 'none';
+  document.getElementById('tab-bulk').style.display = t==='bulk'? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(t==='sms') document.querySelectorAll('.tab-btn')[0].classList.add('active');
+  if(t==='email') document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  if(t==='bulk') document.querySelectorAll('.tab-btn')[2].classList.add('active');
+}
+//]]>
+</script>
+</ui:composition>

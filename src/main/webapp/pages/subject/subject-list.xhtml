@@ -1,0 +1,189 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+	<style>
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px
+}
+
+.table-card {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 16px;
+	overflow: hidden
+}
+</style>
+
+	<h:form id="formSubjects">
+		<div class="page-header">
+			<div
+				style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center; gap: 10px">
+				<div
+					style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+					<i class="pi pi-book" style="color: #2563eb" />
+				</div>
+				Disciplinas - #{subjectBean.filteredSubjects.size()} cadastradas
+			</div>
+			<p:commandButton value="Nova Disciplina" icon="pi pi-plus"
+				style="border-radius:12px;background:#0a2540;border:none"
+				action="#{subjectBean.prepareNew}"
+				oncomplete="PF('subjectDlg').show()" update="subjectForm"
+				process="@this" />
+		</div>
+
+		<div
+			style="background: #fff; border: 1px solid #e6eaf0; border-radius: 14px; padding: 12px 16px; display: flex; gap: 12px; align-items: end; margin-bottom: 16px">
+			<div>
+				<span
+					style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Ano
+					Lectivo</span><br />
+				<p:selectOneMenu value="#{subjectBean.filterYearId}"
+					style="width:180px">
+					<f:selectItem itemLabel="Todos os anos" itemValue="#{null}" />
+					<f:selectItems value="#{subjectBean.academicYears}" var="ay"
+						itemLabel="#{ay.year}" itemValue="#{ay.id}" />
+					<p:ajax listener="#{subjectBean.loadAll}"
+						update="formSubjects:table" process="@this" />
+				</p:selectOneMenu>
+			</div>
+			<div style="flex: 1">
+				<span
+					style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Pesquisar</span><br />
+				<p:inputText value="#{subjectBean.searchText}"
+					placeholder="Código ou nome..." style="width:100%">
+					<p:ajax event="keyup" delay="500"
+						listener="#{subjectBean.applyFilter}" update="formSubjects:table"
+						process="@this" />
+				</p:inputText>
+			</div>
+			<p:commandButton value="Limpar" icon="pi pi-filter-slash"
+				styleClass="ui-button-secondary ui-button-outlined"
+				style="border-radius:10px" action="#{subjectBean.clearFilters}"
+				update="formSubjects" process="@this" />
+		</div>
+
+		<div class="table-card">
+			<p:dataTable id="table" value="#{subjectBean.filteredSubjects}"
+				var="s" paginator="true" rows="15" emptyMessage="Nenhuma disciplina"
+				style="font-size:13px">
+				<p:column headerText="Código" width="100">
+					<span
+						style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-weight: 800">#{s.code}</span>
+				</p:column>
+				<p:column headerText="Nome" width="180">
+					<strong style="color: #0a2540">#{s.name}</strong>
+				</p:column>
+				<p:column headerText="Carga H." width="90" style="text-align:center">
+					<span
+						style="background: #eff6ff; color: #0a2540; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 12px">#{s.workloadHours
+						!= null ? s.workloadHours : 0}h</span>
+				</p:column>
+				<p:column headerText="Descrição">#{s.description}</p:column>
+				<p:column headerText="Ano Lectivo" width="100"
+					style="text-align:center">#{s.academicYear.year}</p:column>
+				<p:column headerText="Estado" width="80" style="text-align:center">
+					<p:tag value="#{s.active ? 'ACTIVA' : 'INACTIVA'}"
+						severity="#{s.active ? 'success' : 'danger'}"
+						style="font-size:10px" />
+				</p:column>
+				<p:column headerText="Ações" width="100" style="text-align:center">
+					<p:commandButton icon="pi pi-pencil"
+						styleClass="ui-button-rounded ui-button-text"
+						action="#{subjectBean.prepareEdit(s)}"
+						oncomplete="PF('subjectDlg').show()" update="subjectForm"
+						process="@this" />
+					<p:commandButton icon="pi pi-trash"
+						styleClass="ui-button-rounded ui-button-text ui-button-danger"
+						action="#{subjectBean.delete(s)}" update="formSubjects:table"
+						process="@this">
+						<p:confirm header="Confirmar" message="Apagar #{s.name}?"
+							icon="pi pi-exclamation-triangle" />
+					</p:commandButton>
+				</p:column>
+			</p:dataTable>
+		</div>
+	</h:form>
+
+	<p:dialog widgetVar="subjectDlg" header="Disciplina" modal="true"
+		width="550">
+		<h:form id="subjectForm">
+			<div style="display: flex; flex-direction: column; gap: 14px">
+				<div>
+					<span style="font-size: 11px; font-weight: 700; color: #64748b">CÓDIGO
+						(auto gerado)</span><br />
+					<p:inputText value="#{subjectBean.selected.code}" disabled="true"
+						placeholder="Gerado automaticamente"
+						style="width:100%; background:#f1f5f9; font-weight:700; font-family:monospace" />
+				</div>
+
+				<div
+					style="display: grid; grid-template-columns: 1fr 130px; gap: 12px">
+					<div>
+						<span style="font-size: 11px; font-weight: 700; color: #64748b">NOME
+							*</span><br />
+						<p:inputText value="#{subjectBean.selected.name}" required="true"
+							requiredMessage="Nome obrigatório"
+							placeholder="Ex: Matemática, Português" style="width:100%" />
+					</div>
+					<div>
+						<span style="font-size: 11px; font-weight: 700; color: #64748b">CARGA
+							HORÁRIA *</span><br />
+						<p:inputText value="#{subjectBean.selected.workloadHours}"
+							pt:type="number" placeholder="Ex: 80" style="width:100%">
+							<f:convertNumber integerOnly="true" />
+						</p:inputText>
+					</div>
+				</div>
+
+				<div>
+					<span style="font-size: 11px; font-weight: 700; color: #64748b">ANO
+						LECTIVO *</span><br />
+					<p:selectOneMenu value="#{subjectBean.selectedYearId}"
+						style="width:100%" required="true"
+						requiredMessage="Selecione ano lectivo">
+						<f:selectItem itemLabel="Selecione ano" itemValue="#{null}"
+							noSelectionOption="true" />
+						<f:selectItems value="#{subjectBean.academicYears}" var="ay"
+							itemLabel="#{ay.year}" itemValue="#{ay.id}" />
+					</p:selectOneMenu>
+				</div>
+
+				<div>
+					<span style="font-size: 11px; font-weight: 700; color: #64748b">DESCRIÇÃO</span><br />
+					<p:inputTextarea value="#{subjectBean.selected.description}"
+						rows="3" style="width:100%" placeholder="Descrição da disciplina" />
+				</div>
+
+				<div style="display: flex; align-items: center; gap: 8px">
+					<p:selectBooleanCheckbox value="#{subjectBean.selected.active}" />
+					<span>Activa</span>
+				</div>
+
+				<div
+					style="display: flex; justify-content: end; gap: 8px; margin-top: 12px">
+					<p:commandButton value="Cancelar" type="button"
+						onclick="PF('subjectDlg').hide()"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px" />
+					<p:commandButton value="Salvar" action="#{subjectBean.save}"
+						oncomplete="if(!args.validationFailed) PF('subjectDlg').hide()"
+						update="formSubjects:table subjectForm"
+						style="border-radius:10px;background:#0a2540;border:none" />
+				</div>
+			</div>
+		</h:form>
+	</p:dialog>
+
+	<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+		responsive="true" width="350">
+		<p:commandButton value="Não" type="button"
+			styleClass="ui-confirmdialog-no ui-button-flat" />
+		<p:commandButton value="Sim" type="button"
+			styleClass="ui-confirmdialog-yes" />
+	</p:confirmDialog>
+
+</ui:composition>

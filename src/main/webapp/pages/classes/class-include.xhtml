@@ -1,0 +1,159 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
+	<style>
+.form-card {
+	background: white;
+	border: 1px solid #e6eaf0;
+	border-radius: 20px;
+	padding: 28px;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04);
+	display: flex;
+	flex-direction: column;
+	gap: 20px
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px
+}
+
+.field-label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: .4px;
+	margin-bottom: 6px;
+	display: block
+}
+
+.required {
+	color: #ef4444
+}
+
+.year-locked {
+	background: #f8fafc;
+	border: 1px solid #e6eaf0;
+	border-radius: 12px;
+	padding: 11px 12px;
+	font-weight: 700;
+	color: #0a2540;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
+
+.hint {
+	font-size: 11px;
+	color: #64748b;
+	margin-top: 4px
+}
+
+.section-box {
+	background: #f8fafc;
+	border: 1px solid #eef2f7;
+	border-radius: 14px;
+	padding: 16px;
+	display: flex;
+	gap: 40px;
+	flex-wrap: wrap
+}
+</style>
+
+	<div
+		style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+		<div style="display: flex; align-items: center; gap: 12px">
+			<p:commandButton icon="pi pi-arrow-left"
+				styleClass="ui-button-text ui-button-rounded"
+				style="width:36px;height:36px"
+				action="#{dashboardBean.navigate('classes/class-list','classes')}"
+				update=":contentPanel" immediate="true" process="@this" />
+			<div
+				style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
+				<i class="pi pi-sitemap" style="color: #2563eb" />
+			</div>
+			<div>
+				<div style="font-size: 20px; font-weight: 800; color: #0a2540">#{classLevelBean.editing
+					? 'Editar Classe' : 'Nova Classe'}</div>
+				<div style="font-size: 12px; font-weight: 500; color: #64748b">#{classLevelBean.editing
+					? 'Atualiza os dados da classe' : 'Cria uma nova classe no ano
+					lectivo do login'}</div>
+			</div>
+		</div>
+		<p:tag value="#{classLevelBean.editing ? 'EDIÇÃO' : 'NOVO'}"
+			severity="#{classLevelBean.editing ? 'warning' : 'success'}"
+			style="font-size:11px;padding:6px 12px" />
+	</div>
+
+	<h:form id="formInclude">
+		<p:growl id="growl" showDetail="true" life="4000" />
+		<div class="form-card">
+			<div class="grid-2">
+				<div>
+					<span class="field-label">Nome da Classe <span
+						class="required">*</span></span>
+					<p:inputText value="#{classLevelBean.level.name}" required="true"
+						requiredMessage="Nome da classe é obrigatório"
+						placeholder="Ex: 10ª Classe, 1ª Classe" style="width:100%" />
+				</div>
+				<div>
+					<span class="field-label">Ano Letivo <span class="required">*</span></span>
+					<div class="year-locked">
+						<span><i class="pi pi-lock" style="margin-right: 6px" />#{classLevelBean.academicYears.stream().filter(y
+							-> y.id ==
+							classLevelBean.currentAcademicYearId).map(y->y.year).findFirst().orElse(classLevelBean.currentAcademicYearId)}</span>
+						<p:tag value="Bloqueado" severity="info" style="font-size:10px" />
+					</div>
+					<p:selectOneMenu value="#{classLevelBean.selectedAcademicYearId}"
+						style="display:none">
+						<f:selectItems value="#{classLevelBean.academicYears}" var="y"
+							itemLabel="#{y.year}" itemValue="#{y.id}" />
+					</p:selectOneMenu>
+					<div class="hint">A classe será criada no ano do login.</div>
+				</div>
+			</div>
+
+			<div>
+				<span class="field-label">Descrição</span>
+				<p:inputTextarea value="#{classLevelBean.level.description}"
+					placeholder="Ex: Ensino Secundário" rows="3" style="width:100%"
+					autoResize="false" />
+			</div>
+
+			<div class="section-box">
+				<div>
+					<span class="field-label">Estado</span>
+					<p:toggleSwitch value="#{classLevelBean.level.active}"
+						onLabel="Ativa" offLabel="Inativa" />
+					<div class="hint">Classe inactiva não aparece na matrícula.</div>
+				</div>
+				<div style="border-left: 1px solid #e2e8f0; padding-left: 40px">
+					<span class="field-label">Tem Exame Nacional? <span
+						class="required">*</span></span>
+					<p:selectBooleanButton value="#{classLevelBean.level.hasExam}"
+						onLabel="Com Exame" offLabel="Sem Exame" onIcon="pi pi-check"
+						offIcon="pi pi-times" style="width:160px;font-weight:700" />
+					<div class="hint">Ative se esta classe faz exame nacional
+						(10ª e 12ª)</div>
+				</div>
+			</div>
+
+			<div
+				style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9">
+				<p:commandButton value="Voltar" icon="pi pi-arrow-left"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:12px"
+					action="#{dashboardBean.navigate('classes/class-list','classes')}"
+					update=":contentPanel" immediate="true" process="@this" />
+				<p:commandButton
+					value="#{classLevelBean.editing ? 'Atualizar' : 'Salvar Classe'}"
+					icon="pi pi-check"
+					style="border-radius:12px;background:#0a2540;border:none;font-weight:700;padding:10px 20px"
+					action="#{classLevelBean.save}" update=":contentPanel"
+					process="@form" />
+			</div>
+		</div>
+	</h:form>
+</ui:composition>

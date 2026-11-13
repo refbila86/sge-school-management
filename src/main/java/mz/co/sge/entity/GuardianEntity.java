@@ -1,0 +1,207 @@
+package mz.co.sge.entity;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "guardians", uniqueConstraints =
+{ @UniqueConstraint(name = "UK_guardian_code_year", columnNames =
+{ "code", "academic_year_id" }) })
+@NamedQueries(
+{ @NamedQuery(name = "GuardianEntity.findAll", query = "SELECT g FROM GuardianEntity g ORDER BY g.firstName"),
+		@NamedQuery(name = "GuardianEntity.findAllWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students ORDER BY g.firstName"),
+		@NamedQuery(name = "GuardianEntity.findByCode", query = "SELECT g FROM GuardianEntity g WHERE g.code = :code"),
+		@NamedQuery(name = "GuardianEntity.findByUserId", query = "SELECT g FROM GuardianEntity g WHERE g.user.id = :userId"),
+		@NamedQuery(name = "GuardianEntity.findWithStudents", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN FETCH g.students WHERE g.id = :id"),
+		@NamedQuery(name = "GuardianEntity.findByAcademicYear", query = "SELECT g FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId"),
+		@NamedQuery(name = "GuardianEntity.findBySchool", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s LEFT JOIN s.enrollments e WHERE e.school.id = :schoolId OR s.id IS NULL ORDER BY g.firstName"),
+		@NamedQuery(name = "GuardianEntity.findBySchoolAndYear", query = "SELECT DISTINCT g FROM GuardianEntity g LEFT JOIN g.students s LEFT JOIN s.enrollments e WHERE (e.school.id = :schoolId AND e.academicYear.id = :academicYearId) OR s.id IS NULL"),
+		@NamedQuery(name = "GuardianEntity.countAll", query = "SELECT COUNT(g) FROM GuardianEntity g"),
+		@NamedQuery(name = "GuardianEntity.countAllByAcademicYearId", query = "SELECT COUNT(g) FROM GuardianEntity g WHERE g.academicYear.id = :academicYearId ORDER BY g.firstName") })
+
+public class GuardianEntity implements java.io.Serializable
+{
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(nullable = false, length = 20)
+	private String code;
+
+	@Column(nullable = false)
+	private String firstName;
+
+	@Column(nullable = false)
+	private String lastName;
+
+	private String phone;
+	private String email;
+	private String address;
+	private String relationship;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private UserEntity user;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "academic_year_id", nullable = false)
+	private AcademicYearEntity academicYear;
+
+	@OneToMany(mappedBy = "guardian", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = false)
+	private List<StudentEntity> students = new ArrayList<>();
+
+	private LocalDateTime createdAt = LocalDateTime.now();
+
+	@PrePersist
+	public void prePersist()
+	{
+		if (this.createdAt == null)
+			this.createdAt = LocalDateTime.now();
+		if (this.code == null || this.code.isBlank())
+		{
+			this.code = "G" + System.currentTimeMillis() % 100000;
+		}
+	}
+
+	public void addStudent(StudentEntity student)
+	{
+		students.add(student);
+		student.setGuardian(this);
+	}
+
+	public void removeStudent(StudentEntity student)
+	{
+		students.remove(student);
+		student.setGuardian(null);
+	}
+
+	public Long getId()
+	{
+		return id;
+	}
+
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
+
+	public String getCode()
+	{
+		return code;
+	}
+
+	public void setCode(String code)
+	{
+		this.code = code;
+	}
+
+	public String getFirstName()
+	{
+		return firstName;
+	}
+
+	public void setFirstName(String firstName)
+	{
+		this.firstName = firstName;
+	}
+
+	public String getLastName()
+	{
+		return lastName;
+	}
+
+	public void setLastName(String lastName)
+	{
+		this.lastName = lastName;
+	}
+
+	public String getPhone()
+	{
+		return phone;
+	}
+
+	public void setPhone(String phone)
+	{
+		this.phone = phone;
+	}
+
+	public String getEmail()
+	{
+		return email;
+	}
+
+	public void setEmail(String email)
+	{
+		this.email = email;
+	}
+
+	public String getAddress()
+	{
+		return address;
+	}
+
+	public void setAddress(String address)
+	{
+		this.address = address;
+	}
+
+	public String getRelationship()
+	{
+		return relationship;
+	}
+
+	public void setRelationship(String relationship)
+	{
+		this.relationship = relationship;
+	}
+
+	public UserEntity getUser()
+	{
+		return user;
+	}
+
+	public void setUser(UserEntity user)
+	{
+		this.user = user;
+	}
+
+	public AcademicYearEntity getAcademicYear()
+	{
+		return academicYear;
+	}
+
+	public void setAcademicYear(AcademicYearEntity academicYear)
+	{
+		this.academicYear = academicYear;
+	}
+
+	public List<StudentEntity> getStudents()
+	{
+		return students;
+	}
+
+	public void setStudents(List<StudentEntity> students)
+	{
+		this.students = students;
+	}
+
+	public LocalDateTime getCreatedAt()
+	{
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt)
+	{
+		this.createdAt = createdAt;
+	}
+
+	public String getFullName()
+	{
+		return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+	}
+}
