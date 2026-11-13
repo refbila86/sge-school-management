@@ -55,12 +55,13 @@
 				<b>Digite código do estudante (ex: STU-00002-2026)</b>
 			</div>
 			<div style="display: flex; gap: 12px">
-				<h:inputText value="#{monthlyFeeBean.searchCode}"
+				<h:inputText id="searchCodeInput"
+					value="#{monthlyFeeBean.searchCode}"
 					pt:placeholder="STU-00002-2026"
 					style="flex:1;text-transform:uppercase; padding:10px; border-radius:10px; border:1px solid #e6eaf0" />
 				<p:commandButton value="Buscar" icon="pi pi-search"
 					action="#{monthlyFeeBean.searchByStudentCode}"
-					process="@form"
+					process="@this searchCodeInput"
 					update="studentInfo refsPanel totalPanel growl"
 					style="border-radius:12px;background:#0a2540;border:none" />
 			</div>
@@ -88,12 +89,18 @@
 			<h:panelGroup id="refsPanel">
 				<p:dataTable id="tableRefs" value="#{monthlyFeeBean.unpaidFees}"
 					var="r" selection="#{monthlyFeeBean.selectedFees}" rowKey="#{r.id}"
-					paginator="false" emptyMessage="Nenhuma referência em aberto">
-					<p:ajax event="rowSelect" update=":formPay:totalPanel" />
-					<p:ajax event="rowUnselect" update=":formPay:totalPanel" />
-					<p:ajax event="rowSelectCheckbox" update=":formPay:totalPanel" />
-					<p:ajax event="rowUnselectCheckbox" update=":formPay:totalPanel" />
-					<p:ajax event="toggleSelect" update=":formPay:totalPanel" />
+					paginator="false" emptyMessage="Nenhuma referência em aberto"
+					rowSelectMode="checkbox">
+					<p:ajax event="rowSelect" update=":formPay:totalPanel"
+						process="@this" />
+					<p:ajax event="rowUnselect" update=":formPay:totalPanel"
+						process="@this" />
+					<p:ajax event="rowSelectCheckbox" update=":formPay:totalPanel"
+						process="@this" />
+					<p:ajax event="rowUnselectCheckbox" update=":formPay:totalPanel"
+						process="@this" />
+					<p:ajax event="toggleSelect" update=":formPay:totalPanel"
+						process="@this" />
 					<p:column selectionMode="multiple"
 						style="width:40px;text-align:center" />
 					<p:column headerText="Referência">
@@ -110,6 +117,30 @@
 					</p:column>
 					<p:column headerText="Total" style="text-align:right">
 						<b>#{monthlyFeeBean.calcTotalPagoComMulta(r)} MT</b>
+					</p:column>
+					<p:column headerText="Já Pago" style="text-align:right">
+						<b>#{r.paidAmount != null ? r.paidAmount : 0} MT</b>
+					</p:column>
+					<p:column headerText="Valor a Pagar *"
+						style="text-align:center;width:180px">
+						<div onclick="event.stopPropagation();">
+							<h:inputText value="#{monthlyFeeBean.amountsToPay[r.id]}"
+								pt:type="number" pt:min="0" pt:step="0.01"
+								style="width:160px;text-align:right;padding:8px;border-radius:8px;border:1px solid #e6eaf0;background:#fff">
+								<f:convertNumber pattern="#0.00" />
+								<f:ajax event="change" execute="@this"
+									render="remCell :formPay:totalPanel" />
+								<f:ajax event="keyup" execute="@this"
+									render="remCell :formPay:totalPanel" delay="500" />
+							</h:inputText>
+						</div>
+					</p:column>
+					<p:column headerText="Remanescente"
+						style="text-align:right;width:130px">
+						<h:panelGroup id="remCell">
+							<b style="color: #dc2626">#{monthlyFeeBean.remanescenteAposPagamento(r)}
+								MT</b>
+						</h:panelGroup>
 					</p:column>
 				</p:dataTable>
 			</h:panelGroup>
@@ -168,15 +199,17 @@
 				<div
 					style="background: #0a2540; color: #fff; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 16px">
 					<div>
-						<div style="font-size: 12px; opacity: .7">TOTAL SELECIONADO</div>
+						<div style="font-size: 12px; opacity: .7">TOTAL A PAGAR
+							AGORA</div>
 						<div style="font-size: 22px; font-weight: 800">#{monthlyFeeBean.totalSelecionado}
 							MT</div>
 						<small>#{monthlyFeeBean.selectedFees.size()} referência(s)
-							| Multa #{monthlyFeeBean.multaSelecionada} MT</small>
+							| Multa #{monthlyFeeBean.multaSelecionada} MT | Devido
+							#{monthlyFeeBean.totalDevidoSelecionado} MT</small>
 					</div>
 					<p:commandButton value="Próximo" icon="pi pi-arrow-right"
-						action="#{monthlyFeeBean.goToConfirm}"
-						process="@form" update=":contentPanel :formPay:growl"
+						action="#{monthlyFeeBean.goToConfirm}" process="@form"
+						update=":contentPanel :formPay:growl"
 						style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
 						disabled="#{empty monthlyFeeBean.selectedFees}" />
 				</div>

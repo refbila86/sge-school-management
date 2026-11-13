@@ -37,6 +37,11 @@ public interface IMonthlyFeeService
 	long countByEnrollmentId(Long enrollmentId);
 	
 	List<MonthlyFeeEntity> findByStudentId(Long studentId);
+	
+	MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, LocalDate paymentDate);
+
+	MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, PaymentMethod method, String bank, String transaction, LocalDate paymentDate);
+
 
 	
 }

@@ -168,6 +168,72 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 	@Override
 	public List<MonthlyFeeEntity> findByStudentId(Long studentId)
 	{
-	    return monthlyFeeRepository.findByStudentId(studentId);
+		return monthlyFeeRepository.findByStudentId(studentId);
+	}
+
+	@Override
+	@Transactional
+	public MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, LocalDate paymentDate)
+	{
+	    MonthlyFeeEntity fee = em.find(MonthlyFeeEntity.class, feeId);
+
+		if (amountToPay == null || amountToPay.compareTo(BigDecimal.ZERO) <= 0)
+		{
+			throw new RuntimeException("Valor a pagar deve ser maior que 0");
+		}
+
+		BigDecimal totalDevido = getTotalWithFine(fee);
+		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
+		BigDecimal falta = totalDevido.subtract(jaPago);
+
+		if (amountToPay.compareTo(falta) > 0)
+		{
+			throw new RuntimeException("Valor não pode ser maior que o remanescente: " + falta + " MT");
+		}
+
+		BigDecimal novoPago = jaPago.add(amountToPay);
+		BigDecimal novoRemanescente = totalDevido.subtract(novoPago);
+
+		fee.setPaidAmount(novoPago);
+		fee.setRemainingAmount(novoRemanescente.max(BigDecimal.ZERO));
+		fee.setPaymentDate(paymentDate);
+		fee.setStatus(novoRemanescente.compareTo(BigDecimal.ZERO) <= 0 ? MonthlyFeeStatus.PAGO : MonthlyFeeStatus.PARCIAL);
+
+		return monthlyFeeRepository.save(fee);
+	}
+
+	private BigDecimal getTotalWithFine(MonthlyFeeEntity fee)
+	{
+		BigDecimal amount = fee.getAmount() != null ? fee.getAmount() : BigDecimal.ZERO;
+		if (fee.getDueDate() != null && fee.getDueDate().isBefore(LocalDate.now()) && fee.getStatus() != MonthlyFeeStatus.PAGO)
+		{
+			return amount.add(amount.multiply(new BigDecimal("0.10")));
+		}
+		return amount;
+	}
+
+	// MonthlyFeeServiceImpl
+	@Override
+	@Transactional
+	public MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, PaymentMethod method, String bank, String transaction, LocalDate paymentDate)
+	{
+
+		MonthlyFeeEntity fee = em.find(MonthlyFeeEntity.class, feeId);
+
+		BigDecimal totalDevido = fee.getTotalPaid() != null && fee.getTotalPaid().compareTo(BigDecimal.ZERO) > 0 ? fee.getTotalPaid()
+				: fee.getAmount().add(fee.getFineAmount() != null ? fee.getFineAmount() : BigDecimal.ZERO);
+		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
+		BigDecimal falta = totalDevido.subtract(jaPago);
+		if (amountToPay.compareTo(falta) > 0)
+			throw new RuntimeException("Valor maior que o remanescente: " + falta);
+		BigDecimal novoPago = jaPago.add(amountToPay);
+		fee.setPaidAmount(novoPago);
+		fee.setRemainingAmount(totalDevido.subtract(novoPago).max(BigDecimal.ZERO));
+		fee.setPaymentMethod(method);
+		fee.setBankName(bank);
+		fee.setTransactionNumber(transaction);
+		fee.setPaymentDate(paymentDate);
+		fee.setStatus(totalDevido.subtract(novoPago).compareTo(BigDecimal.ZERO) <= 0 ? MonthlyFeeStatus.PAGO : MonthlyFeeStatus.PARCIAL);
+		return monthlyFeeRepository.save(fee);
 	}
 }

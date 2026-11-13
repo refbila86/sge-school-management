@@ -86,6 +86,12 @@ public class MonthlyFeeEntity implements Serializable
 	@Column(name = "transaction_number", length = 100)
 	private String transactionNumber;
 
+	@Column(name = "paid_amount", precision = 12, scale = 2)
+	private BigDecimal paidAmount = BigDecimal.ZERO;
+
+	@Column(name = "remaining_amount", precision = 12, scale = 2)
+	private BigDecimal remainingAmount;
+
 	@Column(name = "created_at")
 	private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -261,6 +267,38 @@ public class MonthlyFeeEntity implements Serializable
 	public void setTransactionNumber(String t)
 	{
 		this.transactionNumber = t;
+	}
+
+	public BigDecimal getPaidAmount()
+	{
+		return paidAmount != null ? paidAmount : BigDecimal.ZERO;
+	}
+
+	public void setPaidAmount(BigDecimal paidAmount)
+	{
+		this.paidAmount = paidAmount;
+	}
+
+	public BigDecimal getRemainingAmount()
+	{
+		if (remainingAmount != null)
+			return remainingAmount;
+		// para referências antigas que ainda não têm remaining
+		return getTotalDevido().subtract(getPaidAmount());
+	}
+
+	public void setRemainingAmount(BigDecimal remainingAmount)
+	{
+		this.remainingAmount = remainingAmount;
+	}
+
+	// Total a pagar = valor + multa
+	public BigDecimal getTotalDevido()
+	{
+		BigDecimal base = amount != null ? amount : BigDecimal.ZERO;
+		// se já tens calcMulta no Bean, replica aqui ou deixa só amount
+		// se quiseres com multa, calcula aqui: base + multa
+		return base;
 	}
 
 	public LocalDateTime getCreatedAt()

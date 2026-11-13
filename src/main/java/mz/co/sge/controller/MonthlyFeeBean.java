@@ -6,8 +6,10 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,7 +33,6 @@ public class MonthlyFeeBean implements Serializable
 	private IMonthlyFeeService monthlyFeeService;
 	@Autowired
 	private IAcademicYearService academicYearService;
-
 	@Autowired
 	private DashboardBean dashboardBean;
 
@@ -54,7 +55,8 @@ public class MonthlyFeeBean implements Serializable
 	private List<String> banks = List.of("BCI", "BIM - Millennium", "Standard Bank", "Moza Banco", "Absa", "FNB", "Nedbank", "Banco Unico");
 	private List<MonthItem> months;
 
-	// NOVO FLUXO CONFIRM
+	// PAGAMENTO PARCIAL / PARCELAS
+	private Map<Long, BigDecimal> amountsToPay = new HashMap<>();
 	private List<FeePayItem> payItems;
 
 	@PostConstruct
@@ -106,6 +108,7 @@ public class MonthlyFeeBean implements Serializable
 		private LocalDate paymentDate = LocalDate.now();
 		private BigDecimal multa;
 		private BigDecimal total;
+		private BigDecimal amountToPay;
 
 		public FeePayItem(MonthlyFeeEntity f)
 		{
@@ -176,6 +179,24 @@ public class MonthlyFeeBean implements Serializable
 		{
 			total = t;
 		}
+
+		public BigDecimal getAmountToPay()
+		{
+			return amountToPay;
+		}
+
+		public void setAmountToPay(BigDecimal a)
+		{
+			amountToPay = a;
+		}
+
+		public BigDecimal getRemanescente()
+		{
+			if (total == null)
+				return BigDecimal.ZERO;
+			BigDecimal pagar = amountToPay != null ? amountToPay : BigDecimal.ZERO;
+			return total.subtract(pagar).max(BigDecimal.ZERO);
+		}
 	}
 
 	public void loadAll()
@@ -206,6 +227,64 @@ public class MonthlyFeeBean implements Serializable
 	{
 		foundStudent = monthlyFeeService.findStudentByCode(searchCode);
 		unpaidFees = monthlyFeeService.findUnpaidByStudentCode(searchCode);
+		selectedFees = new ArrayList<>();
+		payItems = null;
+		amountsToPay = new HashMap<>();
+		if (unpaidFees != null)
+		{
+			for (MonthlyFeeEntity f : unpaidFees)
+			{
+				amountsToPay.put(f.getId(), faltaPagar(f));
+			}
+		}
+	}
+
+	// ---------- PAGAMENTO PARCIAL ----------
+
+	public Map<Long, BigDecimal> getAmountsToPay()
+	{
+		return amountsToPay;
+	}
+
+	public BigDecimal faltaPagar(MonthlyFeeEntity fee)
+	{
+		if (fee == null)
+			return BigDecimal.ZERO;
+		BigDecimal total = calcTotalPagoComMulta(fee);
+		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
+		return total.subtract(jaPago).max(BigDecimal.ZERO);
+	}
+
+	public BigDecimal remanescenteAposPagamento(MonthlyFeeEntity fee)
+	{
+		if (fee == null || fee.getId() == null)
+			return BigDecimal.ZERO;
+		BigDecimal aPagar = amountsToPay.getOrDefault(fee.getId(), BigDecimal.ZERO);
+		if (aPagar == null)
+			aPagar = BigDecimal.ZERO;
+		return faltaPagar(fee).subtract(aPagar).max(BigDecimal.ZERO);
+	}
+
+	public BigDecimal getTotalSelecionado()
+	{
+		if (selectedFees == null)
+			return BigDecimal.ZERO;
+		return selectedFees.stream().map(f -> amountsToPay.getOrDefault(f.getId(), BigDecimal.ZERO)).filter(a -> a != null).reduce(BigDecimal.ZERO,
+				BigDecimal::add);
+	}
+
+	public BigDecimal getTotalDevidoSelecionado()
+	{
+		if (selectedFees == null)
+			return BigDecimal.ZERO;
+		return selectedFees.stream().map(this::calcTotalPagoComMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getMultaSelecionada()
+	{
+		if (selectedFees == null)
+			return BigDecimal.ZERO;
+		return selectedFees.stream().map(this::calcMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	public void preparePrint(MonthlyFeeEntity m)
@@ -213,7 +292,6 @@ public class MonthlyFeeBean implements Serializable
 		this.printFee = m;
 	}
 
-	// 1 - include -> confirm
 	public void goToConfirm()
 	{
 		FacesContext ctx = FacesContext.getCurrentInstance();
@@ -236,7 +314,6 @@ public class MonthlyFeeBean implements Serializable
 		dashboardBean.navigate("monthly-fee/monthly-fee-confirm", "mensalidades");
 	}
 
-	// 2 - confirm -> list
 	public void confirmPaymentAndRedirect()
 	{
 		FacesContext ctx = FacesContext.getCurrentInstance();
@@ -247,27 +324,29 @@ public class MonthlyFeeBean implements Serializable
 				ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Nenhuma referência selecionada", null));
 				return;
 			}
-
-			for (MonthlyFeeEntity f : selectedFees)
+			if (payItems != null && !payItems.isEmpty())
 			{
-				monthlyFeeService.payFee(f.getId(), paymentMethod, bankName, transactionNumber, paymentDate);
+				for (FeePayItem it : payItems)
+				{
+					MonthlyFeeEntity f = it.getFee();
+					BigDecimal valor = it.getAmountToPay() != null ? it.getAmountToPay() : amountsToPay.getOrDefault(f.getId(), BigDecimal.ZERO);
+					if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0)
+						continue;
+					monthlyFeeService.payPartial(f.getId(), valor, it.getPaymentMethod(), it.getBankName(), it.getTransactionNumber(), it.getPaymentDate());
+				}
+			} else
+			{
+				for (MonthlyFeeEntity f : selectedFees)
+				{
+					BigDecimal valor = amountsToPay.getOrDefault(f.getId(), BigDecimal.ZERO);
+					if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0)
+						continue;
+					monthlyFeeService.payPartial(f.getId(), valor, paymentMethod, bankName, transactionNumber, paymentDate);
+				}
 			}
-
 			int total = selectedFees.size();
-			selectedFees = null;
-			unpaidFees = null;
-			foundStudent = null;
-			searchCode = null;
-			bankName = null;
-			transactionNumber = null;
-			paymentMethod = PaymentMethod.NUMERARIO;
-			paymentDate = LocalDate.now();
-
-			filterMonth = null;
-			searchStudent = null;
-
+			resetPaymentForm();
 			loadAll();
-
 			ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Pagamento registado com sucesso", total + " referência(s) paga(s)"));
 			dashboardBean.navigate("monthly-fee/monthly-fee-list", "mensalidades");
 		} catch (Exception e)
@@ -275,6 +354,22 @@ public class MonthlyFeeBean implements Serializable
 			e.printStackTrace();
 			ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro ao registar pagamento", e.getMessage()));
 		}
+	}
+
+	private void resetPaymentForm()
+	{
+		selectedFees = null;
+		unpaidFees = null;
+		payItems = null;
+		amountsToPay = new HashMap<>();
+		foundStudent = null;
+		searchCode = null;
+		bankName = null;
+		transactionNumber = null;
+		paymentMethod = PaymentMethod.NUMERARIO;
+		paymentDate = LocalDate.now();
+		filterMonth = null;
+		searchStudent = null;
 	}
 
 	public BigDecimal getTotalValor()
@@ -300,23 +395,14 @@ public class MonthlyFeeBean implements Serializable
 			FeePayItem it = new FeePayItem(f);
 			it.setMulta(calcMulta(f));
 			it.setTotal(calcTotalPagoComMulta(f));
+			it.setAmountToPay(amountsToPay.getOrDefault(f.getId(), calcTotalPagoComMulta(f)));
+			it.setPaymentMethod(paymentMethod);
+			it.setBankName(bankName);
+			it.setTransactionNumber(transactionNumber);
+			it.setPaymentDate(paymentDate);
 			payItems.add(it);
 		}
 		return "monthly-fee/monthly-fee-confirm?faces-redirect=true";
-	}
-
-	public BigDecimal getTotalSelecionado()
-	{
-		if (selectedFees == null)
-			return BigDecimal.ZERO;
-		return selectedFees.stream().map(this::calcTotalPagoComMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
-	public BigDecimal getMultaSelecionada()
-	{
-		if (selectedFees == null)
-			return BigDecimal.ZERO;
-		return selectedFees.stream().map(this::calcMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	public String getStudentCodeSearch()
@@ -327,29 +413,6 @@ public class MonthlyFeeBean implements Serializable
 	public void setStudentCodeSearch(String s)
 	{
 		this.searchCode = s;
-	}
-
-	// 2 - confirm -> list
-	public String confirmPaymentAndRedirectss()
-	{
-		if (payItems != null)
-		{
-			for (FeePayItem it : payItems)
-			{
-				MonthlyFeeEntity f = it.getFee();
-				f.setPaymentMethod(it.getPaymentMethod());
-				f.setBankName(it.getBankName());
-				f.setTransactionNumber(it.getTransactionNumber());
-				f.setPaymentDate(it.getPaymentDate());
-				monthlyFeeService.payFee(f.getId(), paymentMethod, bankName, transactionNumber, paymentDate);
-			}
-		}
-		payItems = null;
-		selectedFees = null;
-		unpaidFees = null;
-		searchCode = null;
-		loadAll();
-		return "monthly-fee/monthly-fee-list?faces-redirect=true";
 	}
 
 	public BigDecimal calcMulta(MonthlyFeeEntity f)
