@@ -19,7 +19,7 @@ public interface IMonthlyFeeService
 	List<MonthlyFeeEntity> findPaidByAcademicYearId(Long yearId);
 
 	List<MonthlyFeeEntity> findByYear(Integer year);
-
+	
 	List<MonthlyFeeEntity> findUnpaidByStudentCode(String code);
 
 	StudentEntity findStudentByCode(String code);
@@ -37,6 +37,8 @@ public interface IMonthlyFeeService
 	long countByEnrollmentId(Long enrollmentId);
 	
 	List<MonthlyFeeEntity> findByStudentId(Long studentId);
+	
+
 	
 	MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, LocalDate paymentDate);
 

@@ -3,28 +3,24 @@ package mz.co.sge.controller;
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.primefaces.model.charts.ChartData;
-import org.primefaces.model.charts.bar.BarChartDataSet;
-import org.primefaces.model.charts.bar.BarChartModel;
-import org.primefaces.model.charts.bar.BarChartOptions;
-import org.primefaces.model.charts.optionconfig.title.Title;
-import org.primefaces.model.charts.pie.PieChartDataSet;
-import org.primefaces.model.charts.pie.PieChartModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.SessionScoped;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import mz.co.sge.entity.ClassroomEntity;
 import mz.co.sge.entity.EnrollmentEntity;
 import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.service.IEnrollmentService;
 import mz.co.sge.service.IStudentService;
+import mz.co.sge.service.ITeacherService;
 
 @Named("welcomeBean")
 @SessionScoped
@@ -36,23 +32,30 @@ public class WelcomeBean implements Serializable
 	private int totalTurmas = 0;
 	private int totalProfessores = 0;
 	private double taxaPresenca = 0.0;
+	private long totalPresencasRegistradas = 0;
+	private long totalPresencasRegistadas = 0;
 
-	private BarChartModel barModel;
-	private PieChartModel pieStatusModel;
-	private PieChartModel pieGeneroModel;
+	// Graficos como listas simples. O XHTML desenha com Chart.js (<canvas>).
+	// Zero dependencia de p:chart / p:barChart / p:doughnutChart.
+	private List<String> barLabels = List.of("Sem dados");
+	private List<Long> barData = List.of(0L);
+	private List<String> statusLabels = List.of("Sem dados");
+	private List<Long> statusData = List.of(1L);
+	private List<String> generoLabels = List.of("Sem dados");
+	private List<Long> generoData = List.of(1L);
 
-	private List<AlunoResumo> ultimasMatriculas;
-	private List<TurmaResumo> turmasResumo;
-	
+	private List<AlunoResumo> ultimasMatriculas = List.of();
+	private List<TurmaResumo> turmasResumo = List.of();
+
 	@Autowired
 	private LoginBean loginBean;
-	
 	@Autowired
 	private IStudentService studentService;
-	
 	@Autowired
-	private IEnrollmentService enrollmentService; 
-	
+	private IEnrollmentService enrollmentService;
+	@Autowired(required = false)
+	private ITeacherService teacherService;
+
 	@PostConstruct
 	public void init()
 	{
@@ -62,6 +65,9 @@ public class WelcomeBean implements Serializable
 		} catch (Exception e)
 		{
 			totalAlunos = 0;
+			totalTurmas = 0;
+			totalProfessores = 0;
+			taxaPresenca = 0;
 			ultimasMatriculas = List.of();
 			turmasResumo = List.of();
 			createEmptyCharts();
@@ -105,143 +111,137 @@ public class WelcomeBean implements Serializable
 	{
 		Long schoolId = getCurrentSchoolId();
 		Long yearId = getCurrentAcademicYearId();
-		List<EnrollmentEntity> matriculasDoAno;
+
+		List<EnrollmentEntity> matriculasTmp;
 		if (schoolId != null && yearId != null)
-			matriculasDoAno = enrollmentService.findBySchoolIdAndAcademicYearId(schoolId,yearId);
+			matriculasTmp = enrollmentService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
 		else if (yearId != null)
-			matriculasDoAno = enrollmentService.findByAcademicYearId(yearId);
+			matriculasTmp = enrollmentService.findByAcademicYearId(yearId);
 		else
-			matriculasDoAno = enrollmentService.findAll();
-		if (matriculasDoAno == null)
-			matriculasDoAno = List.of();
-		this.totalAlunos = matriculasDoAno.size();
-		this.totalTurmas = (int) matriculasDoAno.stream().map(e -> e.getClassroom() != null ? e.getClassroom().getId() : null).filter(Objects::nonNull)
-				.distinct().count();
-		this.totalProfessores = 0;
-		this.taxaPresenca = totalAlunos > 0 ? 92.5 : 0;
-		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		this.ultimasMatriculas = matriculasDoAno.stream().sorted((a, b) -> b.getId().compareTo(a.getId())).limit(5).map(e ->
-		{
-			StudentEntity s = e.getStudent();
-			String turma = e.getClassroom() != null ? e.getClassroom().getName() : "N/A";
-			String estado = e.getStatus() != null ? e.getStatus().name() : "ENROLLED";
-			return new AlunoResumo(s != null && s.getCode() != null ? s.getCode() : "S-" + (s != null ? s.getId() : e.getId()),
-					s != null ? s.getFullName() : "Sem nome", turma, e.getCreatedAt() != null ? e.getCreatedAt().format(fmt) : "", estado);
-		}).collect(Collectors.toList());
-		List<StudentEntity> alunos = matriculasDoAno.stream().map(EnrollmentEntity::getStudent).filter(Objects::nonNull).collect(Collectors.toList());
-		if (alunos.isEmpty() && schoolId != null && yearId != null)
-		{
-			alunos = studentService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
-		}
-		this.turmasResumo = new ArrayList<>();
-		createBarModel(alunos);
-		createPieStatusModel(alunos);
-		createPieGeneroModel(alunos);
-	}
+			matriculasTmp = enrollmentService.findAll();
+		final List<EnrollmentEntity> matriculas = matriculasTmp == null ? List.of() : matriculasTmp;
 
-	private void loadRealDatas()
-	{
-		Long schoolId = getCurrentSchoolId();
-		Long yearId = getCurrentAcademicYearId();
-
-		List<StudentEntity> alunos;
-		if (schoolId != null && yearId != null)
-			alunos = studentService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
-		else if (schoolId != null)
-			alunos = studentService.findBySchoolId(schoolId);
-		else if (yearId != null)
-			alunos = studentService.getStudentsByAcademicYearId(yearId);
-		else
-			alunos = studentService.getAllStudents();
-
-		if (alunos == null)
-			alunos = List.of();
-
-		this.totalAlunos = alunos.size();
-		this.totalTurmas = 0;
-		this.totalProfessores = 0;
-		this.taxaPresenca = totalAlunos > 0 ? 92.5 : 0;
+		this.totalAlunos = matriculas.size();
+		this.totalTurmas = (int) matriculas.stream().map(e -> e.getClassroom() != null ? e.getClassroom().getId() : null).filter(Objects::nonNull).distinct()
+				.count();
+		this.totalProfessores = resolveTotalProfessores();
+		resolveTaxaPresenca();
 
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		this.ultimasMatriculas = alunos.stream().sorted((a, b) ->
+		this.ultimasMatriculas = matriculas.stream()
+				.sorted(Comparator.comparing(EnrollmentEntity::getId, Comparator.nullsLast(Comparator.naturalOrder())).reversed()).limit(5).map(e ->
+				{
+					StudentEntity s = e.getStudent();
+					String turma = e.getClassroom() != null ? e.getClassroom().getName() : "N/A";
+					String estado = e.getStatus() != null ? e.getStatus().name() : "ENROLLED";
+					return new AlunoResumo(s != null && s.getCode() != null ? s.getCode() : "S-" + e.getId(), s != null ? s.getFullName() : "Sem nome", turma,
+							e.getCreatedAt() != null ? e.getCreatedAt().format(fmt) : "", estado);
+				}).collect(Collectors.toList());
+
+		List<StudentEntity> alunosTmp = matriculas.stream().map(EnrollmentEntity::getStudent).filter(Objects::nonNull).collect(Collectors.toList());
+		if (alunosTmp.isEmpty() && schoolId != null && yearId != null)
 		{
-			if (a.getCreatedAt() == null && b.getCreatedAt() == null)
-				return 0;
-			if (a.getCreatedAt() == null)
-				return 1;
-			if (b.getCreatedAt() == null)
-				return -1;
-			return b.getCreatedAt().compareTo(a.getCreatedAt());
-		}).limit(5).map(s ->
-		{
-			// CORRIGIDO: pega ano da última matrícula, não s.getAcademicYear()
-			String ano = "N/A";
 			try
 			{
-				if (s.getEnrollments() != null && !s.getEnrollments().isEmpty())
-				{
-					EnrollmentEntity last = s.getEnrollments().get(0); // já está OrderBy DESC
-					if (last.getAcademicYear() != null)
-						ano = String.valueOf(last.getAcademicYear().getYear());
-				}
-			} catch (Exception e)
+				List<StudentEntity> alt = studentService.findBySchoolIdAndAcademicYearId(schoolId, yearId);
+				if (alt != null)
+					alunosTmp = alt;
+			} catch (Exception ignored)
 			{
-				ano = s.getCode() != null && s.getCode().contains("-") ? s.getCode().substring(s.getCode().lastIndexOf("-") + 1) : "N/A";
 			}
-			return new AlunoResumo(s.getCode() != null ? s.getCode() : "S-" + s.getId(), s.getFullName(), ano,
-					s.getCreatedAt() != null ? s.getCreatedAt().format(fmt) : "", s.getStatus() != null ? s.getStatus().name() : "Ativa");
-		}).collect(Collectors.toList());
+		}
+		final List<StudentEntity> alunos = alunosTmp == null ? List.of() : alunosTmp;
 
-		this.turmasResumo = new ArrayList<>();
-		createBarModel(alunos);
+		createBarModelPorClasse(matriculas);
 		createPieStatusModel(alunos);
 		createPieGeneroModel(alunos);
+
+		this.turmasResumo = matriculas.stream().collect(Collectors.groupingBy(e -> e.getClassroom() != null ? e.getClassroom().getId() : -1L)).entrySet()
+				.stream().map(entry ->
+				{
+					ClassroomEntity c = matriculas.stream().filter(e -> e.getClassroom() != null && Objects.equals(e.getClassroom().getId(), entry.getKey()))
+							.map(EnrollmentEntity::getClassroom).findFirst().orElse(null);
+					if (c == null)
+						return null;
+					return new TurmaResumo(c.getName(), "", safeInt(c.getCapacity()), entry.getValue().size(), "Activa");
+				}).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
-	private void createBarModel(List<StudentEntity> alunos)
+	// Usa APENAS metodos que existem no ITeacherService que tu colaste:
+	// save, findById, findAll, findByAcademicYear, search, delete, findUserById.
+	// NAO existe countBySchoolId nem countAll - por isso nao chamo nenhum deles.
+	private int resolveTotalProfessores()
 	{
-		barModel = new BarChartModel();
-		ChartData data = new ChartData();
-		Map<String, Long> porStatus = alunos.stream()
-				.collect(Collectors.groupingBy(s -> s.getStatus() != null ? s.getStatus().name() : "SEM_STATUS", Collectors.counting()));
-		BarChartDataSet dataSet = new BarChartDataSet();
-		dataSet.setLabel("Alunos por Estado");
-		List<Number> values = new ArrayList<>();
-		List<String> labels = new ArrayList<>();
-		porStatus.forEach((k, v) ->
+		try
 		{
-			labels.add(k);
-			values.add(v);
+			if (teacherService != null)
+			{
+				List<?> professores = getCurrentAcademicYearId() != null ? teacherService.findByAcademicYear(getCurrentAcademicYearId())
+						: teacherService.findAll();
+				if (professores != null)
+					return professores.size();
+			}
+		} catch (Exception ignored)
+		{
+		}
+		return 0;
+	}
+
+	private void resolveTaxaPresenca()
+	{
+		// 0 honesto. Nao existe IAttendanceService no teu projeto, por isso nao o
+		// chamo.
+		this.taxaPresenca = 0;
+		this.totalPresencasRegistradas = 0;
+		this.totalPresencasRegistadas = 0;
+	}
+
+	private int safeInt(Integer v)
+	{
+		return v == null ? 0 : v;
+	}
+
+	// ClassroomEntity NAO tem getClasse() nem getTeacher() - so getClasseNome().
+	private String resolveClasseNome(EnrollmentEntity e)
+	{
+		if (e == null || e.getClassroom() == null)
+			return "Sem turma";
+		try
+		{
+			if (e.getClassroom().getClasseNome() != null)
+				return String.valueOf(e.getClassroom().getClasseNome());
+		} catch (Exception ignored)
+		{
+		}
+		return String.valueOf(e.getClassroom().getName());
+	}
+
+	private void createBarModelPorClasse(List<EnrollmentEntity> matriculas)
+	{
+		Map<String, Long> porClasse = matriculas.stream()
+				.collect(Collectors.groupingBy(this::resolveClasseNome, () -> new LinkedHashMap<String, Long>(), Collectors.counting()));
+		List<String> labels = new ArrayList<>();
+		List<Long> values = new ArrayList<>();
+		porClasse.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(en ->
+		{
+			labels.add(en.getKey());
+			values.add(en.getValue());
 		});
 		if (labels.isEmpty())
 		{
 			labels.add("Sem dados");
-			values.add(0);
+			values.add(0L);
 		}
-		dataSet.setData(values);
-		dataSet.setBackgroundColor(List.of("rgba(59,130,246,0.7)", "rgba(16,185,129,0.7)", "rgba(245,158,11,0.7)", "rgba(239,68,68,0.7)"));
-		dataSet.setBorderColor(List.of("rgb(59,130,246)", "rgb(16,185,129)", "rgb(245,158,11)", "rgb(239,68,68)"));
-		dataSet.setBorderWidth(1);
-		data.addChartDataSet(dataSet);
-		data.setLabels(labels);
-		BarChartOptions options = new BarChartOptions();
-		Title title = new Title();
-		title.setDisplay(true);
-		title.setText("Alunos por Estado - " + (loginBean != null ? loginBean.getSchoolName() : ""));
-		options.setTitle(title);
-		barModel.setData(data);
-		barModel.setOptions(options);
+		this.barLabels = labels;
+		this.barData = values;
 	}
 
 	private void createPieStatusModel(List<StudentEntity> alunos)
 	{
-		pieStatusModel = new PieChartModel();
-		ChartData data = new ChartData();
 		Map<String, Long> porStatus = alunos.stream()
-				.collect(Collectors.groupingBy(s -> s.getStatus() != null ? s.getStatus().name() : "SEM_STATUS", Collectors.counting()));
-		PieChartDataSet dataSet = new PieChartDataSet();
-		List<Number> values = new ArrayList<>();
+				.collect(Collectors.groupingBy(s -> s.getStatus() != null ? labelEstado(s.getStatus().name()) : "Sem estado", Collectors.counting()));
 		List<String> labels = new ArrayList<>();
+		List<Long> values = new ArrayList<>();
 		porStatus.forEach((k, v) ->
 		{
 			labels.add(k);
@@ -250,24 +250,18 @@ public class WelcomeBean implements Serializable
 		if (labels.isEmpty())
 		{
 			labels.add("Sem dados");
-			values.add(1);
+			values.add(1L);
 		}
-		dataSet.setData(values);
-		dataSet.setBackgroundColor(List.of("#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"));
-		data.addChartDataSet(dataSet);
-		data.setLabels(labels);
-		pieStatusModel.setData(data);
+		this.statusLabels = labels;
+		this.statusData = values;
 	}
 
 	private void createPieGeneroModel(List<StudentEntity> alunos)
 	{
-		pieGeneroModel = new PieChartModel();
-		ChartData data = new ChartData();
-		Map<String, Long> porGenero = alunos.stream().collect(
-				Collectors.groupingBy(s -> s.getGender() != null && !s.getGender().isBlank() ? s.getGender() : "Não informado", Collectors.counting()));
-		PieChartDataSet dataSet = new PieChartDataSet();
-		List<Number> values = new ArrayList<>();
+		Map<String, Long> porGenero = alunos.stream().collect(Collectors
+				.groupingBy(s -> s.getGender() != null && !s.getGender().isBlank() ? normalizaGenero(s.getGender()) : "Não informado", Collectors.counting()));
 		List<String> labels = new ArrayList<>();
+		List<Long> values = new ArrayList<>();
 		porGenero.forEach((k, v) ->
 		{
 			labels.add(k);
@@ -276,29 +270,116 @@ public class WelcomeBean implements Serializable
 		if (labels.isEmpty())
 		{
 			labels.add("Sem dados");
-			values.add(1);
+			values.add(1L);
 		}
-		dataSet.setData(values);
-		dataSet.setBackgroundColor(List.of("#3b82f6", "#ec4899", "#94a3b8"));
-		data.addChartDataSet(dataSet);
-		data.setLabels(labels);
-		pieGeneroModel.setData(data);
+		this.generoLabels = labels;
+		this.generoData = values;
+	}
+
+	private String normalizaGenero(String g)
+	{
+		String x = g.trim().toUpperCase();
+		if (x.startsWith("M") || x.equals("MASCULINO") || x.equals("MALE"))
+			return "Masculino";
+		if (x.startsWith("F") || x.equals("FEMININO") || x.equals("FEMALE"))
+			return "Feminino";
+		return g;
+	}
+
+	private String labelEstado(String raw)
+	{
+		if (raw == null)
+			return "Sem estado";
+		switch (raw.toUpperCase())
+		{
+		case "ACTIVE":
+		case "ENROLLED":
+		case "ATIVA":
+		case "ACTIVO":
+			return "Activa";
+		case "INACTIVE":
+			return "Inactiva";
+		case "CANCELLED":
+		case "CANCELED":
+			return "Cancelada";
+		case "TRANSFERRED":
+			return "Transferido";
+		case "GRADUATED":
+			return "Graduado";
+		default:
+			return raw;
+		}
 	}
 
 	private void createEmptyCharts()
 	{
-		barModel = new BarChartModel();
-		ChartData data = new ChartData();
-		BarChartDataSet ds = new BarChartDataSet();
-		ds.setLabel("Sem dados");
-		ds.setData(List.of(0));
-		data.addChartDataSet(ds);
-		data.setLabels(List.of("Sem dados"));
-		barModel.setData(data);
-		pieStatusModel = new PieChartModel();
-		pieStatusModel.setData(data);
-		pieGeneroModel = new PieChartModel();
-		pieGeneroModel.setData(data);
+		barLabels = List.of("Sem dados");
+		barData = List.of(0L);
+		statusLabels = List.of("Sem dados");
+		statusData = List.of(1L);
+		generoLabels = List.of("Sem dados");
+		generoData = List.of(1L);
+	}
+
+	private String toJsonLabels(List<String> labels)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append('[');
+		for (int i = 0; i < labels.size(); i++)
+		{
+			if (i > 0)
+				sb.append(',');
+			String v = labels.get(i) == null ? "" : labels.get(i);
+			sb.append('"');
+			sb.append(v.replace("\\", "\\\\").replace("\"", "\\\""));
+			sb.append('"');
+		}
+		sb.append(']');
+		return sb.toString();
+	}
+
+	private String toJsonNumbers(List<Long> vals)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append('[');
+		for (int i = 0; i < vals.size(); i++)
+		{
+			if (i > 0)
+				sb.append(',');
+			sb.append(vals.get(i) == null ? 0 : vals.get(i));
+		}
+		sb.append(']');
+		return sb.toString();
+	}
+
+	public String getBarLabelsJson()
+	{
+		return toJsonLabels(barLabels);
+	}
+
+	public String getBarDataJson()
+	{
+		return toJsonNumbers(barData);
+	}
+
+	public String getStatusLabelsJson()
+	{
+		return toJsonLabels(statusLabels);
+	}
+
+	public String getStatusDataJson()
+	{
+		return toJsonNumbers(statusData);
+	}
+
+	public String getGeneroLabelsJson()
+	{
+		return toJsonLabels(generoLabels);
+	}
+
+	public String getGeneroDataJson()
+	{
+		return toJsonNumbers(generoData);
 	}
 
 	public int getTotalAlunos()
@@ -328,19 +409,9 @@ public class WelcomeBean implements Serializable
 		return taxaPresenca;
 	}
 
-	public BarChartModel getBarModel()
+	public long getTotalPresencasRegistadas()
 	{
-		return barModel;
-	}
-
-	public PieChartModel getPieStatusModel()
-	{
-		return pieStatusModel;
-	}
-
-	public PieChartModel getPieGeneroModel()
-	{
-		return pieGeneroModel;
+		return totalPresencasRegistadas;
 	}
 
 	public List<AlunoResumo> getUltimasMatriculas()
@@ -389,6 +460,31 @@ public class WelcomeBean implements Serializable
 		public String getEstado()
 		{
 			return estado;
+		}
+
+		public String getEstadoLabel()
+		{
+			if (estado == null)
+				return "Activa";
+			switch (estado.toUpperCase())
+			{
+			case "ACTIVE":
+			case "ENROLLED":
+			case "ATIVA":
+				return "Activa";
+			case "INACTIVE":
+				return "Inactiva";
+			case "CANCELLED":
+			case "CANCELED":
+				return "Cancelada";
+			default:
+				return estado;
+			}
+		}
+
+		public boolean isActiva()
+		{
+			return estado != null && (estado.equalsIgnoreCase("ACTIVE") || estado.equalsIgnoreCase("ENROLLED") || estado.equalsIgnoreCase("Ativa"));
 		}
 	}
 

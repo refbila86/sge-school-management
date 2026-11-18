@@ -99,6 +99,9 @@ public class MonthlyFeeEntity implements Serializable
 	@JoinColumn(name = "created_by_id")
 	private UserEntity createdBy;
 
+	@Column(name = "payment_methods", length = 100)
+	private String paymentMethods;
+
 	public Long getId()
 	{
 		return id;
@@ -304,6 +307,39 @@ public class MonthlyFeeEntity implements Serializable
 	public LocalDateTime getCreatedAt()
 	{
 		return createdAt;
+	}
+
+	// Acrescenta o novo método ao histórico, sem apagar os anteriores.
+	// Se a linha já existia com paymentMethod antigo (ex: NUMERÁRIO) e ainda não
+	// tem paymentMethods, o método antigo é o primeiro da lista.
+	public void addPaymentMethod(PaymentMethod m)
+	{
+		if (m == null)
+			return;
+		if (paymentMethods == null || paymentMethods.isBlank())
+		{
+			if (paymentMethod != null && paymentMethod != m)
+				paymentMethods = paymentMethod.name() + ", " + m.name();
+			else
+				paymentMethods = m.name();
+			return;
+		}
+		for (String p : paymentMethods.split(","))
+		{
+			if (p.trim().equals(m.name()))
+				return; // já lá está, não duplica
+		}
+		paymentMethods = paymentMethods + ", " + m.name();
+	}
+	
+	public String getPaymentMethods()
+	{
+		return paymentMethods;
+	}
+
+	public void setPaymentMethods(String paymentMethods)
+	{
+		this.paymentMethods = paymentMethods;
 	}
 
 	public void setCreatedAt(LocalDateTime c)

@@ -155,12 +155,18 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 		if (f.getStatus() == MonthlyFeeStatus.PAGO)
 			throw new IllegalStateException("A referência " + f.getReference() + " já foi paga");
 
-		BigDecimal multa = BigDecimal.ZERO;
-		if (f.getDueDate() != null && f.getDueDate().isBefore(f.getPaymentDate()))
-			multa = f.getAmount().multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP);
+		// Multa única: se já houver fineAmount gravado usa-o, senão 10% se atrasado
+		BigDecimal multa = calcMulta(f, f.getPaymentDate());
+		BigDecimal totalDevido = amountOf(f).add(multa);
 
 		f.setFineAmount(multa);
-		f.setTotalPaid(f.getAmount().add(multa));
+		// Histórico de métodos: acumula, não substitui
+		f.addPaymentMethod(f.getPaymentMethod());
+		// Neste projeto totalPaid = TOTAL DEVIDO (valor + multa), não o valor pago.
+		// O valor pago é o paidAmount — não confundir os dois.
+		f.setTotalPaid(totalDevido);
+		f.setPaidAmount(totalDevido);
+		f.setRemainingAmount(BigDecimal.ZERO);
 		f.setStatus(MonthlyFeeStatus.PAGO);
 		return monthlyFeeRepository.save(f);
 	}
@@ -171,18 +177,45 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 		return monthlyFeeRepository.findByStudentId(studentId);
 	}
 
+	// ---------- PAGAMENTO PARCIAL ----------
+	// Versão curta: delega para a completa, sem forma de pagamento.
+	// Antes as duas versões calculavam o total devido de forma DIFERENTE
+	// (uma com 10% por LocalDate.now(), outra com totalPaid/fineAmount) — agora há
+	// UMA só regra.
 	@Override
 	@Transactional
 	public MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, LocalDate paymentDate)
 	{
-	    MonthlyFeeEntity fee = em.find(MonthlyFeeEntity.class, feeId);
+		return payPartial(feeId, amountToPay, null, null, null, paymentDate);
+	}
 
+	// Versão completa: é ESTA que o bean chama
+	// payPartial(id, valor, paymentMethod, bankName, transactionNumber,
+	// paymentDate)
+	@Override
+	@Transactional
+	public MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, PaymentMethod method, String bank, String transaction, LocalDate paymentDate)
+	{
+		MonthlyFeeEntity fee = em.find(MonthlyFeeEntity.class, feeId);
+		if (fee == null)
+		{
+			throw new RuntimeException("Mensalidade não encontrada: " + feeId);
+		}
+		if (fee.getStatus() == MonthlyFeeStatus.PAGO)
+		{
+			throw new RuntimeException("A referência " + fee.getReference() + " já foi paga");
+		}
 		if (amountToPay == null || amountToPay.compareTo(BigDecimal.ZERO) <= 0)
 		{
 			throw new RuntimeException("Valor a pagar deve ser maior que 0");
 		}
 
-		BigDecimal totalDevido = getTotalWithFine(fee);
+		LocalDate dataPag = paymentDate != null ? paymentDate : LocalDate.now();
+
+		// UMA só regra para o total devido: valor + multa (a mesma do bean)
+		BigDecimal multa = calcMulta(fee, dataPag);
+		BigDecimal totalDevido = amountOf(fee).add(multa);
+
 		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
 		BigDecimal falta = totalDevido.subtract(jaPago);
 
@@ -194,46 +227,49 @@ public class MonthlyFeeServiceImpl implements IMonthlyFeeService
 		BigDecimal novoPago = jaPago.add(amountToPay);
 		BigDecimal novoRemanescente = totalDevido.subtract(novoPago);
 
-		fee.setPaidAmount(novoPago);
+		fee.setFineAmount(multa);
+		fee.setTotalPaid(totalDevido); // total devido (valor + multa)
+		fee.setPaidAmount(novoPago); // o que foi realmente pago
 		fee.setRemainingAmount(novoRemanescente.max(BigDecimal.ZERO));
-		fee.setPaymentDate(paymentDate);
+
+		// NÃO substituir: acumula o novo método ao(s) anterior(es)
+		// Ex: 1º pagamento NUMERÁRIO + remanescente MPESA → "NUMERÁRIO, MPESA"
+		fee.addPaymentMethod(method);
+		fee.setBankName(bank);
+		fee.setTransactionNumber(transaction);
+		fee.setPaymentDate(dataPag);
+
+		// Liquidou tudo → PAGO (o botão "Pagar remanescente" desaparece), senão →
+		// PARCIAL
 		fee.setStatus(novoRemanescente.compareTo(BigDecimal.ZERO) <= 0 ? MonthlyFeeStatus.PAGO : MonthlyFeeStatus.PARCIAL);
 
 		return monthlyFeeRepository.save(fee);
 	}
 
-	private BigDecimal getTotalWithFine(MonthlyFeeEntity fee)
+	// ---------- REGRAS ÚNICAS (usadas por payFee, payPartial e getTotalWithFine)
+	// ----------
+
+	private BigDecimal amountOf(MonthlyFeeEntity fee)
 	{
-		BigDecimal amount = fee.getAmount() != null ? fee.getAmount() : BigDecimal.ZERO;
-		if (fee.getDueDate() != null && fee.getDueDate().isBefore(LocalDate.now()) && fee.getStatus() != MonthlyFeeStatus.PAGO)
-		{
-			return amount.add(amount.multiply(new BigDecimal("0.10")));
-		}
-		return amount;
+		return fee.getAmount() != null ? fee.getAmount() : BigDecimal.ZERO;
 	}
 
-	// MonthlyFeeServiceImpl
-	@Override
-	@Transactional
-	public MonthlyFeeEntity payPartial(Long feeId, BigDecimal amountToPay, PaymentMethod method, String bank, String transaction, LocalDate paymentDate)
+	// Multa: se já houver fineAmount gravado, usa-o; senão 10% se a data de
+	// pagamento
+	// passou do vencimento. Igual à regra do bean (calcMulta), para o remanescente
+	// do bean e da service darem SEMPRE o mesmo valor.
+	private BigDecimal calcMulta(MonthlyFeeEntity fee, LocalDate dataPag)
 	{
+		if (fee.getFineAmount() != null && fee.getFineAmount().compareTo(BigDecimal.ZERO) > 0)
+			return fee.getFineAmount();
+		LocalDate base = dataPag != null ? dataPag : LocalDate.now();
+		if (fee.getDueDate() != null && fee.getDueDate().isBefore(base))
+			return amountOf(fee).multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP);
+		return BigDecimal.ZERO;
+	}
 
-		MonthlyFeeEntity fee = em.find(MonthlyFeeEntity.class, feeId);
-
-		BigDecimal totalDevido = fee.getTotalPaid() != null && fee.getTotalPaid().compareTo(BigDecimal.ZERO) > 0 ? fee.getTotalPaid()
-				: fee.getAmount().add(fee.getFineAmount() != null ? fee.getFineAmount() : BigDecimal.ZERO);
-		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
-		BigDecimal falta = totalDevido.subtract(jaPago);
-		if (amountToPay.compareTo(falta) > 0)
-			throw new RuntimeException("Valor maior que o remanescente: " + falta);
-		BigDecimal novoPago = jaPago.add(amountToPay);
-		fee.setPaidAmount(novoPago);
-		fee.setRemainingAmount(totalDevido.subtract(novoPago).max(BigDecimal.ZERO));
-		fee.setPaymentMethod(method);
-		fee.setBankName(bank);
-		fee.setTransactionNumber(transaction);
-		fee.setPaymentDate(paymentDate);
-		fee.setStatus(totalDevido.subtract(novoPago).compareTo(BigDecimal.ZERO) <= 0 ? MonthlyFeeStatus.PAGO : MonthlyFeeStatus.PARCIAL);
-		return monthlyFeeRepository.save(fee);
+	private BigDecimal getTotalWithFine(MonthlyFeeEntity fee)
+	{
+		return amountOf(fee).add(calcMulta(fee, fee.getPaymentDate()));
 	}
 }

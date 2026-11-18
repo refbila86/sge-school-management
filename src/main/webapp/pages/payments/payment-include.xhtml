@@ -51,6 +51,31 @@
 	padding: 10px !important;
 	font-size: 13px
 }
+
+.item-method {
+	font-size: 12px;
+	font-weight: 700;
+	color: #0a2540
+}
+
+.hint {
+	font-size: 11px;
+	color: #64748b;
+	margin-top: 4px
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #eff6ff;
+	color: #1e40af;
+	border: 1px solid #dbeafe;
+	padding: 4px 10px;
+	border-radius: 20px;
+	font-size: 11px;
+	font-weight: 700
+}
 </style>
 
 	<h:form id="formInclude">
@@ -133,24 +158,14 @@
 					</div>
 				</h:panelGroup>
 
-				<div
-					style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px">
-					<div>
-						<span class="label">Método *</span>
-						<p:selectOneMenu value="#{paymentBean.paymentMethod}"
-							style="width:100%">
-							<f:selectItems value="#{paymentBean.methods}" />
-						</p:selectOneMenu>
-					</div>
-					<div>
-						<span class="label">Referência</span>
-						<p:inputText value="#{paymentBean.reference}"
-							placeholder="Mpesa / Banco" style="width:100%" />
-					</div>
-				</div>
-
 				<p:separator />
 				<span class="label">Adicionar Item</span>
+				<div class="hint" style="margin-bottom: 10px">
+					Cada item leva o <b>seu próprio método e referência</b>. Ex.:
+					Inscrição por MPESA, Matrícula por TRANSFERENCIA_BANCARIA.
+				</div>
+
+				<!-- 1. Taxa + descrição + valor -->
 				<div
 					style="display: grid; grid-template-columns: 1.2fr 1fr 140px; gap: 8px; margin-bottom: 10px">
 					<p:selectOneMenu id="cmbFee"
@@ -167,10 +182,47 @@
 						symbol="MT " decimalSeparator="," thousandSeparator="."
 						decimalPlaces="2" style="width:100%" />
 				</div>
-				<!-- BOTÃO + EMBAIXO -->
+
+				<!-- 2. NOVO: Método + Referência DESTE item (independentes por item) -->
+				<div
+					style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px">
+					<div>
+						<span class="label">Método deste item *</span>
+						<p:selectOneMenu id="cmbMetodoItem"
+							value="#{paymentBean.selectedItemMethod}" style="width:100%">
+							<f:selectItems value="#{paymentBean.methods}" />
+							<p:ajax process="@this" update="refItem" />
+						</p:selectOneMenu>
+					</div>
+					<div>
+						<span class="label">Referência deste item</span>
+						<p:inputText id="refItem"
+							value="#{paymentBean.selectedItemReference}"
+							placeholder="Referência - ex.: número MPESA / comprovativo"
+							disabled="#{paymentBean.selectedItemNumerario}"
+							style="width:100%" />
+						<div class="hint" rendered="#{paymentBean.selectedItemNumerario}">Numerário
+							não precisa de referência.</div>
+					</div>
+				</div>
+				<!-- Atalho: aplicar este método/referência a todos os itens já no carrinho -->
+				<div
+					style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px">
+					<span class="chip"><i class="pi pi-copy" /> Este método
+						vale só para o item que vais adicionar</span>
+					<p:commandButton value="Aplicar a todos os itens"
+						icon="pi pi-check-circle"
+						action="#{paymentBean.applyMethodToAllItems}"
+						process="cmbMetodoItem refItem @this" update="@form"
+						styleClass="ui-button-secondary ui-button-outlined"
+						style="border-radius:10px;height:34px;font-size:12px"
+						rendered="#{not empty paymentBean.cart}" />
+				</div>
+
 				<div style="display: flex; gap: 8px; margin-bottom: 12px">
 					<p:commandButton value="Adicionar ao Carrinho" icon="pi pi-plus"
-						action="#{paymentBean.addItem}" process="cmbFee desc val @this"
+						action="#{paymentBean.addItem}"
+						process="cmbFee desc val cmbMetodoItem refItem @this"
 						update="@form" styleClass="ui-button-success"
 						style="border-radius:10px;width:100%;height:42px;font-weight:700" />
 					<p:commandButton value="Taxa Personalizada" icon="pi pi-pencil"
@@ -186,11 +238,27 @@
 				<div style="font-weight: 700; color: #0a2540; margin-bottom: 10px">
 					<i class="pi pi-shopping-cart" style="margin-right: 6px" />Carrinho
 				</div>
+				<div class="hint" style="margin-bottom: 10px">Podes mudar o
+					método / referência de cada linha sem tocar nas outras.</div>
+
+				<!-- Carrinho: cada linha tem o SEU método e a SUA referência, editáveis -->
 				<p:dataTable id="tableCart" value="#{paymentBean.cart}" var="it"
-					emptyMessage="Carrinho vazio" style="font-size:13px">
+					rowIndexVar="idx" emptyMessage="Carrinho vazio"
+					style="font-size:13px">
 					<p:column headerText="Descrição">#{it.descricao}</p:column>
 					<p:column headerText="Valor" width="110"
 						style="text-align:right;font-weight:700">MT #{it.valor}</p:column>
+
+					<p:column headerText="Método" width="150">
+						<h:outputText value="#{it.method}"
+							style="font-size:12px;font-weight:700" />
+					</p:column>
+					<p:column headerText="Referência" width="150">
+						<h:outputText
+							value="#{empty it.reference ? '— Sem referência —' : it.reference}"
+							style="font-size:12px" />
+					</p:column>
+ 
 					<p:column width="40" style="text-align:center">
 						<p:commandButton icon="pi pi-times"
 							action="#{paymentBean.removeItem(it)}" process="@this"
@@ -198,6 +266,23 @@
 							styleClass="ui-button-rounded ui-button-danger ui-button-text" />
 					</p:column>
 				</p:dataTable>
+
+				<!-- Resumo por método: quanto vai por NUMERARIO / TRANSFERENCIA_BANCARIA / MPESA / EMOLA / MKESH -->
+				<h:panelGroup rendered="#{not empty paymentBean.cart}">
+					<div
+						style="margin-top: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b">Resumo
+						por método</div>
+					<p:dataTable value="#{paymentBean.totalsByMethod}" var="t"
+						style="font-size:12px; margin-top:6px">
+						<p:column headerText="Método">
+							<b>#{t.method}</b>
+							<span class="hint"> — #{t.count} item(ns)</span>
+						</p:column>
+						<p:column headerText="Total"
+							style="text-align:right;font-weight:700">MT #{t.total}</p:column>
+					</p:dataTable>
+				</h:panelGroup>
+
 				<div
 					style="background: #f8fafc; border: 1px dashed #d1d5db; border-radius: 12px; padding: 12px; margin-top: 12px; text-align: right">
 					<div

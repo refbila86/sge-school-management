@@ -2,11 +2,11 @@
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
 
-	<h:outputScript library="primefaces" name="jquery/jquery.js" />
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<link
 		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
 		rel="stylesheet" />
+	<script
+		src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 	<style>
 :root {
@@ -137,7 +137,7 @@
 	grid-template-columns: 1fr 1fr;
 	gap: 14px
 }
-/* PROFESSOR - teal */
+
 .prof-banner {
 	background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%) !important;
 }
@@ -188,7 +188,8 @@
 						<span>Turmas associadas ao professor: <b>#{loginBean.fullname}</b></span>
 					</p>
 					<p>
-						<span><i class="pi pi-tag" /> Escola: <b>#{loginBean.loggedSchool.name}</b></span><span
+						<span><i class="pi pi-tag" /> Escola: <b>#{loginBean.loggedSchool.name}</b></span>
+						<span
 							style="background: #fff; color: #0f766e; padding: 4px 10px; border-radius: 20px; font-weight: 800"><i
 							class="pi pi-calendar" /> ANO: #{loginBean.academicYearLabel}</span>
 					</p>
@@ -255,13 +256,8 @@
 						<b>#{t.currentStudents}/#{t.capacity}</b>
 					</p:column>
 					<p:column headerText="AÇÕES" width="160" style="text-align:center">
-						<p:commandButton value="Ver alunos" icon="pi pi-eye"
-							style="font-size: 11px; border-radius: 8px; background: #0f766e; border: none"
-							action="#{classroomBean.viewStudents(t)}" process="@this"
-							update=":formList:dlgAlunos" oncomplete="PF('dlgAlunos').show()"
-							rendered="false" />
 						<p:commandButton value="Lançar notas" icon="pi pi-pencil"
-							style="font-size: 11px; border-radius: 8px; background: #0f766e; border: none"
+							style="font-size:11px; border-radius:8px; background:#0f766e; border:none"
 							action="#{dashboardBean.navigate('attendance/attendance-list','notas')}"
 							update=":contentPanel :topbarInfo" />
 					</p:column>
@@ -269,7 +265,7 @@
 			</div>
 		</h:panelGroup>
 
-		<!-- ============ ADMIN - igual ao que tinhas ============ -->
+		<!-- ============ ADMIN / DIREÇÃO ============ -->
 		<h:panelGroup rendered="#{!dashboardBean.professor}">
 			<div class="school-banner">
 				<div class="school-info">
@@ -311,57 +307,106 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- KPIs REAIS - tudo do WelcomeBean, nada hardcoded -->
 			<div class="kpi-grid">
 				<div class="kpi">
 					<span>Alunos - #{loginBean.academicYearLabel}</span><br /> <b>#{welcomeBean.totalAlunosFormatted}</b>
-					<div style="margin-top: 8px">
-						<p:progressBar value="85" displayOnly="true" style="height:5px" />
-					</div>
+					<div style="font-size: 11px; color: var(--muted); margin-top: 4px">Matriculados
+						no ano</div>
 				</div>
 				<div class="kpi">
-					<span>Turmas Ativas</span><br /> <b>32</b>
+					<span>Turmas Ativas</span><br /> <b>#{welcomeBean.totalTurmas}</b>
 					<div style="font-size: 11px; color: var(--muted); margin-top: 4px">#{loginBean.loggedSchool.name}</div>
 				</div>
 				<div class="kpi">
-					<span>Professores</span><br /> <b>48</b>
-					<div style="font-size: 11px; color: #10b981; margin-top: 4px">▲
-						2 novos</div>
+					<span>Professores</span><br /> <b>#{welcomeBean.totalProfessores}</b>
+					<div style="font-size: 11px; color: var(--muted); margin-top: 4px">Com
+						turmas no ano</div>
 				</div>
 				<div class="kpi">
-					<span>Taxa Presença</span><br /> <b>92.5%</b>
-					<div style="font-size: 11px; color: #10b981; margin-top: 4px">Meta
-						90%</div>
+					<span>Taxa Presença</span><br /> <b><h:outputText
+							value="#{welcomeBean.taxaPresenca}">
+							<f:convertNumber pattern="0.0'%'" />
+						</h:outputText></b>
+					<div style="font-size: 11px; color: var(--muted); margin-top: 4px">
+						<h:outputText
+							value="#{welcomeBean.totalPresencasRegistadas} registos"
+							rendered="#{welcomeBean.totalPresencasRegistadas gt 0}" />
+						<h:outputText value="Sem registos de presença"
+							rendered="#{welcomeBean.totalPresencasRegistadas eq 0}" />
+					</div>
 				</div>
 			</div>
+
+			<!-- GRAFICOS REAIS - Chart.js puro (<canvas>). Nenhuma tag p:chart / p:barChart / p:doughnutChart -->
 			<div class="charts">
 				<div class="box">
-					<b style="font-size: 13px">Desempenho -
-						#{loginBean.loggedSchool.code}</b>
-					<canvas id="barChart" style="margin-top: 12px"></canvas>
+					<div
+						style="display: flex; justify-content: space-between; align-items: center">
+						<b style="font-size: 13px">Alunos por Classe -
+							#{loginBean.loggedSchool.code}</b> <span
+							style="font-size: 10px; color: var(--muted)">#{welcomeBean.totalAlunos}
+							alunos</span>
+					</div>
+					<div style="height: 280px; margin-top: 12px">
+						<canvas id="chartBarClasse"></canvas>
+					</div>
 				</div>
 				<div class="box">
-					<b style="font-size: 13px">Distribuição por Classe</b>
-					<canvas id="doughnutChart" style="margin-top: 12px"></canvas>
+					<b style="font-size: 13px">Distribuição por Género</b>
+					<div style="height: 280px; margin-top: 12px">
+						<canvas id="chartGenero"></canvas>
+					</div>
 				</div>
 			</div>
+
+			<div class="box" style="margin-bottom: 14px">
+				<b style="font-size: 13px">Alunos por Estado</b>
+				<div style="height: 260px; margin-top: 12px">
+					<canvas id="chartEstado"></canvas>
+				</div>
+			</div>
+
+			<script>
+			(function () {
+				if (typeof Chart === 'undefined') return;
+				var barEl = document.getElementById('chartBarClasse');
+				var genEl = document.getElementById('chartGenero');
+				var estEl = document.getElementById('chartEstado');
+				if (!barEl || !genEl || !estEl) return;
+				var barLabels = <h:outputText value="#{welcomeBean.barLabelsJson}" escape="false" />;
+				var barData = <h:outputText value="#{welcomeBean.barDataJson}" escape="false" />;
+				var genLabels = <h:outputText value="#{welcomeBean.generoLabelsJson}" escape="false" />;
+				var genData = <h:outputText value="#{welcomeBean.generoDataJson}" escape="false" />;
+				var estLabels = <h:outputText value="#{welcomeBean.statusLabelsJson}" escape="false" />;
+				var estData = <h:outputText value="#{welcomeBean.statusDataJson}" escape="false" />;
+				var cores = ['#0a2540','#2563eb','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f43f5e'];
+				new Chart(barEl, { type: 'bar', data: { labels: barLabels, datasets: [{ label: 'Alunos', data: barData, backgroundColor: cores, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+				new Chart(genEl, { type: 'pie', data: { labels: genLabels, datasets: [{ data: genData, backgroundColor: ['#2563eb','#ec4899','#94a3b8','#0a2540','#10b981'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+				new Chart(estEl, { type: 'doughnut', data: { labels: estLabels, datasets: [{ data: estData, backgroundColor: ['#0a2540','#10b981','#f59e0b','#ef4444','#8b5cf6','#64748b'] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '55%' } });
+			})();
+			</script>
+
 			<div class="bottom">
 				<div class="box" style="padding: 0; overflow: hidden">
 					<div
 						style="padding: 14px 18px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border)">
 						<b style="font-size: 13px">Últimas Matrículas -
-							#{loginBean.academicYearLabel}</b><span
+							#{loginBean.academicYearLabel}</b> <span
 							style="font-size: 10px; color: var(--muted)">#{loginBean.loggedSchool.code}</span>
 					</div>
 					<p:dataTable value="#{welcomeBean.ultimasMatriculas}" var="a"
-						rows="5" style="font-size:11px" stripedRows="true">
+						rows="5" style="font-size:11px" stripedRows="true"
+						emptyMessage="Sem matrículas neste ano lectivo.">
 						<p:column headerText="CÓDIGO" width="95">
 							<b>#{a.codigo}</b>
 						</p:column>
 						<p:column headerText="ALUNO">#{a.nome}</p:column>
 						<p:column headerText="TURMA" width="80">#{a.turma}</p:column>
 						<p:column headerText="ESTADO" width="90">
-							<p:tag value="#{a.estado}"
-								severity="#{a.estado eq 'Ativa' ? 'success' : 'warning'}"
+							<p:tag value="#{a.estadoLabel}"
+								severity="#{a.activa ? 'success' : 'warning'}"
 								style="font-size:9px" />
 						</p:column>
 					</p:dataTable>
@@ -396,7 +441,7 @@
 								style="background: #0a2540; color: #fff; padding: 3px 8px; border-radius: 12px">#{loginBean.academicYearLabel}</b>
 						</div>
 						<div
-							style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; background: #fffbeb; margin: 0 -18px; padding: 10px 18px; border-radius: 8px">
+							style="display: flex; justify-content: space-between; padding: 10px 18px; border-bottom: 1px solid #f1f5f9; background: #fffbeb; margin: 0 -18px; border-radius: 8px">
 							<span style="color: #92400e; font-weight: 700"><i
 								class="pi pi-key" /> Código Licença</span><b style="color: #92400e">#{loginBean.licenseCode}</b>
 						</div>
@@ -423,13 +468,4 @@
 			</div>
 		</h:panelGroup>
 	</div>
-
-	<h:panelGroup rendered="#{!dashboardBean.professor}">
-		<script>
-        document.addEventListener("DOMContentLoaded", function(){
-            if(document.getElementById('barChart')) new Chart(document.getElementById('barChart'), { type: 'bar', data: { labels: ['Mat','Port','Física','Química','Bio','Hist'], datasets: [{ label:'Média', data:[14.2,[STRIPPED] backgroundColor:'#0a2540', borderRadius:6 }] }, options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{max:20}}} });
-            if(document.getElementById('doughnutChart')) new Chart(document.getElementById('doughnutChart'), { type: 'doughnut', data: { labels:['8ª','9ª','10ª','11ª'], datasets:[{ data:[420,[STRIPPED] backgroundColor:['#0a2540','#2563eb','#10b981','#f59e0b'], borderWidth:0 }] }, options:{responsive:true, cutout:'68%'} });
-        });
-    </script>
-	</h:panelGroup>
 </ui:composition>

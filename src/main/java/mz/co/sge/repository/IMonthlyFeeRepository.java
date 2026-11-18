@@ -34,7 +34,5 @@ public interface IMonthlyFeeRepository
 
 	MonthlyFeeEntity payFee(Long id);
 	
-	
-	
 
 }

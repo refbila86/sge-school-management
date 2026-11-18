@@ -31,6 +31,37 @@
 	justify-content: center;
 	font-weight: 800
 }
+
+.search-row {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.search-code {
+	width: 280px;
+	max-width: 100%;
+	text-transform: uppercase;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid #e6eaf0;
+}
+
+.photo-frame {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: #0a2540;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-size: 26px;
+	border: 3px solid #e6eaf0;
+	flex-shrink: 0;
+	overflow: hidden;
+}
 </style>
 
 	<h:form id="formPay">
@@ -54,11 +85,11 @@
 				<div class="step-num">1</div>
 				<b>Digite código do estudante (ex: STU-00002-2026)</b>
 			</div>
-			<div style="display: flex; gap: 12px">
+			<!-- CAIXA ENCOLHIDA: antes flex:1 (ocupava a linha toda), agora 280px — chega para STU-00002-2026 -->
+			<div class="search-row">
 				<h:inputText id="searchCodeInput"
 					value="#{monthlyFeeBean.searchCode}"
-					pt:placeholder="STU-00002-2026"
-					style="flex:1;text-transform:uppercase; padding:10px; border-radius:10px; border:1px solid #e6eaf0" />
+					pt:placeholder="STU-00002-2026" styleClass="search-code" />
 				<p:commandButton value="Buscar" icon="pi pi-search"
 					action="#{monthlyFeeBean.searchByStudentCode}"
 					process="@this searchCodeInput"
@@ -70,12 +101,31 @@
 				<h:panelGroup rendered="#{monthlyFeeBean.foundStudent != null}">
 					<div
 						style="background: #f8fafc; border-radius: 12px; padding: 12px; display: flex; gap: 12px; align-items: center">
-						<div
-							style="width: 48px; height: 48px; border-radius: 50%; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800">#{monthlyFeeBean.foundStudent.firstName.substring(0,1)}</div>
+						<!-- FOTO: aparece ao clicar em Buscar, porque este bloco é atualizado pelo botão (update="studentInfo").
+						     A entidade do aluno NÃO tem campo de foto nos ficheiros que me mandaste, por isso mostro as
+						     iniciais no mesmo padrão do projeto. Se o teu StudentEntity tiver foto, diz-me o nome do campo
+						     (ex.: photoUrl) e troco esta div por <h:graphicImage value="..."/> sem mexer em mais nada. -->
+						<div style="text-align: center">
+							<!-- FOTO REAL: vem do StudentEntity.photo (LONGBLOB) via monthlyFeeBean.studentPhoto -->
+							<h:panelGroup rendered="#{monthlyFeeBean.studentPhoto != null}">
+								<p:graphicImage value="#{monthlyFeeBean.studentPhoto}"
+									style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #e6eaf0" />
+							</h:panelGroup>
+							<h:panelGroup rendered="#{monthlyFeeBean.studentPhoto == null}">
+								<div class="photo-frame">#{monthlyFeeBean.foundStudent.firstName.substring(0,1)}</div>
+							</h:panelGroup>
+							<div
+								style="font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-top: 4px">Fotografia</div>
+						</div>
 						<div>
 							<b>#{monthlyFeeBean.foundStudent.fullName}</b> -
 							#{monthlyFeeBean.foundStudent.code}<br /> <small>#{monthlyFeeBean.unpaidFees.size()}
-								referência(s) em aberto</small>
+								referência(s) em aberto</small><br />
+							<h:panelGroup rendered="#{not empty monthlyFeeBean.unpaidFees}">
+								<small style="color: #64748b">#{monthlyFeeBean.unpaidFees[0].enrollment.classroom.classeNome}
+									— Turma
+									#{monthlyFeeBean.unpaidFees[0].enrollment.classroom.name}</small>
+							</h:panelGroup>
 						</div>
 					</div>
 				</h:panelGroup>
@@ -108,6 +158,7 @@
 						<br />
 						<small>#{r.monthLabel} #{r.year}</small>
 					</p:column>
+					<p:column headerText="Classe">#{r.enrollment.classroom.classeNome}</p:column>
 					<p:column headerText="Turma">#{r.enrollment.classroom.name}</p:column>
 					<p:column headerText="Valor" style="text-align:right">
 						<b>#{r.amount} MT</b>

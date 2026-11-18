@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.primefaces.event.SelectEvent;
@@ -50,6 +52,8 @@ public class PaymentBean implements Serializable
 	// FORM PAGAMENTO
 	private Long selectedStudentId;
 	private StudentEntity selectedStudentEntity;
+	// Global: mantido SÓ como fallback / compatibilidade (editar pagamento antigo).
+	// O que vale de verdade agora é o método/referência DE CADA ITEM do carrinho.
 	private PaymentMethod paymentMethod = PaymentMethod.NUMERARIO;
 	private String reference = "";
 	private List<FeeItemEntity> feeItems = new ArrayList<>();
@@ -59,6 +63,11 @@ public class PaymentBean implements Serializable
 	private boolean outroMode = false;
 	private List<PaymentItemEntity> cart = new ArrayList<>();
 	private BigDecimal cartTotal = BigDecimal.ZERO;
+
+	// NOVO: método + referência do item que estás a ADICIONAR agora.
+	// Cada addItem() copia estes dois valores para dentro do item criado.
+	private PaymentMethod selectedItemMethod = PaymentMethod.NUMERARIO;
+	private String selectedItemReference = "";
 
 	// STATUS PAGAMENTO - REGRA DE NEGOCIO
 	private boolean hasPaidEnrollment = false;
@@ -124,6 +133,8 @@ public class PaymentBean implements Serializable
 		selectedStudentEntity = null;
 		paymentMethod = PaymentMethod.TRANSFERENCIA_BANCARIA;
 		reference = "";
+		selectedItemMethod = PaymentMethod.NUMERARIO;
+		selectedItemReference = "";
 		cart = new ArrayList<>();
 		cartTotal = BigDecimal.ZERO;
 		selectedFeeItemId = null;
@@ -160,6 +171,16 @@ public class PaymentBean implements Serializable
 		this.paymentMethod = p.getMethod();
 		this.reference = p.getReference();
 		this.cart = new ArrayList<>(p.getItems());
+		// Itens antigos sem método próprio herdam o método global do pagamento.
+		for (PaymentItemEntity it : cart)
+		{
+			if (it.getMethod() == null)
+				it.setMethod(p.getMethod() != null ? p.getMethod() : PaymentMethod.NUMERARIO);
+			if (it.getReference() == null)
+				it.setReference(p.getReference() != null ? p.getReference() : "");
+		}
+		if (!cart.isEmpty() && cart.get(0).getMethod() != null)
+			this.selectedItemMethod = cart.get(0).getMethod();
 		recalcTotal();
 		dashboardBean.navigate("payments/payment-include", "pagamentos");
 		return null;
@@ -198,22 +219,16 @@ public class PaymentBean implements Serializable
 
 			StringBuilder jpql = new StringBuilder();
 			jpql.append("SELECT s FROM StudentEntity s WHERE 1=1 ");
-
-			// nunca pode já estar matriculado no ano actual
 			jpql.append("AND NOT EXISTS (SELECT 1 FROM EnrollmentEntity ec WHERE ec.student = s AND ec.academicYear.id = :yearId) ");
-
 			if (prevYearId != null)
 			{
-				// matriculados no ano anterior (renovação) OU novos (sem nenhuma matrícula)
 				jpql.append("AND (EXISTS (SELECT 1 FROM EnrollmentEntity ep WHERE ep.student = s ");
 				jpql.append("             AND ep.school.id = :schoolId AND ep.academicYear.id = :prevYearId) ");
 				jpql.append("     OR NOT EXISTS (SELECT 1 FROM EnrollmentEntity ea WHERE ea.student = s)) ");
 			} else
 			{
-				// sem ano anterior: só novos
 				jpql.append("AND NOT EXISTS (SELECT 1 FROM EnrollmentEntity ea WHERE ea.student = s) ");
 			}
-
 			jpql.append("AND (LOWER(CONCAT(s.firstName, ' ', s.lastName)) LIKE :like OR LOWER(s.code) LIKE :like) ");
 			jpql.append("ORDER BY s.firstName, s.lastName");
 
@@ -295,8 +310,6 @@ public class PaymentBean implements Serializable
 				return;
 			if (selectedStudentId == null)
 				selectedStudentId = selectedStudentEntity.getId();
-
-			// 1. Tipo: primeiro ano ou renovação?
 			try
 			{
 				currentEnrollmentType = enrollmentService.getEnrollmentTypeForStudent(selectedStudentId);
@@ -309,12 +322,10 @@ public class PaymentBean implements Serializable
 			if (currentEnrollmentType == null)
 				currentEnrollmentType = EnrollmentType.FIRST_ENROLLMENT;
 
-			// 2. O que já pagou no ano
 			hasPaidEnrollment = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "inscri");
 			hasPaidRegistration = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "matric");
 			hasPaidRenewal = paymentService.hasPaid(selectedStudentId, yearId, schoolId, "renov");
 
-			// 3. Regra que pediste
 			if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
 			{
 				readyForEnrollment = hasPaidEnrollment && hasPaidRegistration;
@@ -323,7 +334,6 @@ public class PaymentBean implements Serializable
 				readyForEnrollment = hasPaidRenewal;
 			}
 
-			// 4. Filtra taxas
 			feeItems = feeItemsService.getActiveBySchoolAndYearId(schoolId, yearId);
 			if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
 			{
@@ -352,11 +362,9 @@ public class PaymentBean implements Serializable
 		boolean cartHasInsc = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("inscri"));
 		boolean cartHasMatric = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("matric"));
 		boolean cartHasRenov = cart.stream().anyMatch(i -> i.getDescricao().toLowerCase().contains("renov"));
-
 		boolean finalInsc = hasPaidEnrollment || cartHasInsc;
 		boolean finalMatric = hasPaidRegistration || cartHasMatric;
 		boolean finalRenov = hasPaidRenewal || cartHasRenov;
-
 		if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
 		{
 			readyForEnrollment = finalInsc && finalMatric;
@@ -366,7 +374,62 @@ public class PaymentBean implements Serializable
 		}
 	}
 
-	// ================= CARRINHO =================
+	// ================= CARRINHO — MÉTODO / REFERÊNCIA POR ITEM =================
+
+	/** Numerário não precisa de referência. Todos os outros métodos exigem. */
+	public boolean isReferenceRequired(PaymentMethod method)
+	{
+		return method != null && method != PaymentMethod.NUMERARIO;
+	}
+
+	public boolean isSelectedItemNumerario()
+	{
+		return selectedItemMethod == PaymentMethod.NUMERARIO;
+	}
+
+	public String getSelectedItemReferencePlaceholder()
+	{
+		if (selectedItemMethod == null || selectedItemMethod == PaymentMethod.NUMERARIO)
+			return "Sem referência - pagamento em numerário";
+		if (selectedItemMethod == PaymentMethod.TRANSFERENCIA_BANCARIA)
+			return "Ex.: comprovativo / NIB";
+		if (selectedItemMethod == PaymentMethod.MPESA)
+			return "Ex.: número MPESA / código da transação";
+		if (selectedItemMethod == PaymentMethod.EMOLA)
+			return "Ex.: número EMOLA / código da transação";
+		if (selectedItemMethod == PaymentMethod.MKESH)
+			return "Ex.: número MKESH / código da transação";
+		return "Referência";
+	}
+
+	public String getItemReferencePlaceholder(PaymentItemEntity item)
+	{
+		if (item == null || item.getMethod() == null || item.getMethod() == PaymentMethod.NUMERARIO)
+			return "Sem referência";
+		if (item.getMethod() == PaymentMethod.TRANSFERENCIA_BANCARIA)
+			return "Comprovativo / NIB";
+		return "Número / código da transação";
+	}
+
+	public boolean isItemNumerario(PaymentItemEntity item)
+	{
+		return item != null && item.getMethod() == PaymentMethod.NUMERARIO;
+	}
+
+	/**
+	 * Valida método + referência de UM item. Devolve null se está ok, senão a
+	 * mensagem.
+	 */
+	private String validateItemMethod(PaymentItemEntity item)
+	{
+		if (item == null)
+			return null;
+		PaymentMethod m = item.getMethod() != null ? item.getMethod() : PaymentMethod.NUMERARIO;
+		if (isReferenceRequired(m) && (item.getReference() == null || item.getReference().isBlank()))
+			return "O item \"" + item.getDescricao() + "\" (" + m + ") precisa de referência.";
+		return null;
+	}
+
 	public void onFeeItemSelect()
 	{
 		if (selectedFeeItemId != null)
@@ -419,16 +482,30 @@ public class PaymentBean implements Serializable
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Duplicado", "Item já no carrinho"));
 			return;
 		}
+		// NOVO: referência obrigatória excepto numerário — validada POR ITEM.
+		PaymentMethod method = selectedItemMethod != null ? selectedItemMethod : PaymentMethod.NUMERARIO;
+		String ref = selectedItemReference != null ? selectedItemReference.trim() : "";
+		if (isReferenceRequired(method) && ref.isBlank())
+		{
+			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Falta referência",
+					"O método " + method + " exige referência (ex.: número M-Pesa / comprovativo)."));
+			return;
+		}
 		PaymentItemEntity item = new PaymentItemEntity();
 		item.setDescricao(customDescricao);
 		item.setValor(customValor);
 		item.setQuantidade(BigDecimal.ONE);
+		// NOVO: o item leva o SEU método e a SUA referência — independentes dos outros
+		// itens.
+		item.setMethod(method);
+		item.setReference(method == PaymentMethod.NUMERARIO ? "" : ref);
 		item.calc();
 		cart.add(item);
 		recalcTotal();
 		customDescricao = "";
 		customValor = BigDecimal.ZERO;
 		selectedFeeItemId = null;
+		selectedItemReference = ""; // limpa só a referência; o método fica, para adicionar o próximo item igual
 		outroMode = false;
 		checkPaymentStatusWithCart();
 	}
@@ -438,6 +515,40 @@ public class PaymentBean implements Serializable
 		cart.remove(item);
 		recalcTotal();
 		checkPaymentStatusWithCart();
+	}
+
+	/**
+	 * Atalho: aplica o método/referência que estás a escolher a TODOS os itens do
+	 * carrinho.
+	 */
+	public void applyMethodToAllItems()
+	{
+		PaymentMethod method = selectedItemMethod != null ? selectedItemMethod : PaymentMethod.NUMERARIO;
+		String ref = selectedItemReference != null ? selectedItemReference.trim() : "";
+		for (PaymentItemEntity it : cart)
+		{
+			it.setMethod(method);
+			it.setReference(method == PaymentMethod.NUMERARIO ? "" : ref);
+		}
+		FacesContext.getCurrentInstance().addMessage(null,
+				new FacesMessage(FacesMessage.SEVERITY_INFO, "Aplicado", "Método " + method + " aplicado a " + cart.size() + " item(ns)."));
+	}
+
+	/**
+	 * Resumo para a tela: quanto vai por cada método (M-Pesa / Banco /
+	 * Numerário...).
+	 */
+	public List<MethodTotal> getTotalsByMethod()
+	{
+		Map<PaymentMethod, MethodTotal> map = new LinkedHashMap<>();
+		for (PaymentItemEntity it : cart)
+		{
+			PaymentMethod m = it.getMethod() != null ? it.getMethod() : PaymentMethod.NUMERARIO;
+			MethodTotal t = map.computeIfAbsent(m, k -> new MethodTotal(k, BigDecimal.ZERO, 0));
+			t.total = t.total.add(it.getValor() != null ? it.getValor() : BigDecimal.ZERO);
+			t.count++;
+		}
+		return new ArrayList<>(map.values());
 	}
 
 	private void recalcTotal()
@@ -457,6 +568,16 @@ public class PaymentBean implements Serializable
 		{
 			FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Carrinho vazio"));
 			return null;
+		}
+		// NOVO: valida a referência de CADA item, não só uma global.
+		for (PaymentItemEntity it : cart)
+		{
+			String err = validateItemMethod(it);
+			if (err != null)
+			{
+				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Falta referência", err));
+				return null;
+			}
 		}
 		dashboardBean.navigate("payments/payment-confirm", "pagamentos");
 		return null;
@@ -479,6 +600,25 @@ public class PaymentBean implements Serializable
 				FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Carrinho vazio"));
 				return null;
 			}
+			// Revalida por item antes de gravar.
+			for (PaymentItemEntity it : cart)
+			{
+				String err = validateItemMethod(it);
+				if (err != null)
+				{
+					FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Falta referência", err));
+					return null;
+				}
+			}
+			// Itens sem método (ex.: carrinho antigo) herdam o global, para não gravar
+			// null.
+			for (PaymentItemEntity it : cart)
+			{
+				if (it.getMethod() == null)
+					it.setMethod(paymentMethod != null ? paymentMethod : PaymentMethod.NUMERARIO);
+				if (it.getReference() == null)
+					it.setReference(reference != null ? reference : "");
+			}
 			PaymentEntity saved;
 			if (selected == null || selected.getId() == null)
 			{
@@ -497,12 +637,16 @@ public class PaymentBean implements Serializable
 				p.setSchool(sch);
 				p.setAcademicYear(loginBean.getLoggedAcademicYear());
 				p.setTotalAmount(cartTotal);
-				p.setMethod(paymentMethod);
-				p.setReference(reference);
+				// Cabeçalho do pagamento: se todos os itens têm o mesmo método, usa-o;
+				// se são métodos diferentes, fica o do 1º item (o detalhe por item é que vale).
+				p.setMethod(cart.get(0).getMethod());
+				p.setReference(cart.get(0).getReference());
 				p.setCreatedBy(loginBean.getLoggedUser());
 				saved = paymentService.createWithItems(p, cart);
 			} else
-				saved = paymentService.updateWithItems(selected.getId(), cart, paymentMethod, reference);
+				// updateWithItems(selectedId, items, method, reference) continua a receber o
+				// método do 1º item como cabeçalho; cada item já leva o seu método/referência.
+				saved = paymentService.updateWithItems(selected.getId(), cart, cart.get(0).getMethod(), cart.get(0).getReference());
 
 			FacesContext.getCurrentInstance().addMessage(null,
 					new FacesMessage(FacesMessage.SEVERITY_INFO, "Sucesso", "Pagamento " + saved.getReceiptNumber()));
@@ -678,6 +822,27 @@ public class PaymentBean implements Serializable
 		this.reference = r;
 	}
 
+	// NOVO: getters/setters do método + referência do item a adicionar
+	public PaymentMethod getSelectedItemMethod()
+	{
+		return selectedItemMethod;
+	}
+
+	public void setSelectedItemMethod(PaymentMethod m)
+	{
+		this.selectedItemMethod = m;
+	}
+
+	public String getSelectedItemReference()
+	{
+		return selectedItemReference;
+	}
+
+	public void setSelectedItemReference(String r)
+	{
+		this.selectedItemReference = r;
+	}
+
 	public List<FeeItemEntity> getFeeItems()
 	{
 		return feeItems;
@@ -786,5 +951,35 @@ public class PaymentBean implements Serializable
 	public PaymentMethod[] getMethods()
 	{
 		return PaymentMethod.values();
+	}
+
+	/** Linha do resumo por método, usada na tela. */
+	public static class MethodTotal implements Serializable
+	{
+		private PaymentMethod method;
+		private BigDecimal total;
+		private int count;
+
+		public MethodTotal(PaymentMethod method, BigDecimal total, int count)
+		{
+			this.method = method;
+			this.total = total;
+			this.count = count;
+		}
+
+		public PaymentMethod getMethod()
+		{
+			return method;
+		}
+
+		public BigDecimal getTotal()
+		{
+			return total;
+		}
+
+		public int getCount()
+		{
+			return count;
+		}
 	}
 }

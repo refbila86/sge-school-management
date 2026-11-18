@@ -27,17 +27,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	box-shadow: 0 4px 20px rgba(10, 37, 64, .04);
-}
-
-.field-label {
-	color: #64748b;
-	font-size: 11px;
-	text-transform: uppercase;
-	font-weight: 700;
-	letter-spacing: .4px;
-	margin-bottom: 6px;
-	display: block;
+	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04);
 }
 
 .summary-grid {
@@ -141,10 +131,11 @@
 
 		<div class="page-header">
 			<div class="page-title">
+				<!-- Seta volta para a include, onde a selecao foi feita (era outra tela antes) -->
 				<p:commandButton icon="pi pi-arrow-left"
 					styleClass="ui-button-text ui-button-rounded"
 					style="width:36px;height:36px"
-					action="#{dashboardBean.navigate('enrollment/enrollment-form','matriculas')}"
+					action="#{dashboardBean.navigate('enrollment/enrollment-include','matriculas')}"
 					update=":contentPanel" process="@this" />
 				<div
 					style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center">
@@ -193,7 +184,10 @@
 					</div>
 					<div class="summary-item">
 						<div class="summary-label">Ano académico</div>
-						<div class="summary-value">#{enrollmentBean.selectedYear}</div>
+						<!-- ANTES: selectedYear (podia ser o ID). Agora resolve o ano na cache, igual à include -->
+						<div class="summary-value">#{enrollmentBean.academicYearsCache.stream().filter(y
+							-> y.id == enrollmentBean.currentAcademicYearId).map(y ->
+							y.year).findFirst().orElse(enrollmentBean.selectedYear)}</div>
 					</div>
 					<div class="summary-item">
 						<div class="summary-label">Tipo de matrícula</div>
@@ -220,16 +214,41 @@
 				<div class="summary-grid">
 					<div class="summary-item">
 						<div class="summary-label">Classe</div>
-						<div class="summary-value">#{enrollmentBean.selectedClassLevelId}</div>
+						<!-- CORREÇÃO PRINCIPAL: mostra o NOME da classe selecionada, procurando o ID na lista.
+						     ANTES: #{enrollmentBean.selectedClassLevelId} mostrava o ID puro e parecia "outra classe". -->
+						<div class="summary-value">#{enrollmentBean.availableClassLevels.stream().filter(cl
+							-> cl.id == enrollmentBean.selectedClassLevelId).map(cl ->
+							cl.name).findFirst().orElse(enrollmentBean.selectedClassLevelId)}</div>
 					</div>
 					<div class="summary-item">
 						<div class="summary-label">Turma</div>
-						<div class="summary-value">#{enrollmentBean.selectedClassroomId}</div>
+						<!-- Idem: mostra o NOME da turma, não o ID -->
+						<div class="summary-value">#{enrollmentBean.availableClassroomsWithVacancy.stream().filter(c
+							-> c.id == enrollmentBean.selectedClassroomId).map(c ->
+							c.name).findFirst().orElse(enrollmentBean.selectedClassroomId)}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Turno</div>
+						<div class="summary-value">#{enrollmentBean.availableClassroomsWithVacancy.stream().filter(c
+							-> c.id == enrollmentBean.selectedClassroomId).map(c ->
+							c.shift).findFirst().orElse('-')}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Alunos na turma</div>
+						<div class="summary-value">#{enrollmentBean.availableClassroomsWithVacancy.stream().filter(c
+							-> c.id == enrollmentBean.selectedClassroomId).map(c ->
+							c.currentStudents).findFirst().orElse('-')} /
+							#{enrollmentBean.availableClassroomsWithVacancy.stream().filter(c
+							-> c.id == enrollmentBean.selectedClassroomId).map(c ->
+							c.capacity).findFirst().orElse('-')}</div>
+					</div>
+					<div class="summary-item">
+						<div class="summary-label">Vagas</div>
+						<div class="summary-value">#{enrollmentBean.availableClassroomsWithVacancy.stream().filter(c
+							-> c.id == enrollmentBean.selectedClassroomId).map(c ->
+							c.vacancy).findFirst().orElse('-')}</div>
 					</div>
 				</div>
-				<div class="note" style="margin-top: 8px">Os identificadores
-					da classe e da turma são apresentados como referência. Se preferir
-					os nomes, exponha no bean os objetos selecionados correspondentes.</div>
 			</div>
 
 			<div>

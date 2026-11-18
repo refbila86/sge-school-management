@@ -34,16 +34,44 @@
 	align-items: center;
 }
 
-.summary-row {
+.item-row {
 	display: flex;
 	justify-content: space-between;
-	padding: 10px 0;
+	gap: 12px;
+	padding: 14px 0;
 	border-bottom: 1px dashed #e6eaf0;
-	font-size: 14px
 }
 
-.summary-row:last-child {
+.item-row:last-child {
 	border-bottom: none
+}
+
+.method-tag {
+	display: inline-flex;
+	align-items: center;
+	background: #eff6ff;
+	color: #1e40af;
+	border: 1px solid #dbeafe;
+	padding: 3px 10px;
+	border-radius: 20px;
+	font-size: 11px;
+	font-weight: 800;
+	white-space: nowrap
+}
+
+.ref-line {
+	font-size: 12px;
+	color: #64748b;
+	display: block;
+	margin-top: 4px
+}
+
+.warn-line {
+	font-size: 12px;
+	color: #dc2626;
+	font-weight: 700;
+	display: block;
+	margin-top: 4px
 }
 
 .total-box {
@@ -83,80 +111,102 @@
 
 		<div
 			style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px">
+			<!-- ESQUERDA: aluno + a UNICA lista de itens (antes estava 2x: aqui + no carrinho) -->
 			<div class="form-card">
 				<div
 					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
 					<i class="pi pi-user" style="margin-right: 6px; color: #2563eb" />
 					Dados do Aluno
 				</div>
+				<span class="label">Aluno Selecionado</span>
+				<div class="value-box" style="font-size: 15px; margin-bottom: 20px">
+					<div
+						style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-right: 10px">#{paymentBean.selectedStudentEntity.firstName
+						!= null ?
+						paymentBean.selectedStudentEntity.firstName.substring(0,1).toUpperCase()
+						: 'A'}</div>
+					<div>
+						#{paymentBean.selectedStudentEntity.fullName} <span
+							style="font-weight: 400; color: #64748b; margin-left: 6px">•
+							#{paymentBean.selectedStudentEntity.code}</span>
+					</div>
+				</div>
+
 				<div
-					style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px">
-					<div style="grid-column: span 2">
-						<span class="label">Aluno Selecionado</span>
-						<div class="value-box" style="font-size: 15px">
-							<div
-								style="width: 36px; height: 36px; border-radius: 10px; background: #0a2540; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-right: 10px">#{paymentBean.selectedStudentEntity.firstName
-								!= null ?
-								paymentBean.selectedStudentEntity.firstName.substring(0,1).toUpperCase()
-								: 'A'}</div>
+					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .4px">
+					<i class="pi pi-shopping-cart"
+						style="margin-right: 6px; color: #2563eb" /> Itens a Pagar —
+					#{paymentBean.cart.size()} itens
+				</div>
+				<div
+					style="border: 1px solid #e6eaf0; border-radius: 12px; padding: 4px 14px">
+					<ui:repeat value="#{paymentBean.cart}" var="it">
+						<div class="item-row">
 							<div>
-								#{paymentBean.selectedStudentEntity.fullName} <span
-									style="font-weight: 400; color: #64748b; margin-left: 6px">•
-									#{paymentBean.selectedStudentEntity.code}</span>
+								<b style="color: #0a2540; font-size: 14px">#{it.descricao}</b>
+								<!-- UMA linha de referencia por item, nunca as 3 ao mesmo tempo.
+								     IMPORTANTE: usa h:panelGroup, nao span HTML - o JSF ignora rendered em span puro. -->
+								<h:panelGroup rendered="#{paymentBean.isItemNumerario(it)}">
+									<span class="ref-line">Pagamento em NUMERARIO — sem
+										referência</span>
+								</h:panelGroup>
+								<h:panelGroup
+									rendered="#{!paymentBean.isItemNumerario(it) and not empty it.reference}">
+									<span class="ref-line">Ref.: #{it.reference}</span>
+								</h:panelGroup>
+								<h:panelGroup
+									rendered="#{!paymentBean.isItemNumerario(it) and empty it.reference}">
+									<span class="warn-line">Sem referência — volta e
+										preenche antes de confirmar</span>
+								</h:panelGroup>
+							</div>
+							<div style="text-align: right; flex-shrink: 0">
+								<span class="method-tag">#{it.method}</span> <b
+									style="color: #0a2540; display: block; margin-top: 8px">MT
+									#{it.valor}</b>
 							</div>
 						</div>
-					</div>
-					<div>
-						<span class="label">Método de Pagamento</span>
-						<div class="value-box">
-							<i class="pi pi-wallet" style="margin-right: 8px; color: #2563eb"></i>
-							#{paymentBean.paymentMethod}
-						</div>
-					</div>
-					<div>
-						<span class="label">Referência</span>
-						<div class="value-box">#{empty paymentBean.reference ? '—
-							Nenhuma —' : paymentBean.reference}</div>
-					</div>
+					</ui:repeat>
 				</div>
 
 				<div
 					style="margin-top: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; display: flex; gap: 10px">
 					<i class="pi pi-verified" style="color: #16a34a"></i> <span
-						style="font-size: 13px; color: #166534">Pagamento será
-						registado para <b>#{paymentBean.selectedStudentEntity.fullName}</b>
-						no ano <b>#{loginBean.loggedAcademicYear.year}</b>
+						style="font-size: 13px; color: #166534">Pagamento para <b>#{paymentBean.selectedStudentEntity.fullName}</b>
+						no ano <b>#{loginBean.loggedAcademicYear.year}</b>. Para corrigir,
+						volta à tela anterior — aqui não se edita nada.
 					</span>
 				</div>
 			</div>
 
+			<!-- DIREITA: resumo por metodo + total + botoes (sem repetir a lista de itens) -->
 			<div class="form-card" style="background: #fbfdff">
 				<div
 					style="font-size: 13px; font-weight: 800; color: #0a2540; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .4px">
-					<i class="pi pi-shopping-cart"
-						style="margin-right: 6px; color: #2563eb" /> Carrinho -
-					#{paymentBean.cart.size()} itens
+					<i class="pi pi-list" style="margin-right: 6px; color: #2563eb" />
+					Resumo por Método
 				</div>
 				<div
-					style="background: white; border: 1px solid #e6eaf0; border-radius: 12px; padding: 14px">
-					<ui:repeat value="#{paymentBean.cart}" var="it">
-						<div class="summary-row">
-							<span style="color: #334155">#{it.descricao}</span> <b
-								style="color: #0a2540">MT #{it.valor}</b>
+					style="background: white; border: 1px solid #e6eaf0; border-radius: 12px; padding: 6px 14px">
+					<ui:repeat value="#{paymentBean.totalsByMethod}" var="t">
+						<div class="item-row" style="padding: 10px 0">
+							<span style="color: #334155"><span class="method-tag">#{t.method}</span>
+								<span style="font-size: 12px; color: #64748b">—
+									#{t.count} item(ns)</span></span> <b style="color: #0a2540">MT #{t.total}</b>
 						</div>
 					</ui:repeat>
-					<div class="total-box">
-						<div>
-							<div
-								style="font-size: 11px; letter-spacing: .5px; opacity: .8; text-transform: uppercase; font-weight: 700">Total
-								a Pagar</div>
-							<div style="font-size: 24px; font-weight: 900; margin-top: 2px">MT
-								#{paymentBean.cartTotal}</div>
-						</div>
+				</div>
+				<div class="total-box">
+					<div>
 						<div
-							style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center">
-							<i class="pi pi-money-bill" style="font-size: 22px"></i>
-						</div>
+							style="font-size: 11px; letter-spacing: .5px; opacity: .8; text-transform: uppercase; font-weight: 700">Total
+							a Pagar</div>
+						<div style="font-size: 24px; font-weight: 900; margin-top: 2px">MT
+							#{paymentBean.cartTotal}</div>
+					</div>
+					<div
+						style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center">
+						<i class="pi pi-money-bill" style="font-size: 22px"></i>
 					</div>
 				</div>
 				<div
@@ -165,6 +215,7 @@
 						style="color: #d97706; margin-top: 2px"></i> <span
 						style="font-size: 12.5px; color: #92400e; line-height: 1.4">Ao
 						confirmar, será gerado o recibo automaticamente no ano letivo <b>#{loginBean.loggedAcademicYear.year}</b>.
+						Cada item fica gravado com o seu próprio método e referência.
 					</span>
 				</div>
 				<div style="margin-top: 20px; display: flex; gap: 10px">

@@ -3,6 +3,7 @@ package mz.co.sge.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import jakarta.persistence.*;
+import mz.co.sge.enumes.PaymentMethod;
 
 @Entity
 @Table(name = "payment_items")
@@ -26,15 +27,25 @@ public class PaymentItemEntity implements Serializable
 
 	@Column(nullable = false)
 	private String descricao;
-	
+
 	@Column(precision = 12, scale = 2, nullable = false)
 	private BigDecimal valor;
-	
+
 	@Column(precision = 12, scale = 2)
 	private BigDecimal quantidade = BigDecimal.ONE;
-	
+
 	@Column(precision = 12, scale = 2)
 	private BigDecimal subtotal;
+
+	// NOVO: método + referência DESTE item, independentes dos outros itens.
+	// Mesmo estilo da PaymentEntity: @Enumerated STRING + String simples, sem
+	// @Column inventado.
+	// Valores possíveis (do teu enum): NUMERARIO, TRANSFERENCIA_BANCARIA, MPESA,
+	// EMOLA, MKESH.
+	@Enumerated(EnumType.STRING)
+	private PaymentMethod method;
+
+	private String reference;
 
 	@PrePersist
 	@PreUpdate
@@ -117,5 +128,25 @@ public class PaymentItemEntity implements Serializable
 	public void setSubtotal(BigDecimal s)
 	{
 		this.subtotal = s;
+	}
+
+	public PaymentMethod getMethod()
+	{
+		return method;
+	}
+
+	public void setMethod(PaymentMethod m)
+	{
+		this.method = m;
+	}
+
+	public String getReference()
+	{
+		return reference;
+	}
+
+	public void setReference(String r)
+	{
+		this.reference = r;
 	}
 }

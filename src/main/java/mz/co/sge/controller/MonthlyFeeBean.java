@@ -1,5 +1,6 @@
 package mz.co.sge.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.annotation.PostConstruct;
@@ -29,6 +32,8 @@ import mz.co.sge.service.IMonthlyFeeService;
 @SessionScoped
 public class MonthlyFeeBean implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+
 	@Autowired
 	private IMonthlyFeeService monthlyFeeService;
 	@Autowired
@@ -37,7 +42,9 @@ public class MonthlyFeeBean implements Serializable
 	private DashboardBean dashboardBean;
 
 	private int filterYear = LocalDate.now().getYear();
-	private Integer filterMonth = LocalDate.now().getMonthValue();
+	// Começa em "Todos os meses" — antes começava no mês actual e escondia o resto
+	// da lista
+	private Integer filterMonth = null;
 	private String searchStudent;
 	private String searchCode;
 
@@ -77,8 +84,9 @@ public class MonthlyFeeBean implements Serializable
 		loadAll();
 	}
 
-	public static class MonthItem
+	public static class MonthItem implements Serializable
 	{
+		private static final long serialVersionUID = 1L;
 		private int value;
 		private String label;
 
@@ -99,8 +107,28 @@ public class MonthlyFeeBean implements Serializable
 		}
 	}
 
+	// Foto do aluno encontrado (StudentEntity.photo = LONGBLOB)
+	// Se não houver foto, devolve null e a tela mostra as iniciais.
+	public StreamedContent getStudentPhoto()
+	{
+		try
+		{
+			if (foundStudent == null || foundStudent.getPhoto() == null || foundStudent.getPhoto().length == 0)
+			{
+				return null;
+			}
+			String contentType = foundStudent.getPhotoContentType() != null ? foundStudent.getPhotoContentType() : "image/jpeg";
+			byte[] bytes = foundStudent.getPhoto();
+			return DefaultStreamedContent.builder().contentType(contentType).stream(() -> new ByteArrayInputStream(bytes)).build();
+		} catch (Exception e)
+		{
+			return null; // ex.: LAZY ainda não carregado → cai para as iniciais
+		}
+	}
+
 	public static class FeePayItem implements Serializable
 	{
+		private static final long serialVersionUID = 1L;
 		private MonthlyFeeEntity fee;
 		private PaymentMethod paymentMethod = PaymentMethod.NUMERARIO;
 		private String bankName;
@@ -199,9 +227,13 @@ public class MonthlyFeeBean implements Serializable
 		}
 	}
 
+	// ---------- LISTA ----------
+	// ANTES: findPaidByYear() — só trazia status = PAGO, a lista vinha vazia
+	// DEPOIS: findByYear() — traz PENDENTE, PARCIAL, PAGO, ATRASADO, tudo
+	// (o repositório já tem findByYear; a service só precisa de o expor)
 	public void loadAll()
 	{
-		allFees = monthlyFeeService.findPaidByYear(filterYear);
+		allFees = monthlyFeeService.findByYear(filterYear);
 	}
 
 	public List<MonthlyFeeEntity> getFilteredFees()
@@ -212,12 +244,14 @@ public class MonthlyFeeBean implements Serializable
 		{
 			boolean ok = true;
 			if (filterMonth != null)
-				ok = ok && m.getMonth().equals(filterMonth);
+				ok = ok && m.getMonth() != null && m.getMonth().equals(filterMonth);
 			if (searchStudent != null && !searchStudent.isBlank())
 			{
 				String s = searchStudent.toLowerCase();
-				ok = ok && (m.getStudent().getCode().toLowerCase().contains(s) || m.getStudent().getFullName().toLowerCase().contains(s)
-						|| m.getReference().toLowerCase().contains(s));
+				String code = (m.getStudent() != null && m.getStudent().getCode() != null) ? m.getStudent().getCode().toLowerCase() : "";
+				String nome = (m.getStudent() != null && m.getStudent().getFullName() != null) ? m.getStudent().getFullName().toLowerCase() : "";
+				String ref = m.getReference() != null ? m.getReference().toLowerCase() : "";
+				ok = ok && (code.contains(s) || nome.contains(s) || ref.contains(s));
 			}
 			return ok;
 		}).toList();
@@ -226,6 +260,19 @@ public class MonthlyFeeBean implements Serializable
 	public void searchByStudentCode()
 	{
 		foundStudent = monthlyFeeService.findStudentByCode(searchCode);
+		// Força a carga do LAZY photo ainda dentro da transação,
+		// senão o getStudentPhoto() chega com o EntityManager fechado
+		try
+		{
+			if (foundStudent != null && foundStudent.getPhoto() != null)
+			{
+				byte[] photoBytes = foundStudent.getPhoto();
+				int photoSize = photoBytes.length; // só tocar aqui já força o LAZY a carregar
+			}
+		} catch (Exception e)
+		{
+			// sem foto carregada → a tela cai para as iniciais
+		}
 		unpaidFees = monthlyFeeService.findUnpaidByStudentCode(searchCode);
 		selectedFees = new ArrayList<>();
 		payItems = null;
@@ -372,6 +419,8 @@ public class MonthlyFeeBean implements Serializable
 		searchStudent = null;
 	}
 
+	// ---------- TOTAIS / KPIs ----------
+
 	public BigDecimal getTotalValor()
 	{
 		return getFilteredFees().stream().map(m -> m.getAmount() != null ? m.getAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -427,20 +476,24 @@ public class MonthlyFeeBean implements Serializable
 		return BigDecimal.ZERO;
 	}
 
+	// Total devido = valor base + multa (NÃO o totalPaid — esse é o que já foi
+	// pago)
 	public BigDecimal calcTotalPagoComMulta(MonthlyFeeEntity f)
 	{
 		if (f == null || f.getAmount() == null)
 			return BigDecimal.ZERO;
-		if (f.getTotalPaid() != null && f.getTotalPaid().compareTo(BigDecimal.ZERO) > 0)
-			return f.getTotalPaid();
 		return f.getAmount().add(calcMulta(f));
 	}
-
+ 
+	public BigDecimal getTotalRemanescente()
+	{
+		return getFilteredFees().stream().map(this::faltaPagar).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+	
+	
 	public BigDecimal getTotalPago()
 	{
-		return getFilteredFees().stream()
-				.map(m -> m.getTotalPaid() != null && m.getTotalPaid().compareTo(BigDecimal.ZERO) > 0 ? m.getTotalPaid() : m.getAmount())
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		return getFilteredFees().stream().map(m -> m.getPaidAmount() != null ? m.getPaidAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	public BigDecimal getTotalMulta()
@@ -450,7 +503,8 @@ public class MonthlyFeeBean implements Serializable
 
 	public long getTotalAlunosPagos()
 	{
-		return getFilteredFees().stream().map(m -> m.getStudent().getId()).distinct().count();
+		return getFilteredFees().stream().filter(m -> m.getPaidAmount() != null && m.getPaidAmount().compareTo(BigDecimal.ZERO) > 0)
+				.map(m -> m.getStudent() != null ? m.getStudent().getId() : null).filter(id -> id != null).distinct().count();
 	}
 
 	// GETTERS SETTERS
@@ -598,4 +652,6 @@ public class MonthlyFeeBean implements Serializable
 	{
 		payItems = p;
 	}
+
+
 }
