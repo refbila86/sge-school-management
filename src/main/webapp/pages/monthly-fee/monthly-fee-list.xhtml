@@ -94,6 +94,26 @@
 </style>
 
 	<h:form id="formFees">
+		<!-- CABECALHO COM ESCOLA LOGADA -->
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; margin-bottom: 14px">
+			<div
+				style="width: 48px; height: 48px; min-width: 48px; border-radius: 10px; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px">#{loginBean.schoolName.substring(0,1)}</div>
+			<div style="flex: 1">
+				<b style="font-size: 15px; color: #0a2540">#{loginBean.schoolName}</b>
+				<div style="font-size: 12px; color: #64748b">Código:
+					#{loginBean.schoolCode} • Licença: #{loginBean.licenseCode}
+					(#{loginBean.licenseStatus})</div>
+			</div>
+			<div style="text-align: right">
+				<span
+					style="background: #eef2ff; color: #4338ca; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 700">Ano:
+					#{loginBean.academicYearLabel}</span>
+				<div style="font-size: 11px; color: #64748b; margin-top: 4px">
+					<i class="pi pi-user" /> #{loginBean.fullname}
+				</div>
+			</div>
+		</div>
 		<div class="page-header">
 			<h:panelGroup id="title" layout="block"
 				style="font-size: 20px; font-weight: 800; color: #0a2540; display: flex; align-items: center; gap: 10px">

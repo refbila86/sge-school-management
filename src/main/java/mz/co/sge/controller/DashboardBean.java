@@ -116,7 +116,8 @@ public class DashboardBean implements Serializable
 		case "encarregados" -> "Gestão de Encarregados";
 		case "professores" -> "Professores";
 		case "pagamentos" -> "Pagamentos";
-		case "feeitems" -> "Items de Pagamento - " + loginBean.getLoggedAcademicYear().getYear() + " - " + loginBean.getLoggedSchool().getName();
+		case "feeitems" -> "Items de Pagamento ";
+				//+ "- " + loginBean.getLoggedAcademicYear().getYear() + " - " + loginBean.getLoggedSchool().getName();
 		case "turmas" -> "Turmas";
 		case "classes" -> "Classes";
 		case "disciplinas" -> "Disciplinas";

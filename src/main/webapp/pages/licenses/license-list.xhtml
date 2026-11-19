@@ -2,6 +2,156 @@
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
 
+	<style>
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+	gap: 12px;
+	margin-bottom: 14px
+}
+
+.stats-title {
+	font-size: 11px;
+	font-weight: 700;
+	color: #64748b;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+	margin: 6px 0 8px
+}
+
+.stat-link {
+	text-decoration: none !important;
+	display: block
+}
+
+.stat {
+	--c: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-left: 4px solid var(--c);
+	border-radius: 14px;
+	padding: 14px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+	transition: transform .15s, box-shadow .15s;
+	cursor: pointer
+}
+
+.stat:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(16, 24, 40, .10)
+}
+
+.stat.selected {
+	background: #f8fafc;
+	box-shadow: 0 0 0 2px var(--c)
+}
+
+.stat-icon {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--c);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 17px;
+	flex-shrink: 0
+}
+
+.stat-num {
+	font-size: 24px;
+	font-weight: 800;
+	color: #0a2540;
+	line-height: 1
+}
+
+.stat-lbl {
+	font-size: 12px;
+	color: #64748b;
+	margin-top: 4px;
+	font-weight: 600
+}
+
+.lic-bar {
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-radius: 14px;
+	padding: 10px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 14px
+}
+
+.pill {
+	padding: 4px 10px;
+	border-radius: 20px;
+	font-size: 10.5px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: #fff;
+	display: inline-block
+}
+
+/* ===== CARDS DE LICENÇA ===== */
+.lcard {
+	--c: #0a2540;
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-top: 4px solid var(--c);
+	border-radius: 16px;
+	padding: 16px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
+}
+
+.lcard .lkey {
+	font-size: 13px;
+	font-weight: 800;
+	color: #0a2540;
+	word-break: break-all
+}
+
+.lcard .lcode {
+	font-size: 10.5px;
+	color: #64748b;
+	margin-bottom: 10px
+}
+
+.lcard .lrow {
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+	color: #475569;
+	margin: 6px 0
+}
+
+.lcard .lrow b {
+	color: #0a2540
+}
+
+.progress-bg {
+	height: 7px;
+	background: #eef2f7;
+	border-radius: 10px;
+	overflow: hidden;
+	margin: 10px 0 4px
+}
+
+.progress-fill {
+	height: 100%;
+	border-radius: 10px
+}
+
+.lcard .lactions {
+	margin-top: 10px;
+	text-align: center
+}
+</style>
+
 	<h:form id="formLicenseList">
 		<p:growl id="growl" showDetail="true" life="4000" />
 
@@ -9,7 +159,7 @@
 			style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px">
 			<div style="font-size: 19px; font-weight: 700; color: #0a2540">
 				<i class="pi pi-key" style="margin-right: 8px" />Licenças -
-				#{licenseBean.licenses.size()}
+				#{licenseBean.totalLicenses}
 			</div>
 			<div style="display: flex; gap: 8px">
 				<p:commandButton value="Nova Licença" icon="pi pi-plus"
@@ -24,9 +174,118 @@
 			</div>
 		</div>
 
-		<div
+		<!-- ===== CARDS: GERAL + VALIDADE ===== -->
+		<div class="stats">
+			<p:commandLink styleClass="stat-link"
+				actionListener="#{licenseBean.clearFilter}" process="@this"
+				update="@form">
+				<div class="stat #{licenseBean.noFilter ? 'selected' : ''}"
+					style="--c: #0a2540">
+					<div class="stat-icon">
+						<i class="pi pi-key" />
+					</div>
+					<div>
+						<div class="stat-num">#{licenseBean.totalLicenses}</div>
+						<div class="stat-lbl">Todas</div>
+					</div>
+				</div>
+			</p:commandLink>
+
+			<p:commandLink styleClass="stat-link"
+				actionListener="#{licenseBean.filterByDate('EXPIRING')}"
+				process="@this" update="@form">
+				<div
+					class="stat #{licenseBean.dateFilter eq 'EXPIRING' ? 'selected' : ''}"
+					style="--c: #f59e0b">
+					<div class="stat-icon">
+						<i class="pi pi-exclamation-triangle" />
+					</div>
+					<div>
+						<div class="stat-num">#{licenseBean.countExpiring}</div>
+						<div class="stat-lbl">A expirar (30 dias)</div>
+					</div>
+				</div>
+			</p:commandLink>
+
+			<p:commandLink styleClass="stat-link"
+				actionListener="#{licenseBean.filterByDate('EXPIRED')}"
+				process="@this" update="@form">
+				<div
+					class="stat #{licenseBean.dateFilter eq 'EXPIRED' ? 'selected' : ''}"
+					style="--c: #dc2626">
+					<div class="stat-icon">
+						<i class="pi pi-times-circle" />
+					</div>
+					<div>
+						<div class="stat-num">#{licenseBean.countExpired}</div>
+						<div class="stat-lbl">Expiradas</div>
+					</div>
+				</div>
+			</p:commandLink>
+		</div>
+
+		<!-- ===== CARDS: POR ESTADO ===== -->
+		<div class="stats-title">Por estado</div>
+		<div class="stats">
+			<ui:repeat value="#{licenseBean.licenseStatuses}" var="s">
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{licenseBean.filterByStatus(s)}" process="@this"
+					update="@form">
+					<div
+						class="stat #{licenseBean.statusFilter == s ? 'selected' : ''}"
+						style="--c: #{licenseBean.statusColor(s)}">
+						<div class="stat-icon">
+							<i class="pi #{licenseBean.statusIcon(s)}" />
+						</div>
+						<div>
+							<div class="stat-num">#{licenseBean.countByStatus(s)}</div>
+							<div class="stat-lbl">#{licenseBean.statusLabel(s)}</div>
+						</div>
+					</div>
+				</p:commandLink>
+			</ui:repeat>
+		</div>
+
+		<!-- ===== CARDS: POR TIPO ===== -->
+		<div class="stats-title">Por tipo</div>
+		<div class="stats">
+			<ui:repeat value="#{licenseBean.licenseTypes}" var="t">
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{licenseBean.filterByType(t)}" process="@this"
+					update="@form">
+					<div class="stat #{licenseBean.typeFilter == t ? 'selected' : ''}"
+						style="--c: #{licenseBean.typeColor(t)}">
+						<div class="stat-icon">
+							<i class="pi #{licenseBean.typeIcon(t)}" />
+						</div>
+						<div>
+							<div class="stat-num">#{licenseBean.countByType(t)}</div>
+							<div class="stat-lbl">#{licenseBean.typeLabel(t)}</div>
+						</div>
+					</div>
+				</p:commandLink>
+			</ui:repeat>
+		</div>
+
+		<div class="lic-bar">
+			<span
+				style="font-size: 12.5px; color: #64748b; background: #f8fafc; border: 1px solid #eef2f7; padding: 6px 12px; border-radius: 20px">
+				A mostrar <b style="color: #0a2540">#{licenseBean.filteredLicenses.size()}</b>
+				de <b style="color: #0a2540">#{licenseBean.totalLicenses}</b>
+				licenças
+			</span>
+			<p:selectOneButton value="#{licenseBean.viewMode}">
+				<f:selectItem itemLabel="Cards" itemValue="CARDS" />
+				<f:selectItem itemLabel="Tabela" itemValue="TABELA" />
+				<p:ajax update="@form" />
+			</p:selectOneButton>
+		</div>
+
+		<!-- ===== VISTA TABELA ===== -->
+		<h:panelGroup layout="block"
+			rendered="#{licenseBean.viewMode eq 'TABELA'}"
 			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px">
-			<p:dataTable value="#{licenseBean.licenses}" var="lic"
+			<p:dataTable value="#{licenseBean.filteredLicenses}" var="lic"
 				paginator="true" rows="10" paginatorPosition="bottom"
 				emptyMessage="Nenhuma licença">
 				<p:column headerText="CHAVE" width="220">
@@ -34,9 +293,9 @@
 					<br />
 					<span style="font-size: 10px; color: #64748b">#{lic.code}</span>
 				</p:column>
-				<p:column headerText="TIPO" width="90">
-					<span
-						style="background: #eef2ff; color: #4338ca; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 11px">#{lic.type}</span>
+				<p:column headerText="TIPO" width="100">
+					<span class="pill"
+						style="background: #{licenseBean.typeColor(lic.type)}">#{licenseBean.typeLabel(lic.type)}</span>
 				</p:column>
 				<p:column headerText="ATIVAÇÃO" width="110">
 					<h:outputText value="#{lic.activationDate}">
@@ -52,8 +311,9 @@
 					style="text-align:center">
 					<b style="color:#{lic.daysRemaining lt 30? '#dc2626' : '#16a34a'}">#{lic.daysRemaining}</b>
 				</p:column>
-				<p:column headerText="STATUS" width="100">
-					<p:tag value="#{lic.status}" />
+				<p:column headerText="STATUS" width="110">
+					<span class="pill"
+						style="background: #{licenseBean.statusColor(lic.status)}">#{licenseBean.statusLabel(lic.status)}</span>
 				</p:column>
 				<p:column headerText="AÇÕES" width="130" style="text-align:center">
 					<p:commandButton icon="pi pi-eye"
@@ -77,12 +337,85 @@
 						oncomplete="PF('confirmDialog').show()" process="@this" />
 				</p:column>
 			</p:dataTable>
-		</div>
+		</h:panelGroup>
+
+		<!-- ===== VISTA CARDS ===== -->
+		<h:panelGroup layout="block"
+			rendered="#{licenseBean.viewMode eq 'CARDS'}">
+			<p:dataGrid value="#{licenseBean.filteredLicenses}" var="lic"
+				columns="3" layout="grid" rows="9" paginator="true"
+				paginatorPosition="bottom" emptyMessage="Nenhuma licença">
+				<div class="lcard" style="--c: #{licenseBean.typeColor(lic.type)}">
+					<div
+						style="display: flex; justify-content: space-between; gap: 8px">
+						<div>
+							<div class="lkey">#{lic.licenseKey}</div>
+							<div class="lcode">#{lic.code}</div>
+						</div>
+						<div>
+							<span class="pill"
+								style="background: #{licenseBean.statusColor(lic.status)}">#{licenseBean.statusLabel(lic.status)}</span>
+						</div>
+					</div>
+
+					<div class="lrow">
+						<span><i class="pi #{licenseBean.typeIcon(lic.type)}"
+							style="margin-right: 6px; color: #{licenseBean.typeColor(lic.type)}" />Tipo</span>
+						<b>#{licenseBean.typeLabel(lic.type)}</b>
+					</div>
+					<div class="lrow">
+						<span>Activação</span> <b><h:outputText
+								value="#{lic.activationDate}">
+								<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+							</h:outputText></b>
+					</div>
+					<div class="lrow">
+						<span>Expira</span> <b><h:outputText
+								value="#{lic.expirationDate}">
+								<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
+							</h:outputText></b>
+					</div>
+
+					<div class="progress-bg">
+						<div class="progress-fill"
+							style="width: #{licenseBean.progress(lic)}%; background: #{licenseBean.progress(lic) ge 90 ? '#dc2626' : licenseBean.progress(lic) ge 70 ? '#f59e0b' : '#16a34a'}"></div>
+					</div>
+					<div class="lrow">
+						<span>Dias restantes</span> <b
+							style="color:#{lic.daysRemaining lt 30? '#dc2626' : '#16a34a'}">#{lic.daysRemaining}</b>
+					</div>
+
+					<div class="lactions">
+						<p:commandButton icon="pi pi-eye"
+							styleClass="ui-button-rounded ui-button-text"
+							action="#{licenseBean.prepareView(lic)}"
+							update=":formLicenseList:viewDialog"
+							oncomplete="PF('viewDialog').show()" process="@this" />
+						<p:commandButton icon="pi pi-pencil"
+							styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+							action="#{dashboardBean.navigate('licenses/license-include','licencas')}"
+							update=":contentPanel">
+							<f:setPropertyActionListener value="#{lic}"
+								target="#{licenseBean.license}" />
+							<f:setPropertyActionListener value="#{true}"
+								target="#{licenseBean.editing}" />
+						</p:commandButton>
+						<p:commandButton icon="pi pi-trash"
+							styleClass="ui-button-rounded ui-button-text ui-button-danger"
+							action="#{licenseBean.prepareDelete(lic)}"
+							update=":formLicenseList:confirmDialog"
+							oncomplete="PF('confirmDialog').show()" process="@this" />
+					</div>
+				</div>
+			</p:dataGrid>
+		</h:panelGroup>
 
 		<p:dialog widgetVar="viewDialog" id="viewDialog" header="Detalhes"
 			modal="true" width="550">
 			<h:panelGroup rendered="#{licenseBean.selectedLicense!= null}">
 				<b>#{licenseBean.selectedLicense.licenseKey}</b>
+				<br />
+				Tipo: #{licenseBean.typeLabel(licenseBean.selectedLicense.type)}
 				<br />
 				Ativação: <h:outputText
 					value="#{licenseBean.selectedLicense.activationDate}">
@@ -94,7 +427,7 @@
 					<f:convertDateTime type="localDate" pattern="dd/MM/yyyy" />
 				</h:outputText>
 				<br />
-				Status: #{licenseBean.selectedLicense.status}
+				Status: #{licenseBean.statusLabel(licenseBean.selectedLicense.status)}
 			</h:panelGroup>
 		</p:dialog>
 

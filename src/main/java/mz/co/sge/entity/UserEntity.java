@@ -49,7 +49,7 @@ public class UserEntity
 
 	@Column(name = "last_login")
 	private java.time.LocalDateTime lastLogin;
-
+	
 	public Long getId()
 	{
 		return id;

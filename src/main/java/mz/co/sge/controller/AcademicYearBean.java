@@ -1,9 +1,14 @@
 package mz.co.sge.controller;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,6 +35,11 @@ public class AcademicYearBean implements Serializable
 	private boolean editing = false;
 
 	private String filterYear;
+
+	// ---- filtro dos cards: ACTIVE | INACTIVE | ONGOING | UPCOMING | FINISHED |
+	// null ----
+	private String cardFilter;
+	private String viewMode = "CARDS"; // "CARDS" ou "TABELA"
 
 	@PostConstruct
 	public void init()
@@ -189,7 +199,150 @@ public class AcademicYearBean implements Serializable
 		FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
 	}
 
-	// Getters Setters
+	// ====================== HELPERS (independentes de isActive/getActive)
+	// ======================
+
+	private Object prop(AcademicYearEntity a, String name)
+	{
+		try
+		{
+			return new BeanWrapperImpl(a).getPropertyValue(name);
+		} catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	private boolean isActiveYear(AcademicYearEntity a)
+	{
+		return Boolean.TRUE.equals(prop(a, "active"));
+	}
+
+	private LocalDate toDate(Object o)
+	{
+		if (o instanceof LocalDateTime ldt)
+			return ldt.toLocalDate();
+		if (o instanceof LocalDate ld)
+			return ld;
+		return null;
+	}
+
+	private LocalDate start(AcademicYearEntity a)
+	{
+		return toDate(prop(a, "startDate"));
+	}
+
+	private LocalDate end(AcademicYearEntity a)
+	{
+		return toDate(prop(a, "endDate"));
+	}
+
+	// ONGOING | UPCOMING | FINISHED | null (sem datas)
+	public String periodOf(AcademicYearEntity a)
+	{
+		LocalDate s = start(a);
+		LocalDate e = end(a);
+		if (s == null || e == null)
+			return null;
+		LocalDate hoje = LocalDate.now();
+		if (hoje.isBefore(s))
+			return "UPCOMING";
+		if (hoje.isAfter(e))
+			return "FINISHED";
+		return "ONGOING";
+	}
+
+	public String periodLabel(String p)
+	{
+		if (p == null)
+			return "Sem datas";
+		return switch (p)
+		{
+		case "ONGOING" -> "Em curso";
+		case "UPCOMING" -> "Futuro";
+		case "FINISHED" -> "Concluído";
+		default -> p;
+		};
+	}
+
+	public String periodColor(String p)
+	{
+		if (p == null)
+			return "#64748b";
+		return switch (p)
+		{
+		case "ONGOING" -> "#15558a";
+		case "UPCOMING" -> "#f59e0b";
+		case "FINISHED" -> "#64748b";
+		default -> "#64748b";
+		};
+	}
+
+	// % do ano lectivo já decorrido (0-100)
+	public int progress(AcademicYearEntity a)
+	{
+		LocalDate s = start(a);
+		LocalDate e = end(a);
+		if (s == null || e == null)
+			return 0;
+		long total = ChronoUnit.DAYS.between(s, e);
+		if (total <= 0)
+			return 100;
+		long gasto = ChronoUnit.DAYS.between(s, LocalDate.now());
+		return (int) Math.max(0, Math.min(100, gasto * 100 / total));
+	}
+
+	// ====================== FILTROS DOS CARDS ======================
+
+	public List<AcademicYearEntity> getFilteredYears()
+	{
+		if (academicYears == null)
+			return List.of();
+		return academicYears.stream().filter(a -> cardFilter == null || matches(a, cardFilter))
+				.sorted(Comparator.comparing(this::start, Comparator.nullsLast(Comparator.reverseOrder()))).collect(Collectors.toList());
+	}
+
+	private boolean matches(AcademicYearEntity a, String key)
+	{
+		return switch (key)
+		{
+		case "ACTIVE" -> isActiveYear(a);
+		case "INACTIVE" -> !isActiveYear(a);
+		default -> key.equals(periodOf(a));
+		};
+	}
+
+	public void filterBy(String key)
+	{
+		this.cardFilter = key.equals(cardFilter) ? null : key;
+	}
+
+	public void clearFilter()
+	{
+		this.cardFilter = null;
+	}
+
+	public boolean isNoFilter()
+	{
+		return cardFilter == null;
+	}
+
+	// ====================== CONTAGENS ======================
+
+	public int getTotalYears()
+	{
+		return academicYears == null ? 0 : academicYears.size();
+	}
+
+	public long countBy(String key)
+	{
+		if (academicYears == null)
+			return 0;
+		return academicYears.stream().filter(a -> matches(a, key)).count();
+	}
+
+	// ====================== GETTERS / SETTERS ======================
+
 	public List<AcademicYearEntity> getAcademicYears()
 	{
 		return academicYears;
@@ -223,5 +376,20 @@ public class AcademicYearBean implements Serializable
 	public void setFilterYear(String filterYear)
 	{
 		this.filterYear = filterYear;
+	}
+
+	public String getCardFilter()
+	{
+		return cardFilter;
+	}
+
+	public String getViewMode()
+	{
+		return viewMode;
+	}
+
+	public void setViewMode(String viewMode)
+	{
+		this.viewMode = viewMode;
 	}
 }

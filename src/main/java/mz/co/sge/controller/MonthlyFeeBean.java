@@ -48,6 +48,10 @@ public class MonthlyFeeBean implements Serializable
 	private String searchStudent;
 	private String searchCode;
 
+	// Filtro dos cards de estado: PAGO | PARCIAL | PENDENTE | ATRASO | CANCELADO |
+	// null
+	private String statusFilter;
+
 	private List<MonthlyFeeEntity> allFees;
 	private List<MonthlyFeeEntity> unpaidFees;
 	private List<MonthlyFeeEntity> selectedFees;
@@ -236,7 +240,9 @@ public class MonthlyFeeBean implements Serializable
 		allFees = monthlyFeeService.findByYear(filterYear);
 	}
 
-	public List<MonthlyFeeEntity> getFilteredFees()
+	// Lista base: ano + mês + pesquisa (NÃO inclui o filtro de estado).
+	// Os cards usam esta lista, por isso os números não mudam ao clicar num estado.
+	public List<MonthlyFeeEntity> getBaseFees()
 	{
 		if (allFees == null)
 			return List.of();
@@ -255,6 +261,20 @@ public class MonthlyFeeBean implements Serializable
 			}
 			return ok;
 		}).toList();
+	}
+
+	// Lista da tabela: base + filtro de estado
+	public List<MonthlyFeeEntity> getFilteredFees()
+	{
+		if (statusFilter == null)
+			return getBaseFees();
+		return getBaseFees().stream().filter(m -> matchesStatus(m, statusFilter)).toList();
+	}
+
+	// Lista dos KPIs financeiros: base sem as canceladas
+	private List<MonthlyFeeEntity> kpiFees()
+	{
+		return getBaseFees().stream().filter(m -> !"CANCELADO".equals(statusKey(m))).toList();
 	}
 
 	public void searchByStudentCode()
@@ -286,6 +306,102 @@ public class MonthlyFeeBean implements Serializable
 		}
 	}
 
+	// ---------- ESTADOS (cards + tabela) ----------
+
+	private String statusKey(MonthlyFeeEntity m)
+	{
+		Object s = m != null ? m.getStatus() : null;
+		return s == null ? "" : s.toString().toUpperCase();
+	}
+
+	private boolean isOverdue(MonthlyFeeEntity m)
+	{
+		String s = statusKey(m);
+		if ("PAGO".equals(s) || "CANCELADO".equals(s))
+			return false;
+		return m.getDueDate() != null && m.getDueDate().isBefore(LocalDate.now()) && faltaPagar(m).compareTo(BigDecimal.ZERO) > 0;
+	}
+
+	private boolean matchesStatus(MonthlyFeeEntity m, String key)
+	{
+		String s = statusKey(m);
+		return switch (key)
+		{
+		case "PAGO" -> "PAGO".equals(s);
+		case "PARCIAL" -> "PARCIAL".equals(s);
+		case "CANCELADO" -> "CANCELADO".equals(s);
+		case "PENDENTE" -> !"PAGO".equals(s) && !"PARCIAL".equals(s) && !"CANCELADO".equals(s);
+		case "ATRASO" -> isOverdue(m);
+		default -> true;
+		};
+	}
+
+	public long countByStatus(String key)
+	{
+		return getBaseFees().stream().filter(m -> matchesStatus(m, key)).count();
+	}
+
+	public int getBaseCount()
+	{
+		return getBaseFees().size();
+	}
+
+	public void filterByStatus(String key)
+	{
+		this.statusFilter = key.equals(statusFilter) ? null : key;
+	}
+
+	public void clearStatusFilter()
+	{
+		this.statusFilter = null;
+	}
+
+	public String statusLabel(MonthlyFeeEntity m)
+	{
+		String s = statusKey(m);
+		return switch (s)
+		{
+		case "PAGO" -> "Pago";
+		case "PARCIAL" -> "Parcial";
+		case "PENDENTE" -> "Pendente";
+		case "ATRASADO" -> "Atrasado";
+		case "CANCELADO" -> "Cancelado";
+		case "" -> "-";
+		default -> s.substring(0, 1) + s.substring(1).toLowerCase();
+		};
+	}
+
+	public String statusColor(MonthlyFeeEntity m)
+	{
+		String s = statusKey(m);
+		return switch (s)
+		{
+		case "PAGO" -> "#16a34a";
+		case "PARCIAL" -> "#f59e0b";
+		case "CANCELADO" -> "#64748b";
+		default -> "#dc2626";
+		};
+	}
+
+	// classe CSS da linha da tabela
+	public String rowClass(MonthlyFeeEntity m)
+	{
+		if ("CANCELADO".equals(statusKey(m)))
+			return "row-cancel";
+		return isOverdue(m) ? "row-atraso" : "";
+	}
+
+	// % já pago sobre o total devido da referência (0-100)
+	public int percentPago(MonthlyFeeEntity m)
+	{
+		BigDecimal total = calcTotalPagoComMulta(m);
+		if (total.compareTo(BigDecimal.ZERO) <= 0)
+			return 0;
+		BigDecimal pago = m.getPaidAmount() != null ? m.getPaidAmount() : BigDecimal.ZERO;
+		int p = (int) Math.round(pago.doubleValue() * 100.0 / total.doubleValue());
+		return Math.max(0, Math.min(100, p));
+	}
+
 	// ---------- PAGAMENTO PARCIAL ----------
 
 	public Map<Long, BigDecimal> getAmountsToPay()
@@ -297,6 +413,8 @@ public class MonthlyFeeBean implements Serializable
 	{
 		if (fee == null)
 			return BigDecimal.ZERO;
+		if ("CANCELADO".equals(statusKey(fee)))
+			return BigDecimal.ZERO; // cancelada não tem nada por receber
 		BigDecimal total = calcTotalPagoComMulta(fee);
 		BigDecimal jaPago = fee.getPaidAmount() != null ? fee.getPaidAmount() : BigDecimal.ZERO;
 		return total.subtract(jaPago).max(BigDecimal.ZERO);
@@ -417,19 +535,75 @@ public class MonthlyFeeBean implements Serializable
 		paymentDate = LocalDate.now();
 		filterMonth = null;
 		searchStudent = null;
+		statusFilter = null;
 	}
 
-	// ---------- TOTAIS / KPIs ----------
+	// ---------- TOTAIS ----------
 
+	// Rodapé da tabela (sobre o que está a ser mostrado)
 	public BigDecimal getTotalValor()
 	{
 		return getFilteredFees().stream().map(m -> m.getAmount() != null ? m.getAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getFooterMulta()
+	{
+		return getFilteredFees().stream().map(this::calcMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getFooterPago()
+	{
+		return getFilteredFees().stream().map(m -> m.getPaidAmount() != null ? m.getPaidAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getFooterRemanescente()
+	{
+		return getFilteredFees().stream().map(this::faltaPagar).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	// ---------- KPIs (cards) — ano + mês + pesquisa, sem canceladas ----------
+
+	public BigDecimal getTotalDevido()
+	{
+		return kpiFees().stream().map(this::calcTotalPagoComMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getTotalPago()
+	{
+		return kpiFees().stream().map(m -> m.getPaidAmount() != null ? m.getPaidAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getTotalRemanescente()
+	{
+		return kpiFees().stream().map(this::faltaPagar).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public BigDecimal getTotalMulta()
+	{
+		return kpiFees().stream().map(this::calcMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public long getTotalAlunosPagos()
+	{
+		return kpiFees().stream().filter(m -> m.getPaidAmount() != null && m.getPaidAmount().compareTo(BigDecimal.ZERO) > 0)
+				.map(m -> m.getStudent() != null ? m.getStudent().getId() : null).filter(id -> id != null).distinct().count();
+	}
+
+	// Taxa de cobrança = pago / devido (0-100)
+	public int getTaxaCobranca()
+	{
+		BigDecimal devido = getTotalDevido();
+		if (devido.compareTo(BigDecimal.ZERO) <= 0)
+			return 0;
+		int p = (int) Math.round(getTotalPago().doubleValue() * 100.0 / devido.doubleValue());
+		return Math.max(0, Math.min(100, p));
 	}
 
 	public void clearFilters()
 	{
 		filterMonth = null;
 		searchStudent = null;
+		statusFilter = null;
 		filterYear = LocalDate.now().getYear();
 		loadAll();
 	}
@@ -484,28 +658,6 @@ public class MonthlyFeeBean implements Serializable
 			return BigDecimal.ZERO;
 		return f.getAmount().add(calcMulta(f));
 	}
- 
-	public BigDecimal getTotalRemanescente()
-	{
-		return getFilteredFees().stream().map(this::faltaPagar).reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-	
-	
-	public BigDecimal getTotalPago()
-	{
-		return getFilteredFees().stream().map(m -> m.getPaidAmount() != null ? m.getPaidAmount() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
-	public BigDecimal getTotalMulta()
-	{
-		return getFilteredFees().stream().map(this::calcMulta).reduce(BigDecimal.ZERO, BigDecimal::add);
-	}
-
-	public long getTotalAlunosPagos()
-	{
-		return getFilteredFees().stream().filter(m -> m.getPaidAmount() != null && m.getPaidAmount().compareTo(BigDecimal.ZERO) > 0)
-				.map(m -> m.getStudent() != null ? m.getStudent().getId() : null).filter(id -> id != null).distinct().count();
-	}
 
 	// GETTERS SETTERS
 	public int getFilterYear()
@@ -546,6 +698,11 @@ public class MonthlyFeeBean implements Serializable
 	public void setSearchCode(String c)
 	{
 		searchCode = c;
+	}
+
+	public String getStatusFilter()
+	{
+		return statusFilter;
 	}
 
 	public List<MonthlyFeeEntity> getAllFees()
@@ -652,6 +809,5 @@ public class MonthlyFeeBean implements Serializable
 	{
 		payItems = p;
 	}
-
 
 }

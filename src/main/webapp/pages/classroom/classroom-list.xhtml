@@ -1,3 +1,10 @@
+<!-- CORRIGIDO PARA O TEU LoginBean REAL
+     Usa só getters que existem:
+     loginBean.schoolName, schoolCode, academicYearLabel, fullname, roleLabel,
+     licenseCode, licenseStatus, licenseExpiry, loggedSchool, loggedAcademicYear
+     Se quiseres endereço/telefone/email/logo na impressão, adiciona esses campos em SchoolEntity
+     e estes 4 getters no LoginBean (ver fim deste ficheiro em comentário).
+-->
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
@@ -72,16 +79,146 @@
 	border-radius: 20px;
 	text-transform: uppercase
 }
+/* Ficha */
+.escola-header {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	border-bottom: 2px solid #0a2540;
+	padding-bottom: 12px;
+	margin-bottom: 14px
+}
+
+.escola-logo {
+	width: 64px;
+	height: 64px;
+	min-width: 64px;
+	border-radius: 14px;
+	background: #0a2540;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 26px;
+	font-weight: 800;
+	overflow: hidden
+}
+
+.escola-logo img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover
+}
+
+.ficha-top {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	background: linear-gradient(135deg, #0a2540 0%, #15558a 100%);
+	color: #fff;
+	border-radius: 14px;
+	padding: 18px 20px;
+	margin-bottom: 14px
+}
+
+.ficha-avatar {
+	width: 56px;
+	height: 56px;
+	min-width: 56px;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, .18);
+	border: 1px solid rgba(255, 255, 255, .25);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	font-weight: 800
+}
+
+.ficha-stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
+	margin-bottom: 14px
+}
+
+.ficha-stat {
+	background: #f8fafc;
+	border: 1px solid #e6eaf0;
+	border-radius: 12px;
+	padding: 12px
+}
+
+.ficha-stat small {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .6px;
+	text-transform: uppercase;
+	color: #64748b
+}
+
+.ficha-stat b {
+	font-size: 16px;
+	color: #0a2540;
+	display: block;
+	margin-top: 2px
+}
+
+.ficha-stat span {
+	font-size: 11px;
+	color: #64748b
+}
+
+@media print {
+	body * {
+		visibility: hidden !important
+	}
+	#printArea, #printArea * {
+		visibility: visible !important
+	}
+	#printArea {
+		position: absolute !important;
+		left: 0;
+		top: 0;
+		width: 100% !important;
+		padding: 20px !important
+	}
+	.no-print {
+		display: none !important
+	}
+}
 </style>
+
 	<h:form id="formList">
 		<p:growl id="growl" showDetail="true" />
+
+		<!-- CABECALHO COM ESCOLA LOGADA -->
+		<div
+			style="background: white; border: 1px solid #e6eaf0; border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; margin-bottom: 14px">
+			<div
+				style="width: 48px; height: 48px; min-width: 48px; border-radius: 10px; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px">#{loginBean.schoolName.substring(0,1)}</div>
+			<div style="flex: 1">
+				<b style="font-size: 15px; color: #0a2540">#{loginBean.schoolName}</b>
+				<div style="font-size: 12px; color: #64748b">Código:
+					#{loginBean.schoolCode} • Licença: #{loginBean.licenseCode}
+					(#{loginBean.licenseStatus})</div>
+			</div>
+			<div style="text-align: right">
+				<span
+					style="background: #eef2ff; color: #4338ca; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 700">Ano:
+					#{loginBean.academicYearLabel}</span>
+				<div style="font-size: 11px; color: #64748b; margin-top: 4px">
+					<i class="pi pi-user" /> #{loginBean.fullname}
+				</div>
+			</div>
+		</div>
+
 		<div class="page-header">
 			<div>
 				<div class="page-title">
 					<i class="pi pi-building" style="margin-right: 8px; color: #2563eb" />#{classroomBean.professor
 					? 'Minhas Turmas' : 'Turmas'}
 				</div>
-				<!-- Só aparece quando é PROFESSOR -->
 				<h:panelGroup rendered="#{classroomBean.professor}">
 					<div style="margin-top: 6px; font-size: 13px; color: #64748b">
 						Turmas associadas ao professor: <b style="color: #0a2540">#{loginBean.fullname}</b>
@@ -101,6 +238,7 @@
 					update=":contentPanel" process="@this" />
 			</div>
 		</div>
+
 		<div class="filter-bar">
 			<p:inputText value="#{classroomBean.searchTerm}"
 				placeholder="Nome, classe ou professor..."
@@ -112,6 +250,7 @@
 				<b>#{classroomBean.classrooms.size()}</b>
 			</span>
 		</div>
+
 		<div
 			style="background: white; border: 1px solid #e6eaf0; border-radius: 16px; padding: 6px; overflow: hidden"
 			class="compact-table">
@@ -158,12 +297,18 @@
 							professor</span>
 					</h:panelGroup>
 				</p:column>
-				<p:column headerText="AÇÕES" width="150" style="text-align:center">
+				<p:column headerText="AÇÕES" width="170" style="text-align:center">
 					<p:commandButton icon="pi pi-eye"
 						styleClass="ui-button-rounded ui-button-text"
-						style="width:34px;height:34px" title="Ver alunos"
+						style="width:34px;height:34px" title="Ver / Imprimir turma"
 						action="#{classroomBean.viewStudents(t)}" process="@this"
 						update=":formList:dlgAlunos" oncomplete="PF('dlgAlunos').show()" />
+					<p:commandButton icon="pi pi-print"
+						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+						style="width:34px;height:34px" title="Imprimir direto"
+						action="#{classroomBean.viewStudents(t)}" process="@this"
+						update=":formList:dlgAlunos"
+						oncomplete="PF('dlgAlunos').show(); setTimeout(function(){imprimirFicha()},400)" />
 					<p:commandButton icon="pi pi-pencil"
 						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
 						style="width:34px;height:34px" title="Editar"
@@ -186,35 +331,167 @@
 				</p:column>
 			</p:dataTable>
 		</div>
+
 		<p:confirmDialog global="true" width="400">
 			<p:commandButton value="Não" type="button"
 				styleClass="ui-confirmdialog-no ui-button-flat" />
 			<p:commandButton value="Sim" type="button"
 				styleClass="ui-confirmdialog-yes" />
 		</p:confirmDialog>
+
+		<!-- DIALOG FICHA COM DADOS REAIS DA ESCOLA -->
 		<p:dialog id="dlgAlunos" widgetVar="dlgAlunos" modal="true"
-			width="700" draggable="false" resizable="false"
-			header="Alunos da turma #{classroomBean.viewedClassroom.name} (#{classroomBean.classroomStudents.size()})">
-			<p:dataTable value="#{classroomBean.classroomStudents}" var="en"
-				paginator="true" rows="10" stripedRows="true"
-				emptyMessage="Nenhum aluno matriculado nesta turma.">
-				<p:column headerText="#" width="40" style="text-align:center">
-					<h:outputText value="#{rowIndex + 1}" />
-				</p:column>
-				<p:column headerText="Código" sortBy="#{en.student.code}">
-					<h:outputText value="#{en.student.code}" />
-				</p:column>
-				<p:column headerText="Nome" sortBy="#{en.student.firsName}"
-					filterBy="#{en.student.firsName}" filterMatchMode="contains">
-					<h:outputText value="#{en.student.fullName}" />
-				</p:column>
-				<p:column headerText="Matrícula">
-					<h:outputText value="#{en.student.code}" />
-				</p:column>
-				<p:column headerText="Estado" style="text-align:center">
-					<p:tag value="#{en.status}" severity="success" />
-				</p:column>
-			</p:dataTable>
+			width="860" draggable="false" resizable="false" responsive="true"
+			header="Ficha da Turma">
+			<h:panelGroup id="printArea" layout="block">
+
+				<!-- CABECALHO REAL DA ESCOLA - É ISTO QUE SAI NA IMPRESSÃO -->
+				<div class="escola-header">
+					<div class="escola-logo">#{loginBean.schoolName.substring(0,1)}</div>
+					<div style="flex: 1">
+						<div
+							style="font-size: 18px; font-weight: 800; color: #0a2540; line-height: 1.1">#{loginBean.schoolName}</div>
+						<div style="font-size: 12px; color: #64748b; margin-top: 3px">
+							Código da Escola: #{loginBean.schoolCode}<br /> Licença:
+							#{loginBean.licenseCode} • Estado: #{loginBean.licenseStatus} •
+							Validade: #{loginBean.licenseExpiry}
+						</div>
+					</div>
+					<div style="text-align: right">
+						<div
+							style="font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #64748b">Ano
+							Académico</div>
+						<div style="font-size: 15px; font-weight: 800; color: #0a2540">#{loginBean.academicYearLabel}</div>
+						<div style="font-size: 11px; color: #64748b">Ficha da Turma</div>
+					</div>
+				</div>
+
+				<div class="ficha-top">
+					<div class="ficha-avatar">#{classroomBean.viewedClassroom.name.substring(0,1)}</div>
+					<div style="flex: 1">
+						<div style="font-size: 20px; font-weight: 800; line-height: 1.1">Turma
+							#{classroomBean.viewedClassroom.name}</div>
+						<div style="font-size: 12px; opacity: .85; margin-top: 3px">
+							<i class="pi pi-book" />
+							#{classroomBean.viewedClassroom.classeNome} &#160;•&#160; <i
+								class="pi pi-clock" /> #{classroomBean.viewedClassroom.shift eq
+							'MORNING' ? 'Manhã' : classroomBean.viewedClassroom.shift eq
+							'AFTERNOON' ? 'Tarde' : 'Noite'} &#160;•&#160; <i
+								class="pi pi-user" />
+							#{classroomBean.viewedClassroom.professorNome}
+						</div>
+					</div>
+					<div style="text-align: right">
+						<div style="font-size: 11px; opacity: .8">OCUPAÇÃO</div>
+						<div style="font-size: 22px; font-weight: 800">#{classroomBean.viewedClassroom.occupancyPercent}%</div>
+					</div>
+				</div>
+
+				<div class="ficha-stats">
+					<div class="ficha-stat">
+						<small><i class="pi pi-users" /> Alunos</small><b>#{classroomBean.classroomStudents.size()}</b><span>matriculados
+							nesta turma</span>
+					</div>
+					<div class="ficha-stat">
+						<small><i class="pi pi-user" /> Professor</small><b
+							style="font-size: 13px">#{classroomBean.viewedClassroom.professorNome}</b><span>Responsável</span>
+					</div>
+					<div class="ficha-stat">
+						<small><i class="pi pi-users" /> Capacidade</small><b>#{classroomBean.viewedClassroom.currentStudents}
+							/ #{classroomBean.viewedClassroom.capacity}</b><span>#{classroomBean.viewedClassroom.vacancy}
+							vagas livres</span>
+					</div>
+					<div class="ficha-stat">
+						<small><i class="pi pi-check-circle" /> Sala / Turno</small><b
+							style="font-size: 13px">#{classroomBean.viewedClassroom.shift
+							eq 'MORNING' ? 'Manhã' : classroomBean.viewedClassroom.shift eq
+							'AFTERNOON' ? 'Tarde' : 'Noite'}</b><span>#{loginBean.academicYearLabel}</span>
+					</div>
+				</div>
+
+				<div
+					style="display: flex; justify-content: space-between; align-items: center; margin: 6px 0 8px">
+					<b style="font-size: 14px; color: #0a2540"><i
+						class="pi pi-list" /> Lista de Alunos
+						(#{classroomBean.classroomStudents.size()})</b> <span
+						style="font-size: 11px; color: #64748b">#{loginBean.schoolName}
+						• #{loginBean.academicYearLabel}</span>
+				</div>
+
+				<p:dataTable value="#{classroomBean.classroomStudents}" var="en"
+					paginator="true" rows="15" paginatorPosition="bottom"
+					stripedRows="true"
+					emptyMessage="Nenhum aluno matriculado nesta turma."
+					style="font-size:13px">
+					<p:column headerText="#" width="40" style="text-align:center">
+						<h:outputText value="#{rowIndex + 1}" />
+					</p:column>
+
+					<p:column headerText="Nome Completo"
+						sortBy="#{en.student.firsName}" filterBy="#{en.student.firsName}"
+						filterMatchMode="contains">
+						<h:outputText value="#{en.student.fullName}" />
+					</p:column>
+					<p:column headerText="Estado" width="110" style="text-align:center">
+						<p:tag value="#{en.status}" severity="success" />
+					</p:column>
+				</p:dataTable>
+
+				<div
+					style="margin-top: 18px; border-top: 1px dashed #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; font-size: 11px; color: #64748b">
+					<span>#{loginBean.schoolName} • Código:
+						#{loginBean.schoolCode} • Licença: #{loginBean.licenseCode}</span> <span>Gerado
+						por: #{loginBean.fullname} (#{loginBean.roleLabel})</span>
+				</div>
+				<div
+					style="margin-top: 28px; display: flex; justify-content: space-between; font-size: 12px; color: #0a2540">
+					<span>___________________________<br /> <small
+						style="color: #64748b">Director da Escola</small></span> <span>___________________________<br />
+						<small style="color: #64748b">Professor Responsável</small></span> <span>___________________________<br />
+						<small style="color: #64748b">Data: ____ / ____ / ______</small></span>
+				</div>
+			</h:panelGroup>
+
+			<div class="no-print"
+				style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px">
+				<p:commandButton value="Imprimir Ficha" icon="pi pi-print"
+					type="button"
+					style="border-radius:10px;background:#0a2540;border:none"
+					onclick="imprimirFicha(); return false;" />
+				<p:commandButton value="Fechar" icon="pi pi-times" type="button"
+					styleClass="ui-button-secondary ui-button-outlined"
+					style="border-radius:10px"
+					onclick="PF('dlgAlunos').hide(); return false;" />
+			</div>
 		</p:dialog>
+
+		<script>
+		//<![CDATA[
+		function imprimirFicha(){
+			var area = document.getElementById('formList:printArea');
+			if(!area){ window.print(); return; }
+			var win = window.open('', '_blank');
+			win.document.write('<html><head><title>Ficha da Turma - ' + '#{classroomBean.viewedClassroom.name}' + ' - ' + '#{loginBean.schoolName}' + '</title>');
+			win.document.write('<style>body{font-family:Arial,sans-serif;padding:24px;color:#0a2540} table{width:100%;border-collapse:collapse;margin-top:10px} th{background:#0a2540;color:#fff;padding:10px;text-align:left;font-size:12px} td{padding:9px;border-bottom:1px solid #e2e8f0;font-size:13px}</style>');
+			win.document.write('</head><body>');
+			win.document.write(area.innerHTML);
+			win.document.write('</body></html>');
+			win.document.close(); win.focus();
+			setTimeout(function(){ win.print(); win.close(); }, 500);
+		}
+		//]]>
+		</script>
 	</h:form>
 </ui:composition>
+
+<!-- PARA TER ENDEREÇO / TELEFONE / EMAIL / LOGO NA FICHA:
+  1. Na tua SchoolEntity, confirma se existem campos como: address, phone, email, logo, nuit
+     Se não existirem, cria-os na entidade + coluna na BD.
+  2. No LoginBean, adiciona:
+     public String getSchoolAddress(){ return loggedSchool!=null ? loggedSchool.getAddress() : ""; }
+     public String getSchoolPhone(){ return loggedSchool!=null ? loggedSchool.getPhone() : ""; }
+     public String getSchoolEmail(){ return loggedSchool!=null ? loggedSchool.getEmail() : ""; }
+     public String getSchoolLogo(){ return loggedSchool!=null ? loggedSchool.getLogo() : null; }
+  3. Depois troca no cabeçalho:
+     Código: #{loginBean.schoolCode}  ->  #{loginBean.schoolAddress} • Tel: #{loginBean.schoolPhone} • #{loginBean.schoolEmail}
+-->

@@ -10,11 +10,13 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
@@ -27,6 +29,7 @@ import mz.co.sge.entity.AcademicYearEntity;
 import mz.co.sge.entity.ClassLevelEntity;
 import mz.co.sge.entity.ClassroomEntity;
 import mz.co.sge.entity.EnrollmentEntity;
+import mz.co.sge.entity.FeeItemEntity;
 import mz.co.sge.entity.MonthlyFeeEntity;
 import mz.co.sge.entity.PaymentEntity;
 import mz.co.sge.entity.PaymentItemEntity;
@@ -35,6 +38,7 @@ import mz.co.sge.entity.StudentEntity;
 import mz.co.sge.enumes.EnrollmentStatus;
 import mz.co.sge.enumes.EnrollmentType;
 import mz.co.sge.service.IEnrollmentService;
+import mz.co.sge.service.IFeeItemsService;
 import mz.co.sge.service.IMonthlyFeeService;
 import mz.co.sge.service.IStudentService;
 
@@ -51,6 +55,8 @@ public class EnrollmentBean implements Serializable
 	IStudentService studentService;
 	@Autowired
 	IMonthlyFeeService monthlyFeeService;
+	@Autowired
+	private IFeeItemsService feeItemService;
 	@Autowired
 	private LoginBean loginBean;
 	@Autowired
@@ -106,6 +112,40 @@ public class EnrollmentBean implements Serializable
 	private AcademicYearEntity selectedAcademicYearEntity;
 	private EnrollmentStatus selectedStatus = EnrollmentStatus.PENDING;
 	private Long currentAcademicYearId;
+
+	// ===== NOVO: MENSALIDADE DA CLASSE (FeeItemEntity) =====
+	private FeeItemEntity monthlyFeeItem;
+	private String selectedClassLevelName;
+
+	public FeeItemEntity getMonthlyFeeItem()
+	{
+		return monthlyFeeItem;
+	}
+
+	public String getSelectedClassLevelName()
+	{
+		return selectedClassLevelName;
+	}
+
+	public BigDecimal getMonthlyFeeAmount()
+	{
+		return monthlyFeeItem != null ? monthlyFeeItem.getValor() : null;
+	}
+
+	public int getMonthsCount()
+	{
+		if (startMonth != null && endMonth != null && endMonth >= startMonth)
+			return endMonth - startMonth + 1;
+		return 10;
+	}
+
+	public BigDecimal getTotalMonthlyAmount()
+	{
+		BigDecimal m = getMonthlyFeeAmount();
+		if (m == null)
+			return BigDecimal.ZERO;
+		return m.multiply(BigDecimal.valueOf(getMonthsCount()));
+	}
 
 	@PostConstruct
 	public void init()
@@ -182,7 +222,6 @@ public class EnrollmentBean implements Serializable
 			Long yearId = getYearId();
 			if (yearId == null && academicYearsCache != null && !academicYearsCache.isEmpty())
 				yearId = academicYearsCache.get(0).getId();
-
 			if (yearId == null)
 			{
 				availableClassLevels = enrollmentService.findAllClassLevels();
@@ -191,13 +230,10 @@ public class EnrollmentBean implements Serializable
 				loadClassrooms();
 				return;
 			}
-
-			// TODAS as classes cadastradas, tenham ou não turma/alunos
 			availableClassLevels = em.createQuery("SELECT cl FROM ClassLevelEntity cl WHERE cl.active = true AND cl.academicYear.id = :yearId ORDER BY cl.name",
 					ClassLevelEntity.class).setParameter("yearId", yearId).getResultList();
 			if (availableClassLevels == null)
 				availableClassLevels = new ArrayList<>();
-
 			List<Long> alreadyEnrolledTmp;
 			try
 			{
@@ -208,7 +244,6 @@ public class EnrollmentBean implements Serializable
 				alreadyEnrolledTmp = List.of();
 			}
 			final List<Long> alreadyEnrolledThisYear = alreadyEnrolledTmp;
-
 			Long previousYearId = findPreviousYearId(yearId);
 			List<Long> candidates;
 			if (previousYearId == null)
@@ -234,7 +269,6 @@ public class EnrollmentBean implements Serializable
 				loadClassrooms();
 				return;
 			}
-
 			List<Long> withPayment;
 			try
 			{
@@ -245,13 +279,11 @@ public class EnrollmentBean implements Serializable
 			{
 				withPayment = candidates;
 			}
-
 			if (withPayment.isEmpty())
 				availableStudents = List.of();
 			else
 				availableStudents = em.createQuery("SELECT DISTINCT s FROM StudentEntity s WHERE s.id IN :ids ORDER BY s.firstName", StudentEntity.class)
 						.setParameter("ids", withPayment.stream().distinct().toList()).getResultList();
-
 			studentPayments = new ArrayList<>();
 			hasValidPayment = false;
 		} catch (Exception e)
@@ -260,18 +292,6 @@ public class EnrollmentBean implements Serializable
 			availableStudents = em.createQuery("SELECT s FROM StudentEntity s ORDER BY s.firstName", StudentEntity.class).setMaxResults(200).getResultList();
 		}
 		loadClassrooms();
-	}
-
-	private List<Long> findEnrolledStudentIdsByYear(Long yearId)
-	{
-		try
-		{
-			return em.createNamedQuery("Enrollment.findEnrolledStudentIdsByYear", Long.class).setParameter("yearId", yearId).getResultList();
-		} catch (Exception e)
-		{
-			return em.createQuery("SELECT e.student.id FROM EnrollmentEntity e WHERE e.academicYear.id = :yearId", Long.class).setParameter("yearId", yearId)
-					.getResultList();
-		}
 	}
 
 	private Long findPreviousYearId(Long currentYearId)
@@ -327,23 +347,16 @@ public class EnrollmentBean implements Serializable
 			Long yearId = getYearId();
 			String base = "SELECT c FROM ClassroomEntity c LEFT JOIN FETCH c.classLevel LEFT JOIN FETCH c.responsibleTeacher LEFT JOIN FETCH c.academicYear ";
 			if (selectedClassLevelId != null && yearId != null)
-			{
 				availableClassrooms = em.createQuery(base + "WHERE c.classLevel.id = :clId AND c.academicYear.id = :y AND c.active = true ORDER BY c.name",
 						ClassroomEntity.class).setParameter("clId", selectedClassLevelId).setParameter("y", yearId).getResultList();
-			} else if (yearId != null)
-			{
+			else if (yearId != null)
 				availableClassrooms = em.createQuery(base + "WHERE c.academicYear.id = :yearId AND c.active = true ORDER BY c.name", ClassroomEntity.class)
 						.setParameter("yearId", yearId).getResultList();
-			} else if (selectedClassLevelId != null)
-			{
+			else if (selectedClassLevelId != null)
 				availableClassrooms = em.createQuery(base + "WHERE c.classLevel.id = :clId AND c.active = true ORDER BY c.name", ClassroomEntity.class)
 						.setParameter("clId", selectedClassLevelId).getResultList();
-			} else
-			{
+			else
 				availableClassrooms = em.createQuery(base + "WHERE c.active = true ORDER BY c.name", ClassroomEntity.class).getResultList();
-			}
-
-			// Recalcula currentStudents SÓ com matrículas do ano do login
 			if (availableClassrooms != null && yearId != null)
 			{
 				for (ClassroomEntity c : availableClassrooms)
@@ -358,15 +371,96 @@ public class EnrollmentBean implements Serializable
 		}
 	}
 
+	// ===== FLUXO NOVO: escolher classe -> traz MENSALIDADE da classe =====
 	public void onClassLevelChange()
 	{
 		selectedClassroomId = null;
+		selectedClassroomEntity = null;
+		selectedClassLevelEntity = null;
+		monthlyFeeItem = null;
+		selectedClassLevelName = null;
+		if (selectedClassLevelId != null && availableClassLevels != null)
+		{
+			for (ClassLevelEntity cl : availableClassLevels)
+			{
+				if (cl.getId().equals(selectedClassLevelId))
+				{
+					selectedClassLevelName = cl.getName();
+					break;
+				}
+			}
+		}
 		loadClassrooms();
+		loadMonthlyFeeForSelectedClass();
+		if (getMonthlyFeeAmount() != null)
+			defaultAmount = getMonthlyFeeAmount();
+	}
+
+	private void loadMonthlyFeeForSelectedClass()
+	{
+		monthlyFeeItem = null;
+		if (selectedClassLevelId == null)
+			return;
+		try
+		{
+			Long schoolId = loginBean.getSchoolId();
+			Long yearId = getYearId();
+			if (schoolId == null || yearId == null)
+				return;
+			List<FeeItemEntity> feeItems = feeItemService.getActiveBySchoolAndYearId(schoolId, yearId);
+			if (feeItems == null)
+				return;
+			String classeKey = extractClasseKey(selectedClassLevelName);
+			if (classeKey == null)
+			{
+				log.warn("Nao consegui extrair chave da classe: {}", selectedClassLevelName);
+				return;
+			}
+			for (FeeItemEntity f : feeItems)
+			{
+				if (f == null || f.getDescricao() == null)
+					continue;
+				String desc = f.getDescricao().trim().toUpperCase();
+				if (!desc.contains("MENSAL"))
+					continue;
+				String feeClasseKey = extractClasseKey(f.getDescricao());
+				if (feeClasseKey == null)
+					continue;
+				if (!feeClasseKey.equals(classeKey))
+					continue;
+				monthlyFeeItem = f;
+				break;
+			}
+			if (monthlyFeeItem == null)
+				log.warn("Nenhuma mensalidade para classe id={} nome={} chave={} escola={} ano={}", selectedClassLevelId, selectedClassLevelName, classeKey,
+						schoolId, yearId);
+			else
+				log.info("Mensalidade encontrada: {} = {} MT para classe {}", monthlyFeeItem.getDescricao(), monthlyFeeItem.getValor(), selectedClassLevelName);
+		} catch (Exception e)
+		{
+			log.error("Erro loadMonthlyFeeForSelectedClass", e);
+		}
+	}
+
+	private String extractClasseKey(String raw)
+	{
+		if (raw == null)
+			return null;
+		String s = java.text.Normalizer.normalize(raw.trim().toUpperCase(), java.text.Normalizer.Form.NFD).replaceAll("\\p{M}", "").replace("MENSALIDADE", "")
+				.replace("MENSAL", "").replace("CLASSE", "").replace("CLASS", "").replaceAll("[^A-Z0-9]", " ").trim();
+		if (s.isEmpty())
+			return null;
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(s);
+		if (m.find())
+			return m.group(1);
+		return s.replaceAll("\\s+", "-");
 	}
 
 	public void onAcademicYearChange()
 	{
 		selectedClassLevelId = null;
+		monthlyFeeItem = null;
+		selectedClassLevelName = null;
 		Long y = getYearId();
 		selectedAcademicYearId = y;
 		currentAcademicYearId = y;
@@ -409,16 +503,13 @@ public class EnrollmentBean implements Serializable
 			Long yearId = getYearId();
 			loadedYearId = yearId;
 			if (yearId != null)
-			{
 				allEnrollments = em.createQuery(
 						"SELECT e FROM EnrollmentEntity e LEFT JOIN FETCH e.student LEFT JOIN FETCH e.academicYear LEFT JOIN FETCH e.classroom WHERE e.academicYear.id = :yearId ORDER BY e.id DESC",
 						EnrollmentEntity.class).setParameter("yearId", yearId).getResultList();
-			} else
-			{
+			else
 				allEnrollments = em.createQuery(
 						"SELECT e FROM EnrollmentEntity e LEFT JOIN FETCH e.student LEFT JOIN FETCH e.academicYear LEFT JOIN FETCH e.classroom ORDER BY e.id DESC",
 						EnrollmentEntity.class).getResultList();
-			}
 			enrollments = allEnrollments;
 			if (allEnrollments == null)
 				allEnrollments = List.of();
@@ -469,6 +560,8 @@ public class EnrollmentBean implements Serializable
 		hasPaidRenewal = false;
 		selectedPaymentReference = "";
 		currentEnrollmentType = null;
+		monthlyFeeItem = null;
+		selectedClassLevelName = null;
 		availableStudents = new ArrayList<>();
 		availableClassrooms = new ArrayList<>();
 		setDefaultYearFromLogin();
@@ -502,6 +595,8 @@ public class EnrollmentBean implements Serializable
 		editing = true;
 		loadCombos();
 		onStudentChange();
+		if (selectedClassLevelId != null)
+			onClassLevelChange();
 	}
 
 	@jakarta.transaction.Transactional
@@ -548,9 +643,7 @@ public class EnrollmentBean implements Serializable
 					payments = em.createQuery(base + order, PaymentEntity.class).setParameter("sid", selectedStudentId).getResultList();
 				}
 			} else
-			{
 				payments = em.createQuery(base + order, PaymentEntity.class).setParameter("sid", selectedStudentId).getResultList();
-			}
 			hasPaidEnrollment = false;
 			hasPaidRegistration = false;
 			hasPaidRenewal = false;
@@ -640,6 +733,8 @@ public class EnrollmentBean implements Serializable
 	@Transactional
 	public String saveAndReturn()
 	{
+		log.info("SAVE matricula: aluno={} ano={} classe={} turma={} hasValid={} tipo={}", selectedStudentId, getYearId(), selectedClassLevelId,
+				selectedClassroomId, hasValidPayment, currentEnrollmentType);
 		try
 		{
 			if (selectedStudentId == null || getYearId() == null || selectedClassroomId == null)
@@ -707,11 +802,28 @@ public class EnrollmentBean implements Serializable
 			addError("Campos obrigatórios", "Selecione Ano, Classe, Turma e Aluno");
 			return;
 		}
+		// FIX GRAVAR: como a tela de confirmar é SÓ LEITURA e já não tem checkbox, o
+		// hasValidPayment não pode depender de selectedPayments.
+		// Recalcula a partir do que já foi pago (INSCRI + MATRIC ou RENOV).
+		if (currentEnrollmentType == null)
+			currentEnrollmentType = enrollmentService.getEnrollmentTypeForStudent(selectedStudentId);
+		if (currentEnrollmentType == EnrollmentType.FIRST_ENROLLMENT)
+			hasValidPayment = hasPaidEnrollment && hasPaidRegistration;
+		else
+			hasValidPayment = hasPaidRenewal;
 		if (!hasValidPayment)
 		{
-			addError("Pagamento obrigatório", "Selecione um pagamento válido");
+			addError("Pagamento obrigatório", "Aluno sem Inscrição+Matrícula pagas (novo) ou Renovação paga");
 			return;
 		}
+		// Garante que as entidades estão carregadas para a tela só-leitura não dar null
+		if (selectedStudentEntity == null)
+			selectedStudentEntity = em.find(StudentEntity.class, selectedStudentId);
+		// Força carregamento das entidades da classe/turma para a tela de confirmar
+		getSelectedClassLevelEntity();
+		getSelectedClassroomEntity();
+		if (getMonthlyFeeAmount() == null)
+			loadMonthlyFeeForSelectedClass();
 		if (selectedStudentEntity == null)
 			selectedStudentEntity = em.find(StudentEntity.class, selectedStudentId);
 		dashboardBean.navigate("enrollment/enrollment-confirm", "confirmar-matricula");
@@ -765,6 +877,9 @@ public class EnrollmentBean implements Serializable
 			addError("Erro", "Mês final não pode ser menor que o inicial");
 			return;
 		}
+		// Usa a mensalidade da classe se existir, senão o default
+		if (getMonthlyFeeAmount() != null)
+			defaultAmount = getMonthlyFeeAmount();
 		String sc = selected.getStudent() != null ? selected.getStudent().getCode() : "SEM-COD";
 		String eid = selected.getId() != null ? selected.getId().toString() : "0";
 		int year = 2026;
@@ -808,6 +923,8 @@ public class EnrollmentBean implements Serializable
 		{
 			Long userId = loginBean.getLoggedUser().getId();
 			int year = Integer.parseInt(selectedYear);
+			if (getMonthlyFeeAmount() != null)
+				defaultAmount = getMonthlyFeeAmount();
 			if (defaultAmount == null)
 				defaultAmount = new BigDecimal("2500.00");
 			if (defaultDueDay == null)
@@ -828,6 +945,21 @@ public class EnrollmentBean implements Serializable
 
 	public void viewEnrollment(EnrollmentEntity e)
 	{
+		// FIX: ao abrir a tela de ver, carrega a classe + mensalidade bloqueada da
+		// FeeItem
+		if (e != null && e.getClassLevel() != null)
+		{
+			selectedClassLevelId = e.getClassLevel().getId();
+			selectedClassLevelName = e.getClassLevel().getName();
+			loadMonthlyFeeForSelectedClass();
+			if (getMonthlyFeeAmount() != null)
+				defaultAmount = getMonthlyFeeAmount();
+		}
+		if (e != null && e.getClassroom() != null)
+		{
+			selectedClassroomId = e.getClassroom().getId();
+			selectedClassroomEntity = e.getClassroom();
+		}
 		this.selected = e;
 		this.selectedYear = e.getAcademicYear() != null ? String.valueOf(e.getAcademicYear().getYear()) : "2026";
 		this.generatedMonthlyFees = new ArrayList<>();
@@ -1190,5 +1322,90 @@ public class EnrollmentBean implements Serializable
 			selectedPayments.removeIf(p -> p.getReference().equals(pay.getReference()));
 		hasValidPayment = !selectedPayments.isEmpty();
 		selectedPaymentReference = selectedPayments.stream().map(PaymentDTO::getReference).collect(Collectors.joining(", "));
+	}
+
+	// ===== FIX ERRO: Property [selectedClassroomEntity] not found =====
+	// A tela só-leitura usa estes getters. Carregam por ID se ainda não estiverem
+	// carregados.
+	public ClassroomEntity getSelectedClassroomEntity()
+	{
+		if (selectedClassroomEntity == null && selectedClassroomId != null)
+		{
+			try
+			{
+				selectedClassroomEntity = em.find(ClassroomEntity.class, selectedClassroomId);
+			} catch (Exception e)
+			{
+				selectedClassroomEntity = null;
+			}
+			if (selectedClassroomEntity == null && availableClassrooms != null)
+			{
+				for (ClassroomEntity c : availableClassrooms)
+				{
+					if (c.getId() != null && c.getId().equals(selectedClassroomId))
+					{
+						selectedClassroomEntity = c;
+						break;
+					}
+				}
+			}
+		}
+		return selectedClassroomEntity;
+	}
+
+	public void setSelectedClassroomEntity(ClassroomEntity v)
+	{
+		this.selectedClassroomEntity = v;
+	}
+
+	public ClassLevelEntity getSelectedClassLevelEntity()
+	{
+		if (selectedClassLevelEntity == null && selectedClassLevelId != null)
+		{
+			try
+			{
+				selectedClassLevelEntity = em.find(ClassLevelEntity.class, selectedClassLevelId);
+			} catch (Exception e)
+			{
+				selectedClassLevelEntity = null;
+			}
+			if (selectedClassLevelEntity == null && availableClassLevels != null)
+			{
+				for (ClassLevelEntity cl : availableClassLevels)
+				{
+					if (cl.getId() != null && cl.getId().equals(selectedClassLevelId))
+					{
+						selectedClassLevelEntity = cl;
+						break;
+					}
+				}
+			}
+		}
+		return selectedClassLevelEntity;
+	}
+
+	public void setSelectedClassLevelEntity(ClassLevelEntity v)
+	{
+		this.selectedClassLevelEntity = v;
+	}
+
+	public AcademicYearEntity getSelectedAcademicYearEntity()
+	{
+		if (selectedAcademicYearEntity == null && getYearId() != null)
+		{
+			try
+			{
+				selectedAcademicYearEntity = em.find(AcademicYearEntity.class, getYearId());
+			} catch (Exception e)
+			{
+				selectedAcademicYearEntity = null;
+			}
+		}
+		return selectedAcademicYearEntity;
+	}
+
+	public void setSelectedAcademicYearEntity(AcademicYearEntity v)
+	{
+		this.selectedAcademicYearEntity = v;
 	}
 }

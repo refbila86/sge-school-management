@@ -2,10 +2,14 @@ package mz.co.sge.controller;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
@@ -20,6 +24,8 @@ public class LicenseBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
+	private static final int EXPIRING_DAYS = 30;
+
 	private final ILicenseService licenseService;
 	private final DashboardBean dashboardBean;
 
@@ -28,6 +34,12 @@ public class LicenseBean implements Serializable
 	private List<LicenseEntity> licenses = new ArrayList<>();
 	private String searchTerm;
 	private boolean editing;
+
+	// ---- filtros (só um activo de cada vez) ----
+	private LicenseType typeFilter;
+	private LicenseStatus statusFilter;
+	private String dateFilter; // "EXPIRING" | "EXPIRED" | null
+	private String viewMode = "CARDS"; // "CARDS" ou "TABELA"
 
 	public LicenseBean(ILicenseService licenseService, DashboardBean dashboardBean)
 	{
@@ -172,6 +184,231 @@ public class LicenseBean implements Serializable
 		}
 	}
 
+	// ====================== FILTROS ======================
+
+	public List<LicenseEntity> getFilteredLicenses()
+	{
+		return getLicenses().stream().filter(l -> typeFilter == null || l.getType() == typeFilter)
+				.filter(l -> statusFilter == null || l.getStatus() == statusFilter)
+				.filter(l -> dateFilter == null || ("EXPIRED".equals(dateFilter) && isExpired(l)) || ("EXPIRING".equals(dateFilter) && isExpiring(l)))
+				.collect(Collectors.toList());
+	}
+
+	public void filterByType(LicenseType t)
+	{
+		LicenseType novo = (typeFilter == t) ? null : t;
+		clearFilter();
+		typeFilter = novo;
+	}
+
+	public void filterByStatus(LicenseStatus s)
+	{
+		LicenseStatus novo = (statusFilter == s) ? null : s;
+		clearFilter();
+		statusFilter = novo;
+	}
+
+	public void filterByDate(String kind)
+	{
+		String novo = kind.equals(dateFilter) ? null : kind;
+		clearFilter();
+		dateFilter = novo;
+	}
+
+	public void clearFilter()
+	{
+		typeFilter = null;
+		statusFilter = null;
+		dateFilter = null;
+	}
+
+	public boolean isNoFilter()
+	{
+		return typeFilter == null && statusFilter == null && dateFilter == null;
+	}
+
+	// ====================== CONTAGENS ======================
+
+	public int getTotalLicenses()
+	{
+		return getLicenses().size();
+	}
+
+	public long countByType(LicenseType t)
+	{
+		return getLicenses().stream().filter(l -> l.getType() == t).count();
+	}
+
+	public long countByStatus(LicenseStatus s)
+	{
+		return getLicenses().stream().filter(l -> l.getStatus() == s).count();
+	}
+
+	public long getCountExpired()
+	{
+		return getLicenses().stream().filter(this::isExpired).count();
+	}
+
+	public long getCountExpiring()
+	{
+		return getLicenses().stream().filter(this::isExpiring).count();
+	}
+
+	private boolean isExpired(LicenseEntity l)
+	{
+		return l.getExpirationDate() != null && l.getExpirationDate().isBefore(LocalDate.now());
+	}
+
+	private boolean isExpiring(LicenseEntity l)
+	{
+		LocalDate exp = l.getExpirationDate();
+		if (exp == null)
+			return false;
+		LocalDate hoje = LocalDate.now();
+		return !exp.isBefore(hoje) && !exp.isAfter(hoje.plusDays(EXPIRING_DAYS));
+	}
+
+	// % do tempo da licença já consumido (0-100)
+	public int progress(LicenseEntity l)
+	{
+		LocalDate a = l.getActivationDate();
+		LocalDate e = l.getExpirationDate();
+		if (a == null || e == null)
+			return 0;
+		long total = ChronoUnit.DAYS.between(a, e);
+		if (total <= 0)
+			return 100;
+		long gasto = ChronoUnit.DAYS.between(a, LocalDate.now());
+		return (int) Math.max(0, Math.min(100, gasto * 100 / total));
+	}
+
+	// ====================== APARÊNCIA ======================
+
+	public String typeLabel(LicenseType t)
+	{
+		if (t == null)
+			return "-";
+		return switch (t.name())
+		{
+		case "MONTHLY" -> "Mensal";
+		case "ANNUAL" -> "Anual";
+		case "TRIENNIAL" -> "Trienal";
+		case "LIFETIME" -> "Vitalícia";
+		case "TRIAL" -> "Teste";
+		default -> capitalize(t.name());
+		};
+	}
+
+	public String typeIcon(LicenseType t)
+	{
+		if (t == null)
+			return "pi-key";
+		return switch (t.name())
+		{
+		case "MONTHLY" -> "pi-calendar";
+		case "ANNUAL" -> "pi-calendar-plus";
+		case "TRIENNIAL" -> "pi-history";
+		case "LIFETIME" -> "pi-star";
+		case "TRIAL" -> "pi-clock";
+		default -> "pi-key";
+		};
+	}
+
+	public String typeColor(LicenseType t)
+	{
+		if (t == null)
+			return "#607d8b";
+		return switch (t.name())
+		{
+		case "MONTHLY" -> "#0891b2";
+		case "ANNUAL" -> "#1976d2";
+		case "TRIENNIAL" -> "#7b1fa2";
+		case "LIFETIME" -> "#ad1457";
+		case "TRIAL" -> "#e65100";
+		default -> "#607d8b";
+		};
+	}
+
+	public String statusLabel(LicenseStatus s)
+	{
+		if (s == null)
+			return "-";
+		String n = s.name().toUpperCase();
+		if (n.contains("INACTIVE"))
+			return "Inactiva";
+		if (n.contains("ACTIVE"))
+			return "Activa";
+		if (n.contains("AVAILABLE"))
+			return "Disponível";
+		if (n.contains("EXPIRED"))
+			return "Expirada";
+		if (n.contains("SUSPEND"))
+			return "Suspensa";
+		if (n.contains("BLOCK"))
+			return "Bloqueada";
+		if (n.contains("REVOK"))
+			return "Revogada";
+		if (n.contains("CANCEL"))
+			return "Cancelada";
+		if (n.contains("USED"))
+			return "Utilizada";
+		if (n.contains("PENDING"))
+			return "Pendente";
+		return capitalize(n);
+	}
+
+	public String statusIcon(LicenseStatus s)
+	{
+		if (s == null)
+			return "pi-key";
+		String n = s.name().toUpperCase();
+		if (n.contains("INACTIVE"))
+			return "pi-ban";
+		if (n.contains("ACTIVE"))
+			return "pi-check-circle";
+		if (n.contains("AVAILABLE"))
+			return "pi-inbox";
+		if (n.contains("EXPIRED"))
+			return "pi-times-circle";
+		if (n.contains("SUSPEND"))
+			return "pi-pause";
+		if (n.contains("BLOCK") || n.contains("REVOK") || n.contains("CANCEL"))
+			return "pi-lock";
+		if (n.contains("PENDING"))
+			return "pi-hourglass";
+		return "pi-key";
+	}
+
+	public String statusColor(LicenseStatus s)
+	{
+		if (s == null)
+			return "#607d8b";
+		String n = s.name().toUpperCase();
+		if (n.contains("INACTIVE"))
+			return "#64748b";
+		if (n.contains("ACTIVE"))
+			return "#16a34a";
+		if (n.contains("AVAILABLE"))
+			return "#0891b2";
+		if (n.contains("EXPIRED"))
+			return "#dc2626";
+		if (n.contains("SUSPEND"))
+			return "#f59e0b";
+		if (n.contains("BLOCK") || n.contains("REVOK") || n.contains("CANCEL"))
+			return "#b91c1c";
+		if (n.contains("PENDING"))
+			return "#f59e0b";
+		return "#607d8b";
+	}
+
+	private String capitalize(String name)
+	{
+		String s = name.replace('_', ' ').toLowerCase();
+		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+	}
+
+	// ====================== GETTERS / SETTERS ======================
+
 	public LicenseType[] getLicenseTypes()
 	{
 		return LicenseType.values();
@@ -234,5 +471,30 @@ public class LicenseBean implements Serializable
 	public void setEditing(boolean e)
 	{
 		this.editing = e;
+	}
+
+	public LicenseType getTypeFilter()
+	{
+		return typeFilter;
+	}
+
+	public LicenseStatus getStatusFilter()
+	{
+		return statusFilter;
+	}
+
+	public String getDateFilter()
+	{
+		return dateFilter;
+	}
+
+	public String getViewMode()
+	{
+		return viewMode;
+	}
+
+	public void setViewMode(String viewMode)
+	{
+		this.viewMode = viewMode;
 	}
 }

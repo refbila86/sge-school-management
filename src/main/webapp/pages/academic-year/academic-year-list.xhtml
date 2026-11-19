@@ -27,7 +27,133 @@
 	display: flex;
 	gap: 12px;
 	margin-bottom: 16px;
-	flex-wrap: wrap
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between
+}
+
+/* ===== CARDS DE RESUMO ===== */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+	gap: 12px;
+	margin-bottom: 16px
+}
+
+.stat-link {
+	text-decoration: none !important;
+	display: block
+}
+
+.stat {
+	--c: #0b2d50;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #fff;
+	border: 1px solid #e9eef3;
+	border-left: 4px solid var(--c);
+	border-radius: 14px;
+	padding: 14px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+	transition: transform .15s, box-shadow .15s;
+	cursor: pointer
+}
+
+.stat:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(16, 24, 40, .10)
+}
+
+.stat.selected {
+	background: #f8fafc;
+	box-shadow: 0 0 0 2px var(--c)
+}
+
+.stat-icon {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--c);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 17px;
+	flex-shrink: 0
+}
+
+.stat-num {
+	font-size: 24px;
+	font-weight: 800;
+	color: #0b2d50;
+	line-height: 1
+}
+
+.stat-lbl {
+	font-size: 12px;
+	color: #64748b;
+	margin-top: 4px;
+	font-weight: 600
+}
+
+.pill {
+	padding: 4px 10px;
+	border-radius: 20px;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: #fff;
+	display: inline-block
+}
+
+/* ===== CARDS DE ANO ===== */
+.ycard {
+	--c: #0b2d50;
+	background: #fff;
+	border: 1px solid #e9eef3;
+	border-top: 4px solid var(--c);
+	border-radius: 16px;
+	padding: 18px;
+	text-align: center;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
+}
+
+.ycard .yyear {
+	font-size: 34px;
+	font-weight: 800;
+	color: var(--c);
+	line-height: 1
+}
+
+.ycard .ydates {
+	font-size: 12px;
+	color: #475569;
+	margin: 10px 0 4px
+}
+
+.ycard .ymeta {
+	font-size: 11px;
+	color: #94a3b8;
+	margin-top: 8px
+}
+
+.progress-bg {
+	height: 7px;
+	background: #eef2f7;
+	border-radius: 10px;
+	overflow: hidden;
+	margin: 10px 0 4px
+}
+
+.progress-fill {
+	height: 100%;
+	border-radius: 10px;
+	background: var(--c)
+}
+
+.ycard .yactions {
+	margin-top: 10px
 }
 </style>
 
@@ -42,96 +168,295 @@
 				oncomplete="PF('dlgAcademicYear').show()" update=":formDialog" />
 		</div>
 
-		<div class="filter-bar">
+		<div class="filter-bar" style="justify-content: flex-start">
 			<p:inputText value="#{academicYearBean.filterYear}"
 				placeholder="Pesquisar por ano... Ex: 2026"
 				style="width:280px;font-size:12px">
 				<p:ajax event="keyup" listener="#{academicYearBean.filter}"
-					update=":formList:tableYears" delay="400" />
+					update=":formList:content" delay="400" />
 			</p:inputText>
 			<p:commandButton icon="pi pi-search" styleClass="ui-button-secondary"
 				style="border-radius:10px" action="#{academicYearBean.filter}"
-				update=":formList:tableYears" />
+				update=":formList:content" />
 		</div>
 
-		<div
-			style="background: white; border-radius: 16px; padding: 4px; border: 1px solid #e9eef3">
-			<p:dataTable id="tableYears"
-				value="#{academicYearBean.academicYears}" var="a" paginator="true"
-				rows="10" paginatorPosition="bottom" stripedRows="true"
-				style="font-size:12px"
-				emptyMessage="Nenhum ano acadêmico encontrado" sortBy="#{a.year}"
-				sortOrder="descending">
+		<h:panelGroup id="content" layout="block">
 
-				<p:column headerText="Ano" width="80" sortBy="#{a.year}">
-					<b style="color: #0b2d50">#{a.year}</b>
-				</p:column>
-				<p:column headerText="Início" width="110" sortBy="#{a.startDate}">
-					<h:outputText value="#{a.startDate}">
-						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
-					</h:outputText>
-				</p:column>
-				<p:column headerText="Fim" width="110" sortBy="#{a.endDate}">
-					<h:outputText value="#{a.endDate}">
-						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
-					</h:outputText>
-				</p:column>
-				<p:column headerText="Estado" width="110" sortBy="#{a.active}">
-					<span
-						style="padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:#{a.active ? '#dcfce7' : '#fee2e2'};color:#{a.active ? '#166534' : '#991b1b'}">#{a.active
-						? 'ATIVO' : 'INATIVO'}</span>
-				</p:column>
-				<p:column headerText="Criado em" width="130" sortBy="#{a.createdAt}">
-					<h:outputText value="#{a.createdAt}">
-						<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm" />
-					</h:outputText>
-				</p:column>
+			<!-- ===== CARDS DE RESUMO (clicáveis = filtro) ===== -->
+			<div class="stats">
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.clearFilter}" process="@this"
+					update=":formList:content">
+					<div class="stat #{academicYearBean.noFilter ? 'selected' : ''}"
+						style="--c: #0b2d50">
+						<div class="stat-icon">
+							<i class="pi pi-calendar" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.totalYears}</div>
+							<div class="stat-lbl">Todos</div>
+						</div>
+					</div>
+				</p:commandLink>
 
-				<p:column headerText="Ações" width="200" style="text-align:center">
-					<p:commandButton icon="pi pi-check-circle" title="Ativar Ano"
-						rendered="#{!a.active}"
-						styleClass="ui-button-rounded ui-button-text ui-button-success"
-						action="#{academicYearBean.activate(a)}"
-						update=":formList:tableYears :formList:growlList">
-						<p:confirm header="Ativar Ano"
-							message="Tornar #{a.year} ativo? Isso desativa os outros."
-							icon="pi pi-exclamation-triangle" />
-					</p:commandButton>
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.filterBy('ACTIVE')}"
+					process="@this" update=":formList:content">
+					<div
+						class="stat #{academicYearBean.cardFilter eq 'ACTIVE' ? 'selected' : ''}"
+						style="--c: #16a34a">
+						<div class="stat-icon">
+							<i class="pi pi-check-circle" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.countBy('ACTIVE')}</div>
+							<div class="stat-lbl">Activos</div>
+						</div>
+					</div>
+				</p:commandLink>
 
-					<!-- SE ESTÁ ATIVO - MOSTRA BOTÃO INATIVAR -->
-					<p:commandButton icon="pi pi-times-circle" title="Inativar Ano"
-						rendered="#{a.active}"
-						styleClass="ui-button-rounded ui-button-text ui-button-warning"
-						action="#{academicYearBean.deactivate(a)}"
-						update=":formList:tableYears :formList:growlList">
-						<p:confirm header="Inativar Ano"
-							message="Inativar o ano #{a.year}?"
-							icon="pi pi-exclamation-triangle" />
-					</p:commandButton>
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.filterBy('INACTIVE')}"
+					process="@this" update=":formList:content">
+					<div
+						class="stat #{academicYearBean.cardFilter eq 'INACTIVE' ? 'selected' : ''}"
+						style="--c: #dc2626">
+						<div class="stat-icon">
+							<i class="pi pi-ban" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.countBy('INACTIVE')}</div>
+							<div class="stat-lbl">Inactivos</div>
+						</div>
+					</div>
+				</p:commandLink>
 
-					<p:commandButton icon="pi pi-pencil"
-						styleClass="ui-button-rounded ui-button-text ui-button-secondary"
-						title="Editar" action="#{academicYearBean.prepareEdit(a)}"
-						oncomplete="PF('dlgAcademicYear').show()" update=":formDialog" />
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.filterBy('ONGOING')}"
+					process="@this" update=":formList:content">
+					<div
+						class="stat #{academicYearBean.cardFilter eq 'ONGOING' ? 'selected' : ''}"
+						style="--c: #15558a">
+						<div class="stat-icon">
+							<i class="pi pi-play" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.countBy('ONGOING')}</div>
+							<div class="stat-lbl">Em curso</div>
+						</div>
+					</div>
+				</p:commandLink>
 
-					<p:commandButton icon="pi pi-trash"
-						styleClass="ui-button-rounded ui-button-text ui-button-danger"
-						title="Remover" action="#{academicYearBean.delete(a)}"
-						update=":formList:tableYears :formList:growlList">
-						<p:confirm header="Confirmar" message="Remover #{a.year}?"
-							icon="pi pi-exclamation-triangle" />
-					</p:commandButton>
-				</p:column>
-			</p:dataTable>
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.filterBy('UPCOMING')}"
+					process="@this" update=":formList:content">
+					<div
+						class="stat #{academicYearBean.cardFilter eq 'UPCOMING' ? 'selected' : ''}"
+						style="--c: #f59e0b">
+						<div class="stat-icon">
+							<i class="pi pi-forward" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.countBy('UPCOMING')}</div>
+							<div class="stat-lbl">Futuros</div>
+						</div>
+					</div>
+				</p:commandLink>
 
-			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
-				responsive="true" width="350">
-				<p:commandButton value="Não" type="button"
-					styleClass="ui-confirmdialog-no ui-button-flat" />
-				<p:commandButton value="Sim" type="button"
-					styleClass="ui-confirmdialog-yes" />
-			</p:confirmDialog>
-		</div>
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{academicYearBean.filterBy('FINISHED')}"
+					process="@this" update=":formList:content">
+					<div
+						class="stat #{academicYearBean.cardFilter eq 'FINISHED' ? 'selected' : ''}"
+						style="--c: #64748b">
+						<div class="stat-icon">
+							<i class="pi pi-flag" />
+						</div>
+						<div>
+							<div class="stat-num">#{academicYearBean.countBy('FINISHED')}</div>
+							<div class="stat-lbl">Concluídos</div>
+						</div>
+					</div>
+				</p:commandLink>
+			</div>
+
+			<div class="filter-bar">
+				<span
+					style="font-size: 12.5px; color: #64748b; background: #f8fafc; border: 1px solid #eef2f7; padding: 6px 12px; border-radius: 20px">
+					A mostrar <b style="color: #0b2d50">#{academicYearBean.filteredYears.size()}</b>
+					de <b style="color: #0b2d50">#{academicYearBean.totalYears}</b>
+					anos
+				</span>
+				<p:selectOneButton value="#{academicYearBean.viewMode}">
+					<f:selectItem itemLabel="Cards" itemValue="CARDS" />
+					<f:selectItem itemLabel="Tabela" itemValue="TABELA" />
+					<p:ajax update=":formList:content" />
+				</p:selectOneButton>
+			</div>
+
+			<!-- ===== VISTA TABELA ===== -->
+			<h:panelGroup layout="block"
+				rendered="#{academicYearBean.viewMode eq 'TABELA'}"
+				style="background: white; border-radius: 16px; padding: 4px; border: 1px solid #e9eef3">
+				<p:dataTable id="tableYears"
+					value="#{academicYearBean.filteredYears}" var="a" paginator="true"
+					rows="10" paginatorPosition="bottom" stripedRows="true"
+					style="font-size:12px"
+					emptyMessage="Nenhum ano acadêmico encontrado">
+
+					<p:column headerText="Ano" width="80" sortBy="#{a.year}">
+						<b style="color: #0b2d50">#{a.year}</b>
+					</p:column>
+					<p:column headerText="Início" width="110" sortBy="#{a.startDate}">
+						<h:outputText value="#{a.startDate}">
+							<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Fim" width="110" sortBy="#{a.endDate}">
+						<h:outputText value="#{a.endDate}">
+							<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Período" width="100">
+						<span class="pill"
+							style="background: #{academicYearBean.periodColor(academicYearBean.periodOf(a))}">#{academicYearBean.periodLabel(academicYearBean.periodOf(a))}</span>
+					</p:column>
+					<p:column headerText="Estado" width="110" sortBy="#{a.active}">
+						<span
+							style="padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:#{a.active ? '#dcfce7' : '#fee2e2'};color:#{a.active ? '#166534' : '#991b1b'}">#{a.active
+							? 'ATIVO' : 'INATIVO'}</span>
+					</p:column>
+					<p:column headerText="Criado em" width="130"
+						sortBy="#{a.createdAt}">
+						<h:outputText value="#{a.createdAt}">
+							<f:convertDateTime type="localDateTime"
+								pattern="dd/MM/yyyy HH:mm" />
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="Ações" width="200" style="text-align:center">
+						<p:commandButton icon="pi pi-check-circle" title="Ativar Ano"
+							rendered="#{!a.active}"
+							styleClass="ui-button-rounded ui-button-text ui-button-success"
+							action="#{academicYearBean.activate(a)}"
+							update=":formList:content :formList:growlList">
+							<p:confirm header="Ativar Ano"
+								message="Tornar #{a.year} ativo? Isso desativa os outros."
+								icon="pi pi-exclamation-triangle" />
+						</p:commandButton>
+
+						<p:commandButton icon="pi pi-times-circle" title="Inativar Ano"
+							rendered="#{a.active}"
+							styleClass="ui-button-rounded ui-button-text ui-button-warning"
+							action="#{academicYearBean.deactivate(a)}"
+							update=":formList:content :formList:growlList">
+							<p:confirm header="Inativar Ano"
+								message="Inativar o ano #{a.year}?"
+								icon="pi pi-exclamation-triangle" />
+						</p:commandButton>
+
+						<p:commandButton icon="pi pi-pencil"
+							styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+							title="Editar" action="#{academicYearBean.prepareEdit(a)}"
+							oncomplete="PF('dlgAcademicYear').show()" update=":formDialog" />
+
+						<p:commandButton icon="pi pi-trash"
+							styleClass="ui-button-rounded ui-button-text ui-button-danger"
+							title="Remover" action="#{academicYearBean.delete(a)}"
+							update=":formList:content :formList:growlList">
+							<p:confirm header="Confirmar" message="Remover #{a.year}?"
+								icon="pi pi-exclamation-triangle" />
+						</p:commandButton>
+					</p:column>
+				</p:dataTable>
+			</h:panelGroup>
+
+			<!-- ===== VISTA CARDS ===== -->
+			<h:panelGroup layout="block"
+				rendered="#{academicYearBean.viewMode eq 'CARDS'}">
+				<p:dataGrid value="#{academicYearBean.filteredYears}" var="a"
+					columns="3" layout="grid" rows="9" paginator="true"
+					paginatorPosition="bottom"
+					emptyMessage="Nenhum ano acadêmico encontrado">
+					<div class="ycard"
+						style="--c: #{academicYearBean.periodColor(academicYearBean.periodOf(a))}">
+						<div class="yyear">#{a.year}</div>
+						<div style="margin: 10px 0 4px">
+							<span class="pill"
+								style="background: #{academicYearBean.periodColor(academicYearBean.periodOf(a))}">#{academicYearBean.periodLabel(academicYearBean.periodOf(a))}</span>
+							<span
+								style="margin-left: 4px; padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;background:#{a.active ? '#dcfce7' : '#fee2e2'};color:#{a.active ? '#166534' : '#991b1b'}">#{a.active
+								? 'ATIVO' : 'INATIVO'}</span>
+						</div>
+						<div class="ydates">
+							<i class="pi pi-calendar" style="margin-right: 5px" />
+							<h:outputText value="#{a.startDate}">
+								<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
+							</h:outputText>
+							→
+							<h:outputText value="#{a.endDate}">
+								<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
+							</h:outputText>
+						</div>
+						<div class="progress-bg">
+							<div class="progress-fill"
+								style="width: #{academicYearBean.progress(a)}%"></div>
+						</div>
+						<div style="font-size: 11px; color: #64748b">#{academicYearBean.progress(a)}%
+							decorrido</div>
+						<div class="ymeta">
+							Criado em
+							<h:outputText value="#{a.createdAt}">
+								<f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy" />
+							</h:outputText>
+						</div>
+
+						<div class="yactions">
+							<p:commandButton icon="pi pi-check-circle" title="Ativar Ano"
+								rendered="#{!a.active}"
+								styleClass="ui-button-rounded ui-button-text ui-button-success"
+								action="#{academicYearBean.activate(a)}"
+								update=":formList:content :formList:growlList">
+								<p:confirm header="Ativar Ano"
+									message="Tornar #{a.year} ativo? Isso desativa os outros."
+									icon="pi pi-exclamation-triangle" />
+							</p:commandButton>
+
+							<p:commandButton icon="pi pi-times-circle" title="Inativar Ano"
+								rendered="#{a.active}"
+								styleClass="ui-button-rounded ui-button-text ui-button-warning"
+								action="#{academicYearBean.deactivate(a)}"
+								update=":formList:content :formList:growlList">
+								<p:confirm header="Inativar Ano"
+									message="Inativar o ano #{a.year}?"
+									icon="pi pi-exclamation-triangle" />
+							</p:commandButton>
+
+							<p:commandButton icon="pi pi-pencil"
+								styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+								title="Editar" action="#{academicYearBean.prepareEdit(a)}"
+								oncomplete="PF('dlgAcademicYear').show()" update=":formDialog" />
+
+							<p:commandButton icon="pi pi-trash"
+								styleClass="ui-button-rounded ui-button-text ui-button-danger"
+								title="Remover" action="#{academicYearBean.delete(a)}"
+								update=":formList:content :formList:growlList">
+								<p:confirm header="Confirmar" message="Remover #{a.year}?"
+									icon="pi pi-exclamation-triangle" />
+							</p:commandButton>
+						</div>
+					</div>
+				</p:dataGrid>
+			</h:panelGroup>
+		</h:panelGroup>
+
+		<p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+			responsive="true" width="350">
+			<p:commandButton value="Não" type="button"
+				styleClass="ui-confirmdialog-no ui-button-flat" />
+			<p:commandButton value="Sim" type="button"
+				styleClass="ui-confirmdialog-yes" />
+		</p:confirmDialog>
 	</h:form>
 
 	<p:dialog widgetVar="dlgAcademicYear"
@@ -171,11 +496,11 @@
 					<p:commandButton value="Cancelar"
 						styleClass="ui-button-secondary ui-button-outlined"
 						onclick="PF('dlgAcademicYear').hide();return false;" />
-						
+
 					<p:commandButton value="Salvar" icon="pi pi-check"
 						style="background:#0b2d50;border:none"
 						action="#{academicYearBean.save}"
-						update=":formList:tableYears :formList:growlList"
+						update=":formList:content :formList:growlList"
 						oncomplete="if(!args.validationFailed) PF('dlgAcademicYear').hide()" />
 				</div>
 			</div>

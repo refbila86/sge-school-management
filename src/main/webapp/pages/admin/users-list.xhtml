@@ -47,6 +47,7 @@
 	display: flex;
 	gap: 10px;
 	align-items: center;
+	justify-content: space-between;
 	margin-bottom: 14px;
 	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
 }
@@ -93,10 +94,11 @@
 }
 
 .user-avatar {
+	--c: #0a2540;
 	width: 36px;
 	height: 36px;
 	border-radius: 10px;
-	background: #0a2540;
+	background: var(--c);
 	color: #fff;
 	display: flex;
 	align-items: center;
@@ -110,7 +112,8 @@
 	border-radius: 20px;
 	font-size: 10.5px;
 	font-weight: 700;
-	text-transform: uppercase
+	text-transform: uppercase;
+	color: #fff
 }
 
 .username-chip {
@@ -123,10 +126,119 @@
 	font-weight: 600;
 	border: 1px solid #e6eaf0
 }
+
+/* ===== CARDS DE RESUMO ===== */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 12px;
+	margin-bottom: 14px
+}
+
+.stat-link {
+	text-decoration: none !important;
+	display: block
+}
+
+.stat {
+	--c: #0a2540;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-left: 4px solid var(--c);
+	border-radius: 14px;
+	padding: 14px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+	transition: transform .15s, box-shadow .15s;
+	cursor: pointer
+}
+
+.stat:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 16px rgba(16, 24, 40, .10)
+}
+
+.stat.selected {
+	background: #f8fafc;
+	box-shadow: 0 0 0 2px var(--c)
+}
+
+.stat-icon {
+	width: 42px;
+	height: 42px;
+	border-radius: 12px;
+	background: var(--c);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 17px;
+	flex-shrink: 0
+}
+
+.stat-num {
+	font-size: 24px;
+	font-weight: 800;
+	color: #0a2540;
+	line-height: 1
+}
+
+.stat-lbl {
+	font-size: 12px;
+	color: #64748b;
+	margin-top: 4px;
+	font-weight: 600
+}
+
+/* ===== CARDS DE UTILIZADOR ===== */
+.ucard {
+	--c: #0a2540;
+	background: #fff;
+	border: 1px solid #e6eaf0;
+	border-top: 4px solid var(--c);
+	border-radius: 16px;
+	padding: 18px;
+	text-align: center;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, .04)
+}
+
+.ucard .avatar {
+	width: 60px;
+	height: 60px;
+	margin: 0 auto 10px;
+	border-radius: 16px;
+	background: var(--c);
+	color: #fff;
+	font-size: 22px;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	justify-content: center
+}
+
+.ucard .uname {
+	font-size: 15px;
+	font-weight: 800;
+	color: #0a2540
+}
+
+.ucard .uinfo {
+	font-size: 12px;
+	color: #64748b;
+	margin: 6px 0;
+	word-break: break-all
+}
+
+.ucard .uactions {
+	margin-top: 12px
+}
 </style>
 
 	<div class="user-page">
 		<h:form id="formList">
+		
 			<p:growl id="growl" showDetail="true" life="3500" />
 
 			<div class="page-header">
@@ -144,25 +256,104 @@
 				</div>
 			</div>
 
+			<!-- CARDS DE RESUMO (clicáveis = filtro) -->
+			<div class="stats">
+
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{userBean.clearFilter}" process="@this"
+					update="@form">
+					<div
+						class="stat #{userBean.roleFilter == null and userBean.statusFilter == null ? 'selected' : ''}"
+						style="--c: #0a2540">
+						<div class="stat-icon">
+							<i class="pi pi-users" />
+						</div>
+						<div>
+							<div class="stat-num">#{userBean.totalUsers}</div>
+							<div class="stat-lbl">Todos</div>
+						</div>
+					</div>
+				</p:commandLink>
+
+				<!-- Um card por perfil: Admin, Professor, Encarregado, ... -->
+				<ui:repeat value="#{userBean.roles}" var="r">
+					<p:commandLink styleClass="stat-link"
+						actionListener="#{userBean.filterByRole(r)}" process="@this"
+						update="@form">
+						<div class="stat #{userBean.roleFilter == r ? 'selected' : ''}"
+							style="--c: #{userBean.roleColor(r)}">
+							<div class="stat-icon">
+								<i class="pi #{userBean.roleIcon(r)}" />
+							</div>
+							<div>
+								<div class="stat-num">#{userBean.countByRole(r)}</div>
+								<div class="stat-lbl">#{userBean.roleLabel(r)}</div>
+							</div>
+						</div>
+					</p:commandLink>
+				</ui:repeat>
+
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{userBean.filterByStatus(true)}" process="@this"
+					update="@form">
+					<div
+						class="stat #{userBean.statusFilter != null and userBean.statusFilter eq true ? 'selected' : ''}"
+						style="--c: #16a34a">
+						<div class="stat-icon">
+							<i class="pi pi-check-circle" />
+						</div>
+						<div>
+							<div class="stat-num">#{userBean.countActive}</div>
+							<div class="stat-lbl">Activos</div>
+						</div>
+					</div>
+				</p:commandLink>
+
+				<p:commandLink styleClass="stat-link"
+					actionListener="#{userBean.filterByStatus(false)}" process="@this"
+					update="@form">
+					<div
+						class="stat #{userBean.statusFilter != null and userBean.statusFilter eq false ? 'selected' : ''}"
+						style="--c: #dc2626">
+						<div class="stat-icon">
+							<i class="pi pi-ban" />
+						</div>
+						<div>
+							<div class="stat-num">#{userBean.countInactive}</div>
+							<div class="stat-lbl">Inactivos</div>
+						</div>
+					</div>
+				</p:commandLink>
+			</div>
+
 			<div class="filter-bar">
 				<span
 					style="font-size: 12.5px; color: #64748b; background: #f8fafc; border: 1px solid #eef2f7; padding: 6px 12px; border-radius: 20px">
-					Total: <b style="color: #0a2540">#{userBean.users.size()}</b>
+					A mostrar <b style="color: #0a2540">#{userBean.filteredUsers.size()}</b>
+					de <b style="color: #0a2540">#{userBean.totalUsers}</b>
 					utilizadores
 				</span>
+				<p:selectOneButton value="#{userBean.viewMode}">
+					<f:selectItem itemLabel="Cards" itemValue="CARDS" />
+					<f:selectItem itemLabel="Tabela" itemValue="TABELA" />
+					<p:ajax update="@form" />
+				</p:selectOneButton>
 			</div>
 
-			<div class="compact-table">
-				<p:dataTable value="#{userBean.users}" var="u" paginator="true"
-					rows="10" paginatorPosition="bottom"
-					emptyMessage="Nenhum utilizador cadastrado." style="width:100%">
+			<!-- VISTA TABELA -->
+			<h:panelGroup layout="block" styleClass="compact-table"
+				rendered="#{userBean.viewMode eq 'TABELA'}">
+				<p:dataTable value="#{userBean.filteredUsers}" var="u"
+					paginator="true" rows="10" paginatorPosition="bottom"
+					emptyMessage="Nenhum utilizador encontrado." style="width:100%">
 
 					<p:column headerText="UTILIZADOR" width="260">
 						<div style="display: flex; align-items: center; gap: 10px">
-							<div class="user-avatar">#{u.name.substring(0,1).toUpperCase()}</div>
+							<div class="user-avatar"
+								style="--c: #{userBean.roleColor(u.role)}">#{userBean.initials(u)}</div>
 							<div>
-								<b style="font-size: 13.5px">#{u.name}</b><br />
-								<span style="font-size: 11.5px; color: #64748b">#{u.email}</span>
+								<b style="font-size: 13.5px">#{u.name}</b><br /> <span
+									style="font-size: 11.5px; color: #64748b">#{u.email}</span>
 							</div>
 						</div>
 					</p:column>
@@ -170,9 +361,9 @@
 						style="text-align:center">
 						<span class="username-chip">@#{u.username}</span>
 					</p:column>
-					<p:column headerText="PERFIL" width="120" style="text-align:center">
+					<p:column headerText="PERFIL" width="130" style="text-align:center">
 						<span class="role-badge"
-							style="background:#{u.role eq 'ADMIN' ? '#fef3c7;color:#92400e' : u.role eq 'TEACHER' ? '#e0e7ff;color:#3730a3' : '#dcfce7;color:#166534'}">#{u.role}</span>
+							style="background: #{userBean.roleColor(u.role)}">#{userBean.roleLabel(u.role)}</span>
 					</p:column>
 					<p:column headerText="ÚLTIMO LOGIN" width="160"
 						style="text-align:center">
@@ -213,7 +404,64 @@
 							oncomplete="PF('confirmDialog').show()" />
 					</p:column>
 				</p:dataTable>
-			</div>
+			</h:panelGroup>
+
+			<!-- VISTA CARDS -->
+			<h:panelGroup layout="block"
+				rendered="#{userBean.viewMode eq 'CARDS'}">
+				<p:dataGrid value="#{userBean.filteredUsers}" var="u" columns="3"
+					layout="grid" rows="9" paginator="true" paginatorPosition="bottom"
+					emptyMessage="Nenhum utilizador encontrado.">
+					<div class="ucard" style="--c: #{userBean.roleColor(u.role)}">
+						<div class="avatar">#{userBean.initials(u)}</div>
+						<div class="uname">#{u.name}</div>
+						<div class="uinfo">
+							<span class="username-chip">@#{u.username}</span>
+						</div>
+						<div>
+							<span class="role-badge"
+								style="background: #{userBean.roleColor(u.role)}"><i
+								class="pi #{userBean.roleIcon(u.role)}"
+								style="margin-right: 5px; font-size: 10px" />#{userBean.roleLabel(u.role)}</span>
+						</div>
+						<div class="uinfo">
+							<i class="pi pi-envelope" /> #{u.email}
+						</div>
+						<div class="uinfo">
+							<i class="pi pi-clock" />
+							<h:outputText value="#{u.lastLogin}"
+								rendered="#{u.lastLogin != null}">
+								<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+									type="localDateTime" />
+							</h:outputText>
+							<h:outputText value="Nunca logou"
+								rendered="#{u.lastLogin == null}" />
+						</div>
+						<p:tag value="#{u.active ? 'Ativo' : 'Inativo'}"
+							severity="#{u.active ? 'success' : 'danger'}" />
+						<div class="uactions">
+							<p:commandButton icon="pi pi-eye"
+								styleClass="ui-button-rounded ui-button-text" title="Ver"
+								actionListener="#{userBean.selectForDelete(u)}"
+								update=":formList:viewDialog"
+								oncomplete="PF('viewDialog').show()" />
+							<p:commandButton icon="pi pi-pencil"
+								styleClass="ui-button-rounded ui-button-text ui-button-secondary"
+								title="Editar"
+								action="#{dashboardBean.navigate('admin/users-include','users')}"
+								update=":contentPanel">
+								<f:setPropertyActionListener value="#{u}"
+									target="#{userBean.user}" />
+							</p:commandButton>
+							<p:commandButton icon="pi pi-trash"
+								styleClass="ui-button-rounded ui-button-text ui-button-danger"
+								title="Remover" actionListener="#{userBean.selectForDelete(u)}"
+								update=":formList:confirmDialog"
+								oncomplete="PF('confirmDialog').show()" />
+						</div>
+					</div>
+				</p:dataGrid>
+			</h:panelGroup>
 
 			<p:dialog widgetVar="viewDialog" id="viewDialog"
 				header="Detalhes do Utilizador" modal="true" width="520"
@@ -222,44 +470,41 @@
 					style="display:grid;gap:14px;font-size:13px">
 					<div style="display: flex; gap: 14px; align-items: center">
 						<div
-							style="width: 52px; height: 52px; border-radius: 14px; background: #0a2540; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">#{userBean.selectedUser.name.substring(0,1).toUpperCase()}</div>
+							style="width: 52px; height: 52px; border-radius: 14px; background: #{userBean.roleColor(userBean.selectedUser.role)}; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800">#{userBean.initials(userBean.selectedUser)}</div>
 						<div>
 							<b style="font-size: 16px">#{userBean.selectedUser.name}</b><br />
 							<span style="color: #64748b">@#{userBean.selectedUser.username}
-								• #{userBean.selectedUser.role}</span>
+								• #{userBean.roleLabel(userBean.selectedUser.role)}</span>
 						</div>
 					</div>
 					<div
 						style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; background: #f8fafc; border: 1px solid #eef2f7; border-radius: 12px; padding: 14px">
 						<div>
-							Username<br />
-							<b>@#{userBean.selectedUser.username}</b>
+							Username<br /> <b>@#{userBean.selectedUser.username}</b>
 						</div>
 						<div>
-							Email<br />
-							<b>#{userBean.selectedUser.email}</b>
+							Email<br /> <b>#{userBean.selectedUser.email}</b>
 						</div>
 						<div>
-							Último Login<br />
-							<b><h:outputText value="#{userBean.selectedUser.lastLogin}">
+							Último Login<br /> <b><h:outputText
+									value="#{userBean.selectedUser.lastLogin}">
 									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
 										type="localDateTime" />
 								</h:outputText></b>
 						</div>
 						<div>
-							Criado Em<br />
-							<b><h:outputText value="#{userBean.selectedUser.createdAt}">
+							Criado Em<br /> <b><h:outputText
+									value="#{userBean.selectedUser.createdAt}">
 									<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
 										type="localDateTime" />
 								</h:outputText></b>
 						</div>
 						<div>
-							Estado<br />
-							<b>#{userBean.selectedUser.active ? 'Ativo' : 'Inativo'}</b>
+							Estado<br /> <b>#{userBean.selectedUser.active ? 'Ativo' :
+								'Inativo'}</b>
 						</div>
 						<div>
-							Role<br />
-							<b>#{userBean.selectedUser.role}</b>
+							Perfil<br /> <b>#{userBean.roleLabel(userBean.selectedUser.role)}</b>
 						</div>
 					</div>
 				</h:panelGroup>

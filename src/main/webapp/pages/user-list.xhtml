@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
-	xmlns:p="primefaces" xmlns:f="jakarta.faces.core" xmlns:ui="jakarta.faces.facelets">
+	xmlns:p="primefaces" xmlns:f="jakarta.faces.core"
+	xmlns:ui="jakarta.faces.facelets">
 
 <h:head>
 
@@ -63,6 +64,133 @@ body {
 .action-buttons .ui-button {
 	margin-right: 5px;
 }
+
+/* ===== CARDS DE RESUMO POR PERFIL ===== */
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 15px;
+	margin-bottom: 25px;
+}
+
+.stat-link {
+	text-decoration: none !important;
+	display: block;
+}
+
+.stat {
+	--c: #17365d;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	background: #fff;
+	border: 2px solid transparent;
+	border-top: 4px solid var(--c);
+	border-radius: 10px;
+	padding: 16px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+	transition: transform .15s, box-shadow .15s;
+	cursor: pointer;
+}
+
+.stat:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.stat.selected {
+	border-color: var(--c);
+	background: #f9fbff;
+}
+
+.stat-icon {
+	width: 46px;
+	height: 46px;
+	border-radius: 50%;
+	background: var(--c);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.3rem;
+	flex-shrink: 0;
+}
+
+.stat-num {
+	font-size: 26px;
+	font-weight: bold;
+	color: #222;
+	line-height: 1;
+}
+
+.stat-lbl {
+	font-size: 13px;
+	color: #777;
+	margin-top: 4px;
+}
+
+/* ===== CARDS DE UTILIZADOR ===== */
+.ucard {
+	--c: #17365d;
+	background: #fff;
+	border-radius: 10px;
+	border-top: 4px solid var(--c);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+	padding: 20px;
+	text-align: center;
+}
+
+.avatar {
+	width: 64px;
+	height: 64px;
+	margin: 0 auto 12px;
+	border-radius: 50%;
+	background: var(--c);
+	color: #fff;
+	font-size: 22px;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.uname {
+	font-size: 16px;
+	font-weight: bold;
+	color: #17365d;
+}
+
+.uuser {
+	color: #888;
+	font-size: 13px;
+	margin-bottom: 8px;
+}
+
+.urole {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 15px;
+	font-size: 12px;
+	font-weight: bold;
+	background: var(--c);
+	color: #fff;
+	margin-bottom: 10px;
+}
+
+.uinfo {
+	font-size: 13px;
+	color: #555;
+	margin: 4px 0;
+	word-break: break-all;
+}
+
+.uactions {
+	margin-top: 14px;
+}
+
+.uactions .ui-button {
+	margin: 0 3px;
+}
 </style>
 
 </h:head>
@@ -70,6 +198,7 @@ body {
 <h:body>
 
 	<div class="page">
+
 		<div class="card">
 			<div class="header">
 				<div>
@@ -83,8 +212,93 @@ body {
 			<h:form id="userListForm">
 
 				<p:messages id="messages" showDetail="true" closable="true" />
-				<p:dataTable id="usersTable" value="#{userBean.users}" var="u"
-					paginator="true" rows="10" paginatorPosition="bottom"
+
+				<!-- CARDS DE RESUMO (clicáveis = filtro) -->
+				<div class="stats">
+
+					<!-- Todos -->
+					<p:commandLink styleClass="stat-link"
+						actionListener="#{userBean.clearFilter}" process="@this"
+						update="@form">
+						<div
+							class="stat #{userBean.roleFilter == null and userBean.statusFilter == null ? 'selected' : ''}"
+							style="--c: #17365d">
+							<div class="stat-icon">
+								<i class="pi pi-users" />
+							</div>
+							<div>
+								<div class="stat-num">#{userBean.totalUsers}</div>
+								<div class="stat-lbl">Todos</div>
+							</div>
+						</div>
+					</p:commandLink>
+
+					<!-- Um card por perfil (Admin, Professor, Encarregado, ...) -->
+					<ui:repeat value="#{userBean.roles}" var="r">
+						<p:commandLink styleClass="stat-link"
+							actionListener="#{userBean.filterByRole(r)}" process="@this"
+							update="@form">
+							<div class="stat #{userBean.roleFilter == r ? 'selected' : ''}"
+								style="--c:#{userBean.roleColor(r)}">
+								<div class="stat-icon">
+									<i class="pi #{userBean.roleIcon(r)}" />
+								</div>
+								<div>
+									<div class="stat-num">#{userBean.countByRole(r)}</div>
+									<div class="stat-lbl">#{userBean.roleLabel(r)}</div>
+								</div>
+							</div>
+						</p:commandLink>
+					</ui:repeat>
+
+					<!-- Activos -->
+					<p:commandLink styleClass="stat-link"
+						actionListener="#{userBean.filterByStatus(true)}" process="@this"
+						update="@form">
+						<div
+							class="stat #{userBean.statusFilter == true ? 'selected' : ''}"
+							style="--c: #2e7d32">
+							<div class="stat-icon">
+								<i class="pi pi-check-circle" />
+							</div>
+							<div>
+								<div class="stat-num">#{userBean.countActive}</div>
+								<div class="stat-lbl">Activos</div>
+							</div>
+						</div>
+					</p:commandLink>
+
+					<!-- Inactivos -->
+					<p:commandLink styleClass="stat-link"
+						actionListener="#{userBean.filterByStatus(false)}" process="@this"
+						update="@form">
+						<div
+							class="stat #{userBean.statusFilter == false ? 'selected' : ''}"
+							style="--c: #c62828">
+							<div class="stat-icon">
+								<i class="pi pi-ban" />
+							</div>
+							<div>
+								<div class="stat-num">#{userBean.countInactive}</div>
+								<div class="stat-lbl">Inactivos</div>
+							</div>
+						</div>
+					</p:commandLink>
+				</div>
+
+				<!-- ALTERNAR VISTA -->
+				<div style="margin-bottom: 15px; text-align: right;">
+					<p:selectOneButton value="#{userBean.viewMode}">
+						<f:selectItem itemLabel="Tabela" itemValue="TABELA" />
+						<f:selectItem itemLabel="Cards" itemValue="CARDS" />
+						<p:ajax update="@form" />
+					</p:selectOneButton>
+				</div>
+
+				<!-- VISTA TABELA -->
+				<p:dataTable id="usersTable" value="#{userBean.filteredUsers}"
+					var="u" paginator="true" rows="10" paginatorPosition="bottom"
+					rendered="#{userBean.viewMode eq 'TABELA'}"
 					emptyMessage="Nenhum utilizador encontrado."
 					responsiveLayout="scroll" rowHover="true" stripedRows="true">
 					<p:column headerText="ID" style="width:70px">
@@ -100,7 +314,7 @@ body {
 						<h:outputText value="#{u.email}" />
 					</p:column>
 					<p:column headerText="Perfil" sortBy="#{u.role}">
-						<h:outputText value="#{u.role}" />
+						<h:outputText value="#{userBean.roleLabel(u.role)}" />
 					</p:column>
 					<p:column headerText="Estado" style="text-align:center">
 						<h:outputText value="ACTIVO" rendered="#{u.active}"
@@ -117,17 +331,59 @@ body {
 						styleClass="action-buttons">
 						<p:commandButton icon="pi pi-pencil" title="Editar"
 							styleClass="rounded-button ui-button-info"
-							actionListener="#{userBean.selectForEdit(u)}"
-							process="@this" update=":userIncludeForm"
-							oncomplete="PF('userDialog').show()" />
+							actionListener="#{userBean.selectForEdit(u)}" process="@this"
+							update=":userIncludeForm" oncomplete="PF('userDialog').show()" />
 
 						<p:commandButton icon="pi pi-trash" title="Eliminar"
 							styleClass="rounded-button ui-button-danger"
-							actionListener="#{userBean.selectForDelete(u)}"
-							process="@this" update=":deleteUserForm"
+							actionListener="#{userBean.selectForDelete(u)}" process="@this"
+							update=":deleteUserForm"
 							oncomplete="PF('deleteUserDialog').show()" />
 					</p:column>
 				</p:dataTable>
+
+				<!-- VISTA CARDS -->
+				<p:dataGrid id="usersGrid" value="#{userBean.filteredUsers}" var="u"
+					columns="3" layout="grid" rows="9" paginator="true"
+					paginatorPosition="bottom"
+					rendered="#{userBean.viewMode eq 'CARDS'}"
+					emptyMessage="Nenhum utilizador encontrado.">
+					<div class="ucard" style="--c:#{userBean.roleColor(u.role)}">
+						<div class="avatar">#{userBean.initials(u)}</div>
+						<div class="uname">#{u.name}</div>
+						<div class="uuser">@#{u.username}</div>
+						<div class="urole">
+							<i class="pi #{userBean.roleIcon(u.role)}"
+								style="margin-right: 5px" /> #{userBean.roleLabel(u.role)}
+						</div>
+						<div class="uinfo">
+							<i class="pi pi-envelope" /> #{u.email}
+						</div>
+						<div class="uinfo">
+							<h:outputText value="ACTIVO" rendered="#{u.active}"
+								styleClass="badge active" />
+							<h:outputText value="INACTIVO" rendered="#{not u.active}"
+								styleClass="badge inactive" />
+						</div>
+						<div class="uinfo">
+							<i class="pi pi-calendar" />
+							<h:outputText value="#{u.createdAt}">
+								<f:convertDateTime pattern="dd/MM/yyyy" />
+							</h:outputText>
+						</div>
+						<div class="uactions">
+							<p:commandButton icon="pi pi-pencil" title="Editar"
+								styleClass="rounded-button ui-button-info"
+								actionListener="#{userBean.selectForEdit(u)}" process="@this"
+								update=":userIncludeForm" oncomplete="PF('userDialog').show()" />
+							<p:commandButton icon="pi pi-trash" title="Eliminar"
+								styleClass="rounded-button ui-button-danger"
+								actionListener="#{userBean.selectForDelete(u)}" process="@this"
+								update=":deleteUserForm"
+								oncomplete="PF('deleteUserDialog').show()" />
+						</div>
+					</div>
+				</p:dataGrid>
 			</h:form>
 
 			<!-- DIALOG DE EDIÇÃO -->
@@ -143,20 +399,19 @@ body {
 				modal="true" resizable="false" width="400" appendTo="@(body)">
 				<h:form id="deleteUserForm">
 					<div
-						style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+						style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
 						<i class="pi pi-exclamation-triangle"
-							style="font-size:2rem; color:#c62828;" />
+							style="font-size: 2rem; color: #c62828;" />
 						<h:outputText
 							value="Eliminar o utilizador '#{userBean.selectedUser.name}'?" />
 					</div>
-					<div style="text-align:right;">
+					<div style="text-align: right;">
 						<p:commandButton value="Cancelar" type="button"
 							styleClass="ui-button-secondary"
 							onclick="PF('deleteUserDialog').hide()" />
 						<p:commandButton value="Eliminar" styleClass="ui-button-danger"
 							action="#{userBean.delete}" process="@this"
-							update=":userListForm:usersTable :messages"
-							oncomplete="PF('deleteUserDialog').hide()" />
+							update=":userListForm" oncomplete="PF('deleteUserDialog').hide()" />
 					</div>
 				</h:form>
 			</p:dialog>

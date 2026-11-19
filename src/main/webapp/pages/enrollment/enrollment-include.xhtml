@@ -26,7 +26,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04)
+	box-shadow: 0 4px 20px rgba(10, 37, 64, .04)
 }
 
 .field-label {
@@ -91,6 +91,17 @@
 	background: #e2e8f0;
 	color: #64748b
 }
+
+.monthly-card {
+	margin-top: 10px;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	border-radius: 12px;
+	padding: 12px 14px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center
+}
 </style>
 	<h:form id="formInclude">
 		<p:growl id="growl" showDetail="true" />
@@ -108,12 +119,12 @@
 				<div>
 					<div>#{enrollmentBean.editing ? 'Editar Matrícula' : 'Nova
 						Matrícula'}</div>
-					<div style="font-size: 12px; font-weight: 500; color: #64748b">Selecione
-						aluno que já pagou matrícula → valida → ENROLLED</div>
+					<div style="font-size: 12px; font-weight: 500; color: #64748b">#{loginBean.schoolName}
+						• Ano #{loginBean.academicYearLabel} • Selecione aluno que já
+						pagou matrícula → valida → ENROLLED</div>
 				</div>
 			</div>
 		</div>
-
 		<div class="form-card">
 			<div class="step-indicator">
 				<div
@@ -131,22 +142,14 @@
 				<div class="step step-todo">4</div>
 				<span style="font-size: 12px">Confirmar</span>
 			</div>
-
 			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
 				<div>
 					<span class="field-label">Ano Académico * (do login)</span>
 					<div
 						style="background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; padding: 10px 12px; font-weight: 700; color: #0a2540; display: flex; justify-content: space-between; align-items: center">
-						<span><i class="pi pi-lock" style="margin-right: 6px" />#{enrollmentBean.academicYearsCache.stream().filter(y
-							-> y.id ==
-							enrollmentBean.currentAcademicYearId).map(y->y.year).findFirst().orElse(enrollmentBean.currentAcademicYearId)}</span>
+						<span><i class="pi pi-lock" style="margin-right: 6px" />#{loginBean.academicYearLabel}</span>
 						<p:tag value="Bloqueado" severity="info" style="font-size:10px" />
 					</div>
-					<p:selectOneMenu value="#{enrollmentBean.selectedAcademicYearId}"
-						style="display:none">
-						<f:selectItems value="#{enrollmentBean.academicYearsCache}"
-							var="y" itemLabel="#{y.year}" itemValue="#{y.id}" />
-					</p:selectOneMenu>
 				</div>
 				<div>
 					<span class="field-label">Aluno * (com matrícula paga) -
@@ -172,16 +175,55 @@
 						<f:selectItems value="#{enrollmentBean.availableClassLevels}"
 							var="cl" itemLabel="#{cl.name}" itemValue="#{cl.id}" />
 						<p:ajax listener="#{enrollmentBean.onClassLevelChange}"
-							process="@this" update="turmaSelect growl" />
+							process="@this" update="turmaSelect monthlyFeePanel growl" />
 					</p:selectOneMenu>
 					<h:panelGroup
 						rendered="#{empty enrollmentBean.availableClassLevels}">
 						<small style="color: #ef4444; font-size: 11px"><i
 							class="pi pi-exclamation-triangle" /> Nenhuma classe cadastrada
-							no ano #{enrollmentBean.academicYearsCache.stream().filter(y ->
-							y.id ==
-							enrollmentBean.currentAcademicYearId).map(y->y.year).findFirst().orElse('')}.
-							Cadastre primeiro as classes.</small>
+							no ano #{loginBean.academicYearLabel}. Cadastre primeiro as
+							classes.</small>
+					</h:panelGroup>
+					<!-- MENSALIDADE DA CLASSE ESCOLHIDA - vem da FeeItemEntity, só MENSALIDADE -->
+					<h:panelGroup id="monthlyFeePanel" layout="block">
+						<h:panelGroup
+							rendered="#{enrollmentBean.selectedClassLevelId != null}">
+							<div class="monthly-card">
+								<div>
+									<div
+										style="font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #1e40af">
+										<i class="pi pi-calendar" /> Mensalidade da classe
+									</div>
+									<div style="font-size: 13px; color: #0a2540; margin-top: 2px">
+										<h:outputText
+											value="#{enrollmentBean.monthlyFeeItem.descricao}"
+											rendered="#{enrollmentBean.monthlyFeeItem != null}" />
+										<h:outputText
+											value="Mensalidade não configurada para esta classe"
+											rendered="#{enrollmentBean.monthlyFeeItem == null}"
+											style="color:#dc2626;font-weight:700" />
+									</div>
+									<div style="font-size: 11px; color: #64748b">Classe:
+										#{enrollmentBean.selectedClassLevelName} • Ano:
+										#{loginBean.academicYearLabel} • Escola:
+										#{loginBean.schoolName}</div>
+								</div>
+								<div style="text-align: right">
+									<div style="font-size: 20px; font-weight: 800; color: #0a2540">
+										<h:outputText value="#{enrollmentBean.monthlyFeeAmount} MT"
+											rendered="#{enrollmentBean.monthlyFeeAmount != null}" />
+										<h:outputText value="—"
+											rendered="#{enrollmentBean.monthlyFeeAmount == null}" />
+									</div>
+									<div style="font-size: 11px; color: #64748b">/ mês</div>
+								</div>
+							</div>
+							<h:panelGroup rendered="#{enrollmentBean.monthlyFeeItem == null}">
+								<small style="color: #dc2626; font-size: 11px"><i
+									class="pi pi-exclamation-triangle" /> Cadastre a mensalidade
+									desta classe em Taxas / FeeItems antes de matricular.</small>
+							</h:panelGroup>
+						</h:panelGroup>
 					</h:panelGroup>
 				</div>
 				<div>
@@ -199,7 +241,6 @@
 					</p:selectOneMenu>
 				</div>
 			</div>
-
 			<h:panelGroup id="statusType"
 				rendered="#{enrollmentBean.selectedStudentId != null}">
 				<div style="display: flex; gap: 8px; flex-wrap: wrap">
@@ -225,7 +266,6 @@
 					</h:panelGroup>
 				</div>
 			</h:panelGroup>
-
 			<h:panelGroup id="paymentsPanel" layout="block">
 				<div
 					style="background:#f8fafc;border:2px dashed #{enrollmentBean.hasValidPayment ? '#86efac' : '#cbd5e1'};border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px">
@@ -250,7 +290,6 @@
 								style="font-size:11px;padding:6px 12px" />
 						</h:panelGroup>
 					</div>
-
 					<h:panelGroup
 						rendered="#{not empty enrollmentBean.studentPayments}"
 						layout="block">
@@ -288,7 +327,6 @@
 							</ui:repeat>
 						</div>
 					</h:panelGroup>
-
 					<h:panelGroup
 						rendered="#{empty enrollmentBean.studentPayments and enrollmentBean.selectedStudentId != null}"
 						layout="block">
@@ -301,7 +339,16 @@
 					</h:panelGroup>
 				</div>
 			</h:panelGroup>
-
+			<h:panelGroup
+				rendered="#{enrollmentBean.selectedClassLevelId != null and enrollmentBean.monthlyFeeAmount != null}"
+				layout="block">
+				<div
+					style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; font-size: 13px">
+					<span>Mensalidade que vai ser gerada para o aluno:</span><b>#{enrollmentBean.monthlyFeeAmount}
+						MT / mês x #{enrollmentBean.monthsCount} meses =
+						#{enrollmentBean.totalMonthlyAmount} MT</b>
+				</div>
+			</h:panelGroup>
 			<div
 				style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9">
 				<p:commandButton value="Voltar" icon="pi pi-arrow-left"

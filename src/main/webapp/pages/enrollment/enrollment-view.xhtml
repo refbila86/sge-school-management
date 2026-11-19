@@ -1,7 +1,6 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="jakarta.faces.html" xmlns:f="jakarta.faces.core"
 	xmlns:ui="jakarta.faces.facelets" xmlns:p="http://primefaces.org/ui">
-
 	<style>
 .page-header {
 	display: flex;
@@ -29,7 +28,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	box-shadow: 0 4px 20px rgba(10, 37, 64, 0.04)
+	box-shadow: 0 4px 20px rgba(10, 37, 64, .04)
 }
 
 .student-header {
@@ -52,20 +51,35 @@
 	border-radius: 8px
 }
 
-.simple-row {
-	background: white;
-	border: 1px solid #e2e8f0;
-	border-radius: 12px;
-	padding: 14px 18px;
-	display: grid;
-	grid-template-columns: 100px 180px 120px 160px;
-	gap: 16px;
-	align-items: center
+.value-box-locked {
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	border-radius: 10px;
+	padding: 11px 14px;
+	font-size: 14.5px;
+	font-weight: 800;
+	color: #0a2540;
+	min-height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.locked-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #1e40af;
+	color: white;
+	padding: 3px 10px;
+	border-radius: 20px;
+	font-size: 10px;
+	font-weight: 800;
 }
 
 .grid-head {
 	display: grid;
-	grid-template-columns: 100px 180px 120px 160px;
+	grid-template-columns: 110px 1fr 110px 120px 90px;
 	gap: 16px;
 	padding: 0 18px;
 	font-size: 11px;
@@ -73,6 +87,21 @@
 	color: #64748b;
 	text-transform: uppercase;
 	letter-spacing: .3px
+}
+
+.simple-row {
+	background: white;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 12px 18px;
+	display: grid;
+	grid-template-columns: 110px 1fr 110px 120px 90px;
+	gap: 16px;
+	align-items: center
+}
+
+.simple-row:nth-child(even) {
+	background: #f8fafc
 }
 
 .total-bar {
@@ -272,7 +301,6 @@
 	}
 }
 </style>
-
 	<h:form id="formView">
 		<p:growl id="growl" showDetail="true" />
 		<div class="page-header">
@@ -291,12 +319,12 @@
 						#{enrollmentBean.selected.student.fullName}</div>
 					<div style="font-size: 12px; font-weight: 500; color: #64748b">#{enrollmentBean.selected.student.code}
 						• #{enrollmentBean.selected.classroom.name} •
-						#{enrollmentBean.selected.academicYear.year}</div>
+						#{enrollmentBean.selected.academicYear.year} •
+						#{enrollmentBean.selected.classLevel.name}</div>
 				</div>
 			</div>
 			<p:tag value="#{enrollmentBean.selected.status}" severity="success" />
 		</div>
-
 		<div class="form-card">
 			<div class="student-header">
 				<div style="display: flex; align-items: center; gap: 14px">
@@ -307,11 +335,27 @@
 						<div style="font-size: 12px; color: #475569">
 							Código Estudante: <b>#{enrollmentBean.selected.student.code}</b>
 							• Matrícula: <b>##{enrollmentBean.selected.id}</b> • Ano: <b>#{enrollmentBean.selected.academicYear.year}</b>
+							• Classe: <b>#{enrollmentBean.selected.classLevel.name}</b> •
+							Turma: <b>#{enrollmentBean.selected.classroom.name}</b>
 						</div>
 						<div style="font-size: 11px; color: #2563eb; margin-top: 2px">Referência:
 							CÓDIGO_ESTUDANTE-CÓDIGO_MATRÍCULA-ANO-MÊS → Ex:
 							#{enrollmentBean.selected.student.code}-#{enrollmentBean.selected.id}-2026-02</div>
 					</div>
+				</div>
+				<!-- MENSALIDADE BLOQUEADA NO CABEÇALHO -->
+				<div style="text-align: right; flex-shrink: 0">
+					<span class="locked-badge"><i class="pi pi-lock" />
+						MENSALIDADE BLOQUEADA</span>
+					<div style="font-size: 11px; color: #475569; margin-top: 8px">#{enrollmentBean.monthlyFeeItem.descricao}</div>
+					<div style="font-size: 20px; font-weight: 900; color: #0a2540">
+						<h:outputText value="#{enrollmentBean.monthlyFeeAmount} MT"
+							rendered="#{enrollmentBean.monthlyFeeAmount != null}" />
+						<h:outputText value="#{enrollmentBean.defaultAmount} MT"
+							rendered="#{enrollmentBean.monthlyFeeAmount == null}" />
+					</div>
+					<div style="font-size: 11px; color: #64748b">/ mês • da
+						FeeItem da classe</div>
 				</div>
 			</div>
 
@@ -325,12 +369,14 @@
 					<div>
 						<div style="font-size: 14px; font-weight: 800">Gerar
 							Referências</div>
-						<div style="font-size: 11px; color: #64748b">Escolhe mês
-							inicial até mês final. Valor e data limite.</div>
+						<div style="font-size: 11px; color: #64748b">
+							Escolhe mês inicial até mês final. O valor vem da mensalidade da
+							classe e <b>não pode ser alterado aqui</b>.
+						</div>
 					</div>
 				</div>
 				<div
-					style="display: grid; grid-template-columns: 150px 150px 90px 110px 120px auto; gap: 12px; align-items: end; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px">
+					style="display: grid; grid-template-columns: 150px 150px 90px 1fr 110px auto; gap: 12px; align-items: end; background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px">
 					<div>
 						<span
 							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Mês
@@ -362,9 +408,19 @@
 					<div>
 						<span
 							style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase">Valor
-							MT</span>
-						<p:inputNumber value="#{enrollmentBean.defaultAmount}"
-							decimalSeparator="," thousandSeparator="." style="width:100%" />
+							MT — Bloqueado</span>
+						<!-- BLOQUEADO: sem p:inputNumber, sem input editável. Só output + hidden para o Bean ler -->
+						<div class="value-box-locked">
+							<span><i class="pi pi-lock"
+								style="margin-right: 6px; color: #1e40af" />
+							<h:outputText value="#{enrollmentBean.monthlyFeeAmount} MT"
+									rendered="#{enrollmentBean.monthlyFeeAmount != null}" />
+								<h:outputText value="#{enrollmentBean.defaultAmount} MT"
+									rendered="#{enrollmentBean.monthlyFeeAmount == null}" /></span><span
+								class="locked-badge">FEEITEM</span>
+						</div>
+						<h:inputHidden value="#{enrollmentBean.defaultAmount}" />
+					
 					</div>
 					<div>
 						<span
@@ -381,20 +437,34 @@
 					</div>
 					<div>
 						<p:commandButton value="Gerar" icon="pi pi-bolt"
-							style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
+							style="border-radius:12px; background:#16a34a; border:none; font-weight:700"
 							action="#{enrollmentBean.generateMonthlyFromDate}"
 							update=":formView:growl :formView:monthlyPanel :formView:totalBar" />
 					</div>
 				</div>
 			</div>
 
+			<!-- LISTAGEM MELHORADA DAS REFERÊNCIAS -->
 			<h:panelGroup id="monthlyPanel" layout="block">
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
 					layout="block">
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+						<div
+							style="font-size: 13px; font-weight: 800; color: #0a2540; text-transform: uppercase; letter-spacing: .4px">
+							<i class="pi pi-list" style="margin-right: 6px; color: #2563eb" />
+							Referências Geradas —
+							#{enrollmentBean.generatedMonthlyFees.size()} meses
+						</div>
+						<div style="font-size: 12px; color: #64748b">
+							Valor fixo: <b>#{enrollmentBean.monthlyFeeAmount} MT</b> / mês •
+							Classe #{enrollmentBean.selected.classLevel.name}
+						</div>
+					</div>
 					<div class="grid-head">
 						<span>Mês</span><span>Referência</span><span>Valor</span><span>Data
-							Limite</span>
+							Limite</span><span style="text-align: center">Estado</span>
 					</div>
 					<div
 						style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px">
@@ -405,11 +475,12 @@
 									<div
 										style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px">#{fee.month}</div>
 									<div>
-										<b style="font-size: 13px">#{fee.monthLabel}</b><br /> <span
-											style="font-size: 10px; color: #64748b">#{fee.year}</span>
+										<b style="font-size: 13px">#{fee.monthLabel}</b><br />
+										<span style="font-size: 10px; color: #64748b">#{fee.year}
+											• #{enrollmentBean.selected.classLevel.name}</span>
 									</div>
 								</div>
-								<span class="ref-badge">#{fee.reference}</span><b
+								<span class="ref-badge">#{fee.reference}</span> <b
 									style="font-size: 13px; color: #0a2540">#{fee.amount} MT</b>
 								<div style="display: flex; align-items: center; gap: 6px">
 									<i class="pi pi-calendar" style="color: #2563eb" /><span
@@ -418,8 +489,18 @@
 											<f:convertDateTime pattern="dd/MM/yyyy" />
 										</h:outputText></span>
 								</div>
+								<div style="text-align: center">
+									<p:tag value="PENDENTE" severity="warning"
+										style="font-size:10px" />
+								</div>
 							</div>
 						</ui:repeat>
+					</div>
+					<div
+						style="margin-top: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #166534; display: flex; justify-content: space-between">
+						<span><i class="pi pi-info-circle" /> Todas as referências
+							usam o mesmo valor da mensalidade da classe — não há valores
+							diferentes por mês.</span><b>Total: #{enrollmentBean.totalAmount} MT</b>
 					</div>
 				</h:panelGroup>
 				<h:panelGroup
@@ -429,13 +510,13 @@
 						style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px">
 						<i class="pi pi-calendar"
 							style="font-size: 28px; display: block; margin-bottom: 8px" />Escolhe
-						mês inicial e final e clica Gerar.
+						mês inicial e final e clica Gerar. O valor será o da mensalidade
+						da classe: <b>#{enrollmentBean.monthlyFeeAmount} MT</b>.
 					</div>
 				</h:panelGroup>
 			</h:panelGroup>
 
 			<h:panelGroup id="totalBar" layout="block">
-				<!-- Folha A4 -->
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
 					layout="block">
@@ -444,8 +525,7 @@
 							<div class="ps-row">
 								<div>
 									<div class="ps-school">#{loginBean.loggedSchool.name}</div>
-									<div class="ps-school-sub">
-										#{loginBean.loggedSchool.address}
+									<div class="ps-school-sub">#{loginBean.loggedSchool.address}
 										#{loginBean.loggedSchool.nuit != null ? ' • NUIT:
 										'.concat(loginBean.loggedSchool.nuit) : ''}
 										#{loginBean.loggedSchool.phone != null ? ' • Tel:
@@ -455,12 +535,12 @@
 									<div
 										style="margin-top: 10px; font-size: 12px; font-weight: 600; opacity: .95">Referências
 										de Mensalidade - Ano Lectivo
-										#{enrollmentBean.selected.academicYear.year}</div>
+										#{enrollmentBean.selected.academicYear.year} • Classe
+										#{enrollmentBean.selected.classLevel.name}</div>
 								</div>
 								<div class="ps-year">#{enrollmentBean.selected.academicYear.year}</div>
 							</div>
 						</div>
-
 						<div class="ps-student">
 							<div class="ps-avatar">#{enrollmentBean.selected.student.firstName.substring(0,1).toUpperCase()}</div>
 							<div>
@@ -468,16 +548,17 @@
 								<div class="meta">
 									Código: <b>#{enrollmentBean.selected.student.code}</b> •
 									Matrícula: <b>##{enrollmentBean.selected.id}</b><br />Turma: <b>#{enrollmentBean.selected.classroom.name}</b>
-									• Ano lectivo: <b>#{enrollmentBean.selected.academicYear.year}</b>
+									• Classe: <b>#{enrollmentBean.selected.classLevel.name}</b> •
+									Ano lectivo: <b>#{enrollmentBean.selected.academicYear.year}</b>
 									• Período: <b>#{enrollmentBean.startMonth != null ?
 										enrollmentBean.months[enrollmentBean.startMonth-1].label : ''}
 										até #{enrollmentBean.endMonth != null ?
 										enrollmentBean.months[enrollmentBean.endMonth-1].label :
-										'Dezembro'}</b>
+										'Dezembro'}</b> • Mensalidade: <b>#{enrollmentBean.monthlyFeeAmount}
+										MT / mês</b>
 								</div>
 							</div>
 						</div>
-
 						<table class="ps-table">
 							<thead>
 								<tr>
@@ -503,7 +584,6 @@
 								</ui:repeat>
 							</tbody>
 						</table>
-
 						<div class="ps-total">
 							<div>
 								<div class="lbl">Total a pagar
@@ -513,8 +593,9 @@
 						</div>
 						<div class="ps-note">
 							<b>Importante:</b> indique sempre a <b>referência</b> do mês no
-							pagamento e pague até à <b>data limite</b>. Guarde o
-							comprovativo.
+							pagamento e pague até à <b>data limite</b>. Valor da mensalidade
+							definido para a classe <b>#{enrollmentBean.selected.classLevel.name}</b>.
+							Guarde o comprovativo.
 						</div>
 						<div class="ps-sign">
 							<div>Encarregado de Educação</div>
@@ -526,7 +607,6 @@
 						</div>
 					</div>
 				</h:panelGroup>
-
 				<h:panelGroup
 					rendered="#{not empty enrollmentBean.generatedMonthlyFees}"
 					layout="block">
@@ -549,7 +629,7 @@
 						</div>
 						<div style="display: flex; gap: 8px">
 							<p:commandButton value="Gravar Referências" icon="pi pi-save"
-								style="border-radius:12px;background:#16a34a;border:none;font-weight:700"
+								style="border-radius:12px; background:#16a34a; border:none; font-weight:700"
 								action="#{enrollmentBean.saveMonthlyReferences}"
 								update=":formView:growl" />
 							<p:commandButton value="Imprimir" icon="pi pi-print"
